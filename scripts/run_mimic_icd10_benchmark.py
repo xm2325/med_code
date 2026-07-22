@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.mimic_benchmark import run_mimic_icd10_benchmark
+from cohortcoder.mimic_report import write_mimic_report
 
 
 def main() -> None:
@@ -39,6 +40,7 @@ def main() -> None:
         source_version=args.source_version,
         batch_size=args.batch_size,
     )
+    write_mimic_report(args.output_dir)
     print(json.dumps(metrics, indent=2))
 
 
