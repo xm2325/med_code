@@ -12,6 +12,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.mimic_audit import write_mimic_audit_artifacts
 from cohortcoder.mimic_benchmark import run_mimic_icd10_benchmark
@@ -60,6 +61,11 @@ def main() -> None:
         data_is_synthetic=False,
         source_version=args.source_version,
         batch_size=args.batch_size,
+    )
+    stamp_benchmark_artifacts(
+        benchmark_dir,
+        version="0.0.12",
+        benchmark_profile="mimic_iv_note_icd10_multilabel",
     )
     write_mimic_report(benchmark_dir)
 
