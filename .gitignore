@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+.DS_Store
+*.zip
+
+# Raw or processed research data
+data/raw/
+data/processed/
+private_data/
+secure_data/
+
+# Generated experiment outputs
+outputs/
+
+# Licensed terminology distributions
+meddra/
+terminology/private/
