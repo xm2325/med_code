@@ -95,6 +95,8 @@ def write_review_casebook(output_dir: str | Path, casebook: pd.DataFrame) -> Non
     for _, row in casebook.iterrows():
         evidence = _safe_json(row.get("evidence_quotes_json", ""))
         candidates = _safe_json(row.get("candidates_json", ""))
+        context = str(row.get("text", ""))
+        mention = str(row.get("mention", ""))
         cards.append(f"""
 <section class='card'>
 <h2>{escape(str(row.get('casebook_id', '')))} — {escape(str(row.get('review_reason', '')))}</h2>
@@ -102,11 +104,13 @@ def write_review_casebook(output_dir: str | Path, casebook: pd.DataFrame) -> Non
 <p><b>Gold:</b> {escape(str(row.get('gold_code', '')))} {escape(str(row.get('gold_term', '')))}</p>
 <p><b>Predicted:</b> {escape(str(row.get('predicted_code', '')))} {escape(str(row.get('predicted_term', '')))}</p>
 <p><b>Confidence:</b> {escape(str(row.get('confidence', '')))} &nbsp; <b>Decision:</b> {escape(str(row.get('decision', '')))}</p>
+<h3>Original context</h3><div class='record'>{escape(context)}</div>
+<h3>Task mention</h3><p>{escape(mention)}</p>
 <h3>Why</h3><p>{escape(str(row.get('why', '')))}</p>
 <h3>Evidence</h3><pre>{escape(evidence)}</pre>
 <h3>Top candidates</h3><pre>{escape(candidates)}</pre>
 </section>""")
     html = """<!doctype html><html><head><meta charset='utf-8'><title>MedCode clinical review casebook</title>
-<style>body{font-family:Arial,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;line-height:1.45}.card{border:1px solid #ccc;border-radius:10px;padding:1rem 1.3rem;margin:1.2rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f7f7f7;padding:.8rem}</style>
+<style>body{font-family:Arial,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;line-height:1.45}.card{border:1px solid #ccc;border-radius:10px;padding:1rem 1.3rem;margin:1.2rem 0}.record{white-space:pre-wrap;background:#fbfbfb;border:1px solid #ddd;padding:.8rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f7f7f7;padding:.8rem}</style>
 </head><body><h1>MedCode clinical review casebook</h1><p>Priority errors and evidence failures are sampled before correct controls. This file is for expert review, not a performance summary.</p>""" + "\n".join(cards) + "</body></html>"
     (output / "review_casebook.html").write_text(html, encoding="utf-8")
