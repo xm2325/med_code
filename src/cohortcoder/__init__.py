@@ -7,6 +7,7 @@ from .benchmark_profiles import CADEC_MEDDRA, MIMIC_IV_ICD10, BenchmarkProfile, 
 from .cadec import audit_cadec_records, parse_cadec, write_cadec_audit_artifacts
 from .candidate_rationales import build_candidate_rationales, build_review_packet
 from .core import HistoricalCoder, accuracy_at_k, coverage_accuracy
+from .deepseek_real_eval import DeepSeekRealCandidateEvaluator, validate_multi_candidate_payload
 from .explain import EvidenceSpan, build_explanation_record, explain_predictions, extract_evidence_spans, write_explanation_artifacts
 from .explanation_quality import apply_explanation_quality_gate, evaluate_explanation_quality, summarize_explanation_quality
 from .feedback import ExpertFeedback, append_feedback_jsonl, feedback_summary, feedback_to_training_memory, hash_reviewer_id, validate_feedback
@@ -24,5 +25,5 @@ from .results import ResultsContract, build_results_contract, contract_from_benc
 from .review_service import ReviewQueue
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [name for name in globals() if not name.startswith("_")]
