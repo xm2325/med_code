@@ -1,4 +1,4 @@
-"""MedCode research prototype."""
+"""MedCode explainable clinical coding toolkit."""
 
 from .advanced import AdvancedModelConfig, AdvancedSingleLabelCoder, CrossEncoderCandidateReranker, DenseSemanticIndex
 from .analysis import annotate_prediction_diagnostics, choose_threshold_max_coverage, coverage_accuracy_curve, failure_summary, policy_stress_test, subgroup_metrics, write_evaluation_plots
@@ -18,10 +18,11 @@ from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
 from .registry import register_experiment, stable_json_hash, write_data_card, write_model_card
+from .release import V010_REQUIRED_CAPABILITIES, build_release_manifest, validate_release_manifest, write_release_manifest
 from .release_gate import evaluate_release_readiness
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 from .review_service import ReviewQueue
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.0.19"
+__version__ = "0.1.0"
 __all__ = [name for name in globals() if not name.startswith("_")]
