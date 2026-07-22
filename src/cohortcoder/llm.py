@@ -28,6 +28,8 @@ def validate_llm_rationale(
         errors.append("evidence_quotes_not_list")
         quotes = []
     allowed = {str(quote) for quote in allowed_quotes}
+    if not allowed:
+        errors.append("no_affirmed_evidence_available")
     for quote in quotes:
         if str(quote) not in allowed:
             errors.append("non_verbatim_or_unapproved_evidence")
@@ -111,6 +113,13 @@ class DeepSeekRationaleClient:
         term = str(explanation.get("predicted_term", ""))
         system = str(explanation.get("coding_system", ""))
         evidence_quotes = [str(value) for value in explanation.get("evidence_quotes", [])]
+        if not evidence_quotes:
+            return {
+                "accepted": False,
+                "payload": None,
+                "validation_errors": ["no_affirmed_evidence_available"],
+                "model": self.model,
+            }
         knowledge = explanation.get("external_knowledge", {})
 
         examples = []
@@ -202,8 +211,6 @@ def apply_deepseek_rationales(
             item["llm_evidence_quotes"] = list(payload.get("evidence_quotes", []))
             item["explanation_source"] = f"deepseek:{result['model']}"
             item["llm_rationale_status"] = "validated"
-            # Grounding is a property of the evidence layer and must not be changed by
-            # the optional wording layer.
             item["explanation_status"] = original_status
         else:
             item["explanation_source"] = original_source
