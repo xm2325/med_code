@@ -1,8 +1,6 @@
-# MedCode — v0.0.11
+# MedCode — v0.0.12
 
 Research prototype for **explainable clinical coding** using terminology knowledge and historical expert-coded text.
-
-The desired output is not only a code:
 
 ```text
 clinical text
@@ -22,58 +20,95 @@ AUTO_CANDIDATE, CODE_PROPOSAL, or HUMAN_REVIEW
 
 The explanation layer keeps the selected code locked. It cannot silently replace the code or invent evidence that is absent from the source text.
 
-## v0.0.11: two real benchmark profiles
+## What v0.0.12 changes
 
-v0.0.11 makes an important distinction between two different clinical coding tasks.
+v0.0.12 focuses on **real-benchmark readiness**, not another model layer.
+
+Before a benchmark is allowed to run, the data path can now audit the inputs that determine whether the later explanation and performance numbers are trustworthy.
+
+### CADEC → MedDRA
+
+The parser now preserves the original BRAT annotation structure:
+
+```text
+source document
+    ↓
+T annotation + exact character span(s)
+    ↓
+MedDRA normalization
+    ↓
+offset/text integrity audit
+    ↓
+terminology coverage audit
+    ↓
+document-level TRAIN / VAL / TEST
+    ↓
+held-out coding benchmark
+    ↓
+exact task-input evidence + why-this-code explanation
+    ↓
+priority clinical/coder review casebook
+```
+
+Discontinuous spans such as `6 10;19 23` remain two spans. They are not collapsed into the outer interval `6–23`, which would incorrectly highlight intervening text.
+
+The parser writes `spans_json`, `is_discontinuous`, `offset_text`, and `offset_match`. A benchmark can be blocked before model fitting when source offsets are unreliable or the supplied terminology does not cover enough reference codes.
+
+### MIMIC-IV-Note → ICD-10
+
+The multi-label path remains patient-disjoint and now has a pre-flight audit:
+
+```text
+prepared discharge summaries + ICD-10 labels
+    ↓
+subject_id leakage check
+    ↓
+empty text / empty label check
+    ↓
+ICD-10 terminology coverage
+    ↓
+note length + codes-per-note distribution
+    ↓
+multi-label benchmark
+    ↓
+one explanation object per proposed ICD code
+```
+
+A `target_proposal_precision=0.95` policy applies to **individual code proposals**. It must not be described as 95% of whole discharge summaries being fully auto-coded.
+
+## Two benchmark profiles
 
 ### A. CADEC → MedDRA
 
-```text
-patient-authored post
-    -> annotated adverse-event mention
-    -> one MedDRA concept
-    -> evidence + rationale
-```
-
 Task type: **single-label concept normalization**.
 
-Primary metrics include Accuracy@1/5, candidate recall, and validation-selected AUTO/HUMAN_REVIEW performance.
+Primary evaluation includes Accuracy@1/5, candidate recall, seen/unseen-code analysis, historical-memory ablation, and validation-selected AUTO/HUMAN_REVIEW policy performance.
 
 Split unit: source document/post.
 
 ### B. MIMIC-IV-Note → ICD-10
 
-```text
-discharge summary
-    -> multiple ICD-10 diagnosis codes
-    -> one evidence/rationale object per proposed code
-```
-
 Task type: **multi-label document coding**.
 
-Primary metrics include micro/macro F1, precision/recall@k, seen/unseen-code recall, and a validation-selected per-code proposal policy.
+Primary evaluation includes micro/macro F1, precision/recall@k, seen/unseen-code recall, historical-memory ablation, and a validation-selected per-code proposal policy.
 
-Split unit: `subject_id`. All admissions for one patient stay in one split.
+Split unit: `subject_id`; all admissions for one patient remain in one split.
 
-**Do not compare CADEC Accuracy@1 directly with MIMIC micro-F1 as if they were the same task.** `compare_benchmarks.py` creates a side-by-side report but intentionally does not compute a pooled score.
-
-See `docs/BENCHMARKS.md`.
+Do not pool CADEC Accuracy@1 and MIMIC micro-F1 into a single score. They are different tasks.
 
 ## Explainability
 
-For every proposed code, MedCode can emit:
+For each proposed code the system can show:
 
 ```text
 Code
-ICD-10 I21.4 — Non-ST elevation myocardial infarction
+MedDRA / ICD-10 code + preferred term
 
 Evidence
-"NSTEMI"
-"troponin elevation with ischemic changes"
+exact verbatim source span(s) with character offsets
 
 Why this code?
-The proposed code is supported by the highlighted source wording and the supplied
-terminology knowledge. Similar historical expert-coded examples are shown separately.
+terminology mapping + historical coding support
 
 External knowledge
 preferred term / synonyms / definition / hierarchy / knowledge source
@@ -81,39 +116,47 @@ preferred term / synonyms / definition / hierarchy / knowledge source
 Historical support
 similar TRAIN records carrying the same code
 
-Faithfulness audit
-- selected-code score on the original model input
-- selected-code score with evidence only
-- selected-code score after evidence removal
+Faithfulness
+selected-code score on original input
+selected-code score with evidence only
+selected-code score after evidence removal
 ```
 
-Evidence spans are copied verbatim from the source text with character offsets.
+For CADEC, v0.0.12 prefers the exact task-provided BRAT mention spans over re-searching the text. This preserves the intended mention location when the same phrase appears multiple times.
 
-v0.0.11 also supports comparison with human rationale annotations using:
+The design keeps three questions separate:
 
-```text
-record_id,code,start,end,quote
-```
+1. **coding accuracy** — is the code correct?
+2. **faithfulness** — does the highlighted evidence actually affect the model score?
+3. **plausibility** — would a clinician/coder judge the evidence and explanation appropriate?
 
-and reports character-level rationale precision, recall, and F1 by record-code pair.
+## Clinical review casebook
 
-The design is informed by Mingyang Li's Manchester work and the EACL 2026 paper *Evaluation and LLM-Guided Learning of ICD Coding Rationales*: **faithfulness** and **plausibility** remain separate evaluation questions.
+The CADEC end-to-end runner creates a casebook that prioritizes:
 
-See `docs/EXPLAINABILITY.md` and `docs/BENCHMARKS.md`.
+- AUTO_CANDIDATE errors;
+- high-confidence errors;
+- unseen-code errors;
+- insufficient-evidence cases;
+- other errors;
+- correct controls.
+
+The HTML/CSV includes original source context, task mention, prediction, confidence, rationale, evidence and candidate list, plus blank expert-review fields.
 
 ## Optional DeepSeek rationale writer
 
 `DEEPSEEK_API_KEY` is read from the environment only when the optional LLM path is explicitly enabled.
 
-DeepSeek is used as a **locked-code rationale writer**, not as an unrestricted coding agent:
+DeepSeek is a **locked-code rationale writer**, not an unrestricted coding agent:
 
-- the code is already selected before the call;
+- the code is selected before the call;
 - only approved evidence spans and terminology knowledge are supplied by default;
 - the returned code must equal the locked code;
-- returned evidence quotes must match the approved verbatim source spans;
-- invalid output is rejected and deterministic grounded output is retained.
+- returned evidence quotes must match approved verbatim source spans;
+- invalid output is rejected;
+- no affirmative grounded evidence means no LLM call.
 
-External calls require explicit opt-in and are blocked by the client for `restricted` or `private` clinical data. Do not send MIMIC, BSRBR, or other governed clinical text to an external endpoint unless the applicable governance explicitly permits it.
+External calls are blocked by the client for `restricted` or `private` clinical data. Do not send MIMIC, BSRBR, or other governed clinical text to an external endpoint unless the applicable governance explicitly permits it.
 
 ## Quick start
 
@@ -121,85 +164,74 @@ External calls require explicit opt-in and are blocked by the client for `restri
 python -m pip install -e .
 pytest -q
 python scripts/run_explainable_demo.py
+python scripts/run_multilabel_synthetic_demo.py
 ```
 
-## Benchmark A — CADEC → MedDRA
+## One-command CADEC v0.0.12 path
 
-Prepare CADEC:
+Use an authorised terminology file with columns such as:
+
+```text
+system,code,term,synonyms,definition,hierarchy,knowledge_source
+```
+
+Then run:
 
 ```bash
-python scripts/prepare_cadec_public.py \
+python scripts/run_cadec_v0012.py \
   --cadec-root /path/to/CADEC \
-  --output data/processed/cadec.csv
-
-python scripts/split_real_dataset.py \
-  --records data/processed/cadec.csv \
-  --output data/processed/cadec_with_split.csv
-```
-
-Run the single-label MedDRA benchmark using an authorised terminology resource:
-
-```bash
-python scripts/run_real_benchmark.py \
-  --records data/processed/cadec_with_split.csv \
   --terminology /secure/path/meddra_candidates.csv \
-  --coding-system MedDRA \
-  --benchmark-profile cadec_meddra_normalization \
-  --output-dir outputs/cadec_v0011 \
-  --reference-labels-external
+  --output-dir outputs/cadec_v0012 \
+  --target-auto-accuracy 0.95
 ```
 
-Generate evidence-grounded explanations:
+Main outputs:
 
-```bash
-python scripts/explain_benchmark.py \
-  --records data/processed/cadec_with_split.csv \
-  --terminology /secure/path/meddra_candidates.csv \
-  --coding-system MedDRA \
-  --benchmark-dir outputs/cadec_v0011
+```text
+outputs/cadec_v0012/
+├── data/
+│   ├── cadec_parsed.csv
+│   └── cadec_split.csv
+├── audit/
+│   ├── dataset_audit.json
+│   └── manual_parser_review_sample.csv
+├── benchmark/
+│   ├── metrics.json
+│   ├── predictions.csv
+│   ├── results_contract.json
+│   ├── frozen_policy.json
+│   ├── explanations.html
+│   └── ...
+├── casebook/
+│   ├── review_casebook.csv
+│   └── review_casebook.html
+└── pipeline_summary.json
 ```
 
-## Benchmark B — MIMIC-IV-Note → ICD-10
+The pipeline stops before benchmarking when the default data-readiness gate fails, unless `--allow-audit-failures` is explicitly supplied for debugging.
 
-MIMIC-IV-Note is credentialed-access PhysioNet data. Keep all source and derived patient-level files outside this public repository.
-
-A reproducible default is to use MIMIC-IV-Note v2.2 with the corresponding MIMIC-IV v2.2 diagnosis tables and record the exact versions in the experiment manifest.
-
-Prepare one multi-label record per hospitalization and split by patient:
+Individual steps are also available:
 
 ```bash
-python scripts/prepare_mimic_iv_icd10.py \
-  --discharge /secure/mimic-iv-note/2.2/note/discharge.csv.gz \
-  --diagnoses /secure/mimiciv/2.2/hosp/diagnoses_icd.csv.gz \
-  --dictionary /secure/mimiciv/2.2/hosp/d_icd_diagnoses.csv.gz \
-  --output /secure/derived/mimic_icd10_records.csv
-
-python scripts/prepare_icd10_terminology.py \
-  --dictionary /secure/mimiciv/2.2/hosp/d_icd_diagnoses.csv.gz \
-  --output /secure/derived/icd10_terminology.csv
+python scripts/prepare_cadec_public.py --cadec-root /path/to/CADEC --output data/cadec.csv
+python scripts/audit_cadec_dataset.py --records data/cadec.csv --terminology /secure/meddra.csv --output-dir outputs/audit
 ```
 
-Run the multi-label benchmark:
+## One-command MIMIC v0.0.12 path
+
+MIMIC-IV-Note is credentialed-access PhysioNet data. Keep source and derived patient-level files outside this public repository.
+
+First prepare records and terminology using the v0.0.11 adapters, then run:
 
 ```bash
-python scripts/run_mimic_icd10_benchmark.py \
+python scripts/run_mimic_v0012.py \
   --records /secure/derived/mimic_icd10_records.csv \
   --terminology /secure/derived/icd10_terminology.csv \
-  --output-dir /secure/results/mimic_v0011 \
-  --target-proposal-precision 0.95 \
-  --reference-labels-external
+  --output-dir /secure/results/mimic_v0012 \
+  --target-proposal-precision 0.95
 ```
 
-Generate **one explanation per proposed ICD code**:
-
-```bash
-python scripts/explain_mimic_icd10.py \
-  --records /secure/derived/mimic_icd10_records.csv \
-  --terminology /secure/derived/icd10_terminology.csv \
-  --benchmark-dir /secure/results/mimic_v0011
-```
-
-For MIMIC, `target-proposal-precision=0.95` means a target precision for **individual code proposals**. It does not mean that 95% of entire discharge summaries can be completely auto-coded.
+The pre-flight audit checks patient leakage, empty records/labels, terminology coverage and dataset distributions before model fitting.
 
 ## Human rationale evaluation
 
@@ -207,46 +239,25 @@ When governed human rationale annotations are available:
 
 ```bash
 python scripts/evaluate_rationale_annotations.py \
-  --explanations /secure/results/mimic_v0011/explainability/explanations.csv \
+  --explanations /secure/results/mimic_v0012/benchmark/explainability/explanations.csv \
   --reference /secure/rationales/reference_spans.csv \
   --records /secure/derived/mimic_icd10_records.csv \
-  --output-dir /secure/results/mimic_v0011/rationale_eval
+  --output-dir /secure/results/mimic_v0012/rationale_eval
 ```
 
-The evaluator first audits source offsets/quotes, then reports record-code character-level overlap metrics.
-
-A fluent LLM rationale does not make an incorrect code correct. Evaluate separately:
-
-1. **coding performance**;
-2. **evidence faithfulness**;
-3. **human/expert plausibility**.
-
-## Side-by-side benchmark summary
-
-```bash
-python scripts/compare_benchmarks.py \
-  --cadec-dir outputs/cadec_v0011 \
-  --mimic-dir /secure/results/mimic_v0011 \
-  --output-dir outputs/dual_benchmark_v0011
-```
-
-Outputs include `dual_benchmark_summary.html`, but no pooled score is calculated across the incompatible tasks.
-
-## Terminology schema
-
-Recommended columns:
+Reference schema:
 
 ```text
-system,code,term,synonyms,definition,hierarchy,knowledge_source
+record_id,code,start,end,quote
 ```
 
-`term` stays human-readable. Synonyms and definitions can contribute to a separate retrieval representation. One benchmark run targets one coding system; do not mix ICD-10 and MedDRA code spaces in one candidate dictionary.
+The evaluator audits source offsets/quotes before computing record-code character-level rationale precision, recall and F1.
 
-## Evidence boundary
+## Results boundary
 
 A benchmark is marked reportable only when the Results Contract confirms the required conditions: external reference labels, group-disjoint held-out TEST data, no TEST-derived terminology leakage, no TEST tuning, non-synthetic data, and recorded provenance.
 
-Synthetic smoke tests, oracle diagnostics, and TEST-tuned analyses must not be presented as clinical performance evidence.
+A fluent explanation does not make an incorrect code correct. Synthetic smoke tests, oracle diagnostics and TEST-tuned analyses must not be presented as clinical performance evidence.
 
 ## Data governance
 
@@ -254,9 +265,9 @@ Do not commit:
 
 - raw participant/patient-level clinical data;
 - MIMIC notes or derived patient-level datasets;
-- governed rationale annotations derived from MIMIC;
+- governed rationale annotations;
 - BSRBR free text or restricted cohort extracts;
 - a full licensed MedDRA distribution;
 - API keys or secrets.
 
-This repository is a research coding-support prototype, not a clinical decision system.
+See `docs/BENCHMARKS.md`, `docs/EXPLAINABILITY.md`, and `docs/BSRBR_TRANSFER_PROTOCOL.md` for the study design boundaries.
