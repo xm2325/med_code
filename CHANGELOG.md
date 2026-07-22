@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.10
+
+- Adds exact character-offset evidence spans for each proposed coding label.
+- Adds record-level `why this code?` explanations grounded in verbatim source text.
+- Adds external terminology knowledge fields for ICD/MedDRA runs: synonyms, definition, hierarchy, and knowledge source.
+- Keeps one coding system per benchmark run and preserves clean human-readable terminology labels.
+- Adds score-level retain/remove evidence diagnostics analogous to rationale sufficiency and comprehensiveness.
+- Adds `explanations.csv`, `explanations.jsonl`, `explanations.html`, `explainability_metrics.json`, and an expert plausibility-review template.
+- Adds optional DeepSeek rationale generation using `DEEPSEEK_API_KEY`, with the selected code locked and evidence quotes post-validated.
+- Blocks external LLM calls for restricted/private data and requires explicit opt-in for public/synthetic data.
+- Adds an end-to-end new-record path: prediction -> code -> evidence -> rationale -> AUTO/REVIEW decision.
+- Adds a manual, synthetic-only DeepSeek GitHub Actions smoke workflow so repository secrets are never printed or committed.
+
 ## v0.0.9
 
 - Fixes AUTO/REVIEW threshold selection to maximise validation coverage subject to the prespecified accuracy target.
