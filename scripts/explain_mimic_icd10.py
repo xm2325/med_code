@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.clinical_context import audit_explanation_context
 from cohortcoder.explain import write_explanation_artifacts
-from cohortcoder.explanation_quality import apply_explanation_quality_gate, summarize_explanation_quality
+from cohortcoder.explanation_quality import apply_explanation_quality_gate, write_explanation_quality_artifacts
 from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.multilabel import MultiLabelHistoricalCoder
@@ -75,10 +75,9 @@ def main() -> None:
         explanations = [by_key.get((item["record_id"], item["predicted_code"]), item) for item in explanations]
 
     explanations = apply_explanation_quality_gate(explanations)
-    quality = summarize_explanation_quality(explanations)
     output = benchmark / "explainability"
     output.mkdir(parents=True, exist_ok=True)
-    (output / "explanation_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
+    quality = write_explanation_quality_artifacts(output, explanations)
     metrics = write_explanation_artifacts(output, explanations)
     metrics["explanation_unit"] = "record_code_pair"
     metrics["n_code_proposals_explained"] = len(explanations)
