@@ -24,6 +24,7 @@ def main() -> None:
     p.add_argument("--target-auto-accuracy", type=float, default=0.95)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--audit-sample-size", type=int, default=50)
+    p.add_argument("--casebook-size", type=int, default=40)
     p.add_argument("--allow-audit-failures", action="store_true")
     args = p.parse_args()
 
@@ -31,7 +32,8 @@ def main() -> None:
     data_dir = output / "data"
     audit_dir = output / "audit"
     benchmark_dir = output / "benchmark"
-    for path in [data_dir, audit_dir, benchmark_dir]:
+    casebook_dir = output / "casebook"
+    for path in [data_dir, audit_dir, benchmark_dir, casebook_dir]:
         path.mkdir(parents=True, exist_ok=True)
 
     parsed_path = data_dir / "cadec_parsed.csv"
@@ -64,7 +66,7 @@ def main() -> None:
         seed=args.seed,
     )
 
-    # Plot generation remains separate from threshold selection and uses held-out TEST only descriptively.
+    # Plot generation is descriptive held-out evaluation only; it never selects a policy.
     import pandas as pd
     write_evaluation_plots(
         benchmark_dir,
@@ -83,6 +85,17 @@ def main() -> None:
     ]
     subprocess.run(explain_cmd, check=True)
 
+    casebook_cmd = [
+        sys.executable,
+        str(ROOT / "scripts" / "build_review_casebook.py"),
+        "--predictions", str(benchmark_dir / "predictions.csv"),
+        "--explanations", str(benchmark_dir / "explanations.csv"),
+        "--output-dir", str(casebook_dir),
+        "--max-cases", str(args.casebook_size),
+        "--seed", str(args.seed),
+    ]
+    subprocess.run(casebook_cmd, check=True)
+
     summary = {
         "status": "completed",
         "version": "0.0.12",
@@ -95,6 +108,8 @@ def main() -> None:
             "audit_dir": str(audit_dir),
             "benchmark_dir": str(benchmark_dir),
             "explanations_html": str(benchmark_dir / "explanations.html"),
+            "review_casebook_html": str(casebook_dir / "review_casebook.html"),
+            "review_casebook_csv": str(casebook_dir / "review_casebook.csv"),
         },
     }
     (output / "pipeline_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
