@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from cohortcoder.analysis import write_evaluation_plots
 from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
 from cohortcoder.cadec import parse_cadec, write_cadec_audit_artifacts
+from cohortcoder.cadec_report import write_cadec_report
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.realdata import assign_document_splits, run_real_benchmark
 
@@ -90,6 +91,7 @@ def main() -> None:
         "--max-cases", str(args.casebook_size),
         "--seed", str(args.seed),
     ], check=True)
+    write_cadec_report(benchmark_dir)
 
     summary = {
         "status": "completed",
@@ -102,6 +104,7 @@ def main() -> None:
             "split_records": str(split_path),
             "audit_dir": str(audit_dir),
             "benchmark_dir": str(benchmark_dir),
+            "benchmark_report": str(benchmark_dir / "report.html"),
             "explanations_html": str(benchmark_dir / "explanations.html"),
             "review_casebook_html": str(casebook_dir / "review_casebook.html"),
             "review_casebook_csv": str(casebook_dir / "review_casebook.csv"),
