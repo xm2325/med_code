@@ -12,11 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.clinical_context import audit_explanation_context
-from cohortcoder.core import HistoricalCoder
 from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
+from cohortcoder.explanation_quality import apply_explanation_quality_gate, summarize_explanation_quality
 from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
+from cohortcoder.model_factory import build_singlelabel_coder_from_policy
 from cohortcoder.realdata import assign_document_splits
 from cohortcoder.source_evidence import apply_task_input_spans
 
@@ -64,6 +65,7 @@ def main() -> None:
     parser.add_argument("--terminology", required=True)
     parser.add_argument("--benchmark-dir", required=True)
     parser.add_argument("--coding-system")
+    parser.add_argument("--device", help="Optional torch/sentence-transformers device for a frozen advanced model")
     parser.add_argument("--deepseek", action="store_true", help="Use DeepSeek only to rewrite the locked-code rationale")
     parser.add_argument("--deepseek-model", default="deepseek-v4-pro")
     parser.add_argument("--allow-external-llm", action="store_true")
@@ -81,7 +83,7 @@ def main() -> None:
     train, aligned = _attach_test_text(records, predictions, seed)
 
     policy = json.loads((benchmark / "frozen_policy.json").read_text(encoding="utf-8"))
-    coder = HistoricalCoder(history_weight=float(policy["history_weight"]), top_k=10).fit(train, terminology)
+    coder = build_singlelabel_coder_from_policy(train, terminology, policy, device=args.device)
     explanations = explain_predictions(aligned, terminology, coder=coder)
     if "spans_json" in aligned.columns:
         explanations = apply_task_input_spans(explanations, aligned)
@@ -99,7 +101,11 @@ def main() -> None:
             few_shot_examples=few_shot,
         )
 
+    explanations = apply_explanation_quality_gate(explanations)
+    quality = summarize_explanation_quality(explanations)
+    (benchmark / "explanation_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
     metrics = write_explanation_artifacts(benchmark, explanations)
+    metrics["quality_gate"] = quality
     print(json.dumps(metrics, indent=2))
 
 
