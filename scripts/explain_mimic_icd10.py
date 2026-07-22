@@ -12,11 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.clinical_context import audit_explanation_context
+from cohortcoder.explain import write_explanation_artifacts
+from cohortcoder.explanation_quality import apply_explanation_quality_gate, summarize_explanation_quality
 from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.multilabel import MultiLabelHistoricalCoder
 from cohortcoder.multilabel_explain import explain_multilabel_proposals
-from cohortcoder.explain import write_explanation_artifacts
 
 
 def main() -> None:
@@ -73,17 +74,24 @@ def main() -> None:
         by_key = {(item["record_id"], item["predicted_code"]): item for item in enhanced}
         explanations = [by_key.get((item["record_id"], item["predicted_code"]), item) for item in explanations]
 
-    metrics = write_explanation_artifacts(benchmark / "explainability", explanations)
+    explanations = apply_explanation_quality_gate(explanations)
+    quality = summarize_explanation_quality(explanations)
+    output = benchmark / "explainability"
+    output.mkdir(parents=True, exist_ok=True)
+    (output / "explanation_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
+    metrics = write_explanation_artifacts(output, explanations)
     metrics["explanation_unit"] = "record_code_pair"
     metrics["n_code_proposals_explained"] = len(explanations)
-    (benchmark / "explainability" / "mimic_explainability_manifest.json").write_text(
+    metrics["quality_gate"] = quality
+    (output / "mimic_explainability_manifest.json").write_text(
         json.dumps({
-            "version": "0.0.12",
+            "version": "0.0.13",
             "coding_system": "ICD-10",
             "task_type": "multilabel_document_coding",
             "explanation_unit": "record_code_pair",
             "deepseek_requested": bool(args.deepseek),
             "data_classification": args.data_classification,
+            "explanation_quality_gate": "conservative_downgrade_only",
         }, indent=2),
         encoding="utf-8",
     )
