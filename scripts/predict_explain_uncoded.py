@@ -43,9 +43,12 @@ def main() -> None:
     policy = json.loads(Path(args.frozen_policy).read_text(encoding="utf-8"))
 
     predictions = predict_uncoded(historical, terminology, new_records, policy)
-    predictions.to_csv(output / "predictions.csv", index=False)
+    predictions = predictions.rename(columns={"decision": "policy_decision"})
     aligned = pd.concat(
-        [predictions.reset_index(drop=True), new_records[["text", "mention"]].reset_index(drop=True)],
+        [
+            predictions.rename(columns={"policy_decision": "decision"}).reset_index(drop=True),
+            new_records[["text", "mention"]].reset_index(drop=True),
+        ],
         axis=1,
     )
     coder = HistoricalCoder(history_weight=float(policy["history_weight"]), top_k=10).fit(historical, terminology)
@@ -63,6 +66,13 @@ def main() -> None:
             data_classification=args.data_classification,
             few_shot_examples=few_shot,
         )
+
+    # The frozen policy decision is retained for audit, but a failed explanation-context
+    # guard may only make the operational decision more conservative, never less.
+    predictions["final_decision"] = [item["decision"] for item in explanations]
+    predictions["explanation_status"] = [item["explanation_status"] for item in explanations]
+    predictions["context_review_required"] = [bool(item.get("context_review_required", False)) for item in explanations]
+    predictions.to_csv(output / "predictions.csv", index=False)
 
     metrics = write_explanation_artifacts(output, explanations)
     print(json.dumps(metrics, indent=2))
