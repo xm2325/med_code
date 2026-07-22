@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.12
+
+- Adds a stricter CADEC BRAT/MedDRA parser that preserves discontinuous spans instead of collapsing them into one evidence interval.
+- Adds source-offset validation and parser statistics so annotation text must agree with the original source characters before results are trusted.
+- Adds CADEC pre-flight readiness checks for offset integrity, duplicate/multi-code anomalies, and external terminology coverage.
+- Preserves exact CADEC task-input spans in explanation output, avoiding ambiguous first-string-match evidence when the same phrase occurs multiple times.
+- Adds a MIMIC pre-flight audit for patient leakage, empty text/labels, ICD-10 terminology coverage, note-length distribution, and codes-per-note distribution.
+- Adds one-command audited runners for CADEC->MedDRA and MIMIC-IV-Note->ICD-10.
+- Adds priority clinical review casebooks that surface AUTO errors, high-confidence errors, unseen-code errors, evidence failures, and correct controls with original source context.
+- Adds release/version stamping to frozen policy and experiment manifests so generated artifacts identify the code release that produced them.
+- Keeps DeepSeek optional and downstream of grounded affirmative evidence; no affirmative evidence means no LLM call.
+
 ## v0.0.11
 
 - Adds explicit benchmark profiles so CADEC MedDRA normalization and MIMIC ICD-10 document coding are not treated as the same prediction task.
