@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.14
+
+- Adds explicit uncertainty features from candidate score margin, normalised entropy, and top score.
+- Adds three-way routing: `AUTO_CANDIDATE`, `TOP_K_HUMAN_CHOICE`, and `FULL_EXPERT_REVIEW`.
+- Adds a conservative OOD hook and keeps explanation/OOD failures downgrade-only.
+- Adds Top-K review packets where every displayed candidate has its own exact source evidence, terminology support, historical provenance, and candidate-specific rationale.
+- Adds CSV/JSONL/HTML review artifacts so uncertain cases can be resolved by a human without hiding alternative candidates.
+
 ## v0.0.13
 
 - Adds optional biomedical dense retrieval through a user-supplied sentence-transformer-compatible model or local path.
