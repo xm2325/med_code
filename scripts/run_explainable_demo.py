@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.core import HistoricalCoder
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
-from cohortcoder.knowledge import prepare_terminology_knowledge
+from cohortcoder.knowledge import attach_knowledge_provenance, prepare_terminology_knowledge
 
 
 def main() -> None:
@@ -27,9 +27,9 @@ def main() -> None:
         {"text": "I felt sick after taking the tablets", "mention": "felt sick", "gold_code": "DEMO-G1", "gold_term": "Nausea"},
     ])
     terminology = prepare_terminology_knowledge(pd.DataFrame([
-        {"system": "DEMO-MEDDRA", "code": "DEMO-M1", "term": "Myalgia", "synonyms": "muscle pain|aching muscles", "definition": "Synthetic demo definition for muscle pain."},
-        {"system": "DEMO-MEDDRA", "code": "DEMO-M2", "term": "Muscular weakness", "synonyms": "weak muscles|muscle weakness", "definition": "Synthetic demo definition for muscular weakness."},
-        {"system": "DEMO-MEDDRA", "code": "DEMO-G1", "term": "Nausea", "synonyms": "feeling sick|felt sick", "definition": "Synthetic demo definition for nausea."},
+        {"system": "DEMO-MEDDRA", "code": "DEMO-M1", "term": "Myalgia", "synonyms": "muscle pain|aching muscles", "definition": "Synthetic demo definition for muscle pain.", "knowledge_source": "synthetic-demo"},
+        {"system": "DEMO-MEDDRA", "code": "DEMO-M2", "term": "Muscular weakness", "synonyms": "weak muscles|muscle weakness", "definition": "Synthetic demo definition for muscular weakness.", "knowledge_source": "synthetic-demo"},
+        {"system": "DEMO-MEDDRA", "code": "DEMO-G1", "term": "Nausea", "synonyms": "feeling sick|felt sick", "definition": "Synthetic demo definition for nausea.", "knowledge_source": "synthetic-demo"},
     ]))
     record = pd.DataFrame([{
         "record_id": "SYNTHETIC-NEW-001",
@@ -51,11 +51,13 @@ def main() -> None:
         "historical_cases_json": json.dumps(prediction.historical_cases),
     }])
     explanations = explain_predictions(predictions, terminology, coder=coder)
+    explanations = attach_knowledge_provenance(explanations, terminology)
     metrics = write_explanation_artifacts(Path(args.output_dir), explanations)
     print(json.dumps({
         "prediction": {"code": prediction.code, "term": prediction.term, "confidence": prediction.confidence},
         "why": explanations[0]["why"],
         "evidence": explanations[0]["evidence_quotes"],
+        "knowledge_source": explanations[0]["external_knowledge"]["knowledge_source"],
         "metrics": metrics,
         "html": str(Path(args.output_dir) / "explanations.html"),
     }, indent=2))
