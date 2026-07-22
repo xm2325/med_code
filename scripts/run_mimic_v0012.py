@@ -12,7 +12,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
+from cohortcoder.artifact_metadata import apply_dataset_readiness_gate, stamp_benchmark_artifacts
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.mimic_audit import write_mimic_audit_artifacts
 from cohortcoder.mimic_benchmark import run_mimic_icd10_benchmark
@@ -67,19 +67,23 @@ def main() -> None:
         version="0.0.12",
         benchmark_profile="mimic_iv_note_icd10_multilabel",
     )
+    apply_dataset_readiness_gate(
+        benchmark_dir,
+        dataset_readiness_passed=bool(audit["ready_for_benchmark"]),
+    )
     write_mimic_report(benchmark_dir)
 
-    explain_cmd = [
+    subprocess.run([
         sys.executable,
         str(ROOT / "scripts" / "explain_mimic_icd10.py"),
         "--records", str(args.records),
         "--terminology", str(args.terminology),
         "--benchmark-dir", str(benchmark_dir),
-    ]
-    subprocess.run(explain_cmd, check=True)
+    ], check=True)
 
+    summary_status = "completed" if audit["ready_for_benchmark"] else "completed_with_audit_override_nonreportable"
     summary = {
-        "status": "completed",
+        "status": summary_status,
         "version": "0.0.12",
         "dataset_audit": audit,
         "benchmark_metrics": metrics,
