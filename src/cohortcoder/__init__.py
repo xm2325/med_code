@@ -12,6 +12,7 @@ from .feedback import ExpertFeedback, append_feedback_jsonl, feedback_summary, f
 from .knowledge import load_terminology_knowledge, prepare_terminology_knowledge
 from .llm import DeepSeekRationaleClient, ExternalLLMPolicyError, validate_llm_rationale
 from .llm_rerank import DeepSeekCandidateReranker, validate_rerank_payload
+from .mednorm import OFFICIAL_MEDNORM, assign_cross_dataset_split, build_train_derived_terminology, fetch_hf_mirror_rows, mednorm_data_card, prepare_mednorm_single_meddra
 from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
@@ -20,6 +21,5 @@ from .release_gate import evaluate_release_readiness
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.0.16"
-
+__version__ = "0.0.17"
 __all__ = [name for name in globals() if not name.startswith("_")]
