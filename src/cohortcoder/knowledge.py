@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -64,3 +65,27 @@ def load_terminology_knowledge(
     coding_system: str | None = None,
 ) -> pd.DataFrame:
     return prepare_terminology_knowledge(pd.read_csv(path), coding_system=coding_system)
+
+
+def attach_knowledge_provenance(
+    explanations: list[dict[str, Any]],
+    terminology: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    """Attach the declared terminology/knowledge source to explanation records."""
+    lookup = {
+        str(row["code"]): {
+            "knowledge_source": str(row.get("knowledge_source", "")),
+            "system": str(row.get("system", "")),
+        }
+        for _, row in terminology.iterrows()
+    }
+    enriched: list[dict[str, Any]] = []
+    for original in explanations:
+        item = dict(original)
+        knowledge = dict(item.get("external_knowledge", {}))
+        provenance = lookup.get(str(item.get("predicted_code", "")), {})
+        knowledge["knowledge_source"] = provenance.get("knowledge_source", "")
+        knowledge["coding_system"] = provenance.get("system", item.get("coding_system", ""))
+        item["external_knowledge"] = knowledge
+        enriched.append(item)
+    return enriched
