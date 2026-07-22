@@ -21,6 +21,8 @@ jobs:
       - name: Tests
         run: pytest -q
       - name: Package import smoke
-        run: python -c "import cohortcoder; from cohortcoder.realdata import run_real_benchmark; print(cohortcoder.__version__)"
+        run: python -c "import cohortcoder; from cohortcoder.realdata import run_real_benchmark; from cohortcoder.explain import extract_evidence_spans; print(cohortcoder.__version__)"
       - name: Demo smoke
-        run: python scripts/run_demo.py
+        run: |
+          python scripts/run_demo.py
+          python scripts/run_explainable_demo.py --output-dir /tmp/medcode_explainable_demo
