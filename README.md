@@ -6,7 +6,7 @@ Research prototype for historical expert-assisted clinical coding of longitudina
 
 MedCode tests whether historical human coding can support future clinical-event and comorbidity coding while routing uncertain cases to expert review. The target transfer setting is a longitudinal cohort such as BSRBR-RA, where earlier free-text adverse-event/comorbidity records have expert terminology labels and later records may require lower-cost coding support.
 
-## v0.0.6
+## v0.0.7
 
 The current release provides:
 
@@ -21,10 +21,16 @@ The current release provides:
 - a single `frozen_policy.json` for reproducible inference;
 - candidate-recall and ranking-error diagnostics;
 - bootstrap confidence intervals at source-document level;
-- publication/deployment guards that distinguish synthetic smoke tests from real human-reference evaluation;
 - CADEC and ALTA data adapters;
 - a BSRBR-style uncoded inference example;
-- CI tests and reproducible command-line entry points.
+- CI tests and reproducible command-line entry points;
+- a strict **Results Contract** that prevents synthetic, oracle, leaky, or TEST-tuned runs from being presented as reportable clinical benchmark results.
+
+## Results Contract
+
+A run is marked `reportable` only when it uses external human reference labels, a group-disjoint held-out TEST set, no TEST-derived terminology leakage, no TEST tuning, non-synthetic data, and recorded provenance. Missing audit evidence defaults to non-reportable.
+
+See `docs/RESULTS_CONTRACT.md` for the exact requirements and wording rules for selective-coding claims.
 
 ## Core study design
 
@@ -71,7 +77,7 @@ small newly double-coded BSRBR sample
         -> prospective validation
 ```
 
-See `docs/REAL_DATA_RUNBOOK.md`, `docs/BSRBR_TRANSFER_PROTOCOL.md`, and `docs/RERANKING_PROTOCOL.md` for the intended evaluation workflow.
+See `docs/BSRBR_TRANSFER_PROTOCOL.md`, `docs/RERANKING_PROTOCOL.md`, and `docs/RESULTS_CONTRACT.md` for the intended evaluation workflow.
 
 ## Data and terminology
 
@@ -79,4 +85,4 @@ Raw participant-level datasets, processed sensitive data, model outputs, environ
 
 ## Status
 
-v0.0.6 is a research prototype. The bundled synthetic data are for smoke testing only. Claims about clinical coding accuracy require evaluation against real held-out human reference labels.
+v0.0.7 is a research prototype. The bundled synthetic data are for smoke testing only. Claims about clinical coding accuracy require evaluation against real held-out human reference labels and must pass the Results Contract.

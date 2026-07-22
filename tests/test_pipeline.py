@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder import HistoricalCoder, accuracy_at_k, coverage_accuracy
+from cohortcoder.results import build_results_contract
 
 
 def fixtures():
@@ -51,3 +52,33 @@ def test_selective_policy_output():
     result = coverage_accuracy(["A", "C"], preds, threshold=0.0)
     assert result["coverage"] == 1.0
     assert result["accuracy"] == 1.0
+
+
+def test_results_contract_requires_all_guards():
+    good = build_results_contract({
+        "external_human_reference": True,
+        "group_disjoint_test": True,
+        "no_test_terminology_leakage": True,
+        "no_test_tuning": True,
+        "non_synthetic": True,
+        "provenance_recorded": True,
+    })
+    assert good.reportable is True
+    assert good.status == "reportable"
+
+    synthetic = build_results_contract({
+        "external_human_reference": True,
+        "group_disjoint_test": True,
+        "no_test_terminology_leakage": True,
+        "no_test_tuning": True,
+        "non_synthetic": False,
+        "provenance_recorded": True,
+    })
+    assert synthetic.reportable is False
+    assert synthetic.status == "synthetic_smoke_test"
+
+
+def test_missing_audit_fields_are_non_reportable():
+    contract = build_results_contract({"external_human_reference": True})
+    assert contract.reportable is False
+    assert contract.status == "non_reportable"
