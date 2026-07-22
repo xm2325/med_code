@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.9
+
+- Fixes AUTO/REVIEW threshold selection to maximise validation coverage subject to the prespecified accuracy target.
+- Adds seen-code vs unseen-code held-out analysis.
+- Separates candidate-generation failures from ranking/disambiguation failures.
+- Adds a pre-specified terminology-only TEST baseline and historical-memory value analysis.
+- Adds descriptive coverage-accuracy output and validation-selected policy stress tests at 90%, 95%, 98%, and 99% targets.
+- Expands the HTML report and per-case diagnostics without using TEST for model or threshold selection.
+
 ## v0.0.8
 
 - Adds a self-contained real-data pipeline for CADEC/BSRBR-style terminology normalization.
