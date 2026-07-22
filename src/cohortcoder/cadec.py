@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -13,10 +12,17 @@ import pandas as pd
 _TEXTBOUND_RE = re.compile(r"^(T\d+)\t([^\t]+)\t(.*)$")
 _CODE_RE = re.compile(r"(?:MedDRA\s*[:#]?\s*)?(\d{6,9})\b", re.I)
 _TARGET_RE = re.compile(r"\b(T\d+)\b")
+_TRUE = {"1", "true", "yes", "y"}
 
 
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", str(text or "")).strip()
+
+
+def _bool_series(values: pd.Series) -> pd.Series:
+    if values.dtype == bool:
+        return values
+    return values.astype(str).str.strip().str.lower().isin(_TRUE)
 
 
 def _parse_textbound(line: str, source_text: str) -> dict[str, Any] | None:
@@ -157,7 +163,7 @@ def parse_cadec(
         "unique_documents": int(df["record_id"].nunique()),
         "unique_codes": int(df["gold_code"].nunique()),
         "match_rate": stats["normalizations_matched"] / stats["normalizations_seen"] if stats["normalizations_seen"] else 0.0,
-        "offset_match_rate": float(df["offset_match"].mean()) if len(df) else 0.0,
+        "offset_match_rate": float(_bool_series(df["offset_match"]).mean()) if len(df) else 0.0,
         "source_fingerprint_sha256": sha256("".join(sorted(df["record_id"].astype(str).unique())).encode()).hexdigest(),
     })
 
@@ -181,7 +187,7 @@ def audit_cadec_records(
         raise ValueError(f"CADEC records require {sorted(required)}")
     df = records.copy().fillna("")
     duplicate_count = int(df.duplicated(["record_id", "annotation_id", "gold_code"]).sum()) if "annotation_id" in df else int(df.duplicated(["record_id", "mention", "gold_code"]).sum())
-    offset_match_rate = float(df["offset_match"].astype(bool).mean()) if "offset_match" in df and len(df) else None
+    offset_match_rate = float(_bool_series(df["offset_match"]).mean()) if "offset_match" in df and len(df) else None
     multi_code = 0
     if "annotation_id" in df:
         multi_code = int((df.groupby(["record_id", "annotation_id"])["gold_code"].nunique() > 1).sum())
@@ -214,7 +220,7 @@ def audit_cadec_records(
         "unique_codes": int(df["gold_code"].nunique()),
         "duplicate_rows": duplicate_count,
         "offset_match_rate": offset_match_rate,
-        "discontinuous_rows": int(df["is_discontinuous"].astype(bool).sum()) if "is_discontinuous" in df else None,
+        "discontinuous_rows": int(_bool_series(df["is_discontinuous"]).sum()) if "is_discontinuous" in df else None,
         "multi_code_annotations": multi_code,
         "terminology_coverage": terminology_coverage,
         "missing_terminology_codes": missing_codes[:100],
@@ -231,9 +237,9 @@ def make_manual_review_sample(records: pd.DataFrame, n: int = 50, seed: int = 42
     df = records.copy().fillna("")
     priority = pd.Series(False, index=df.index)
     if "offset_match" in df:
-        priority |= ~df["offset_match"].astype(bool)
+        priority |= ~_bool_series(df["offset_match"])
     if "is_discontinuous" in df:
-        priority |= df["is_discontinuous"].astype(bool)
+        priority |= _bool_series(df["is_discontinuous"])
     selected = df[priority].copy()
     remaining = max(0, int(n) - len(selected))
     if remaining:
