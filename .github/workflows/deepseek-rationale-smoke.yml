@@ -1,10 +1,10 @@
-name: DeepSeek rationale smoke
+name: DeepSeek constrained smoke
 
 on:
   workflow_dispatch:
 
 jobs:
-  rationale-smoke:
+  deepseek-smoke:
     runs-on: ubuntu-latest
     env:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -27,3 +27,5 @@ jobs:
           PY
       - name: Run synthetic locked-code rationale smoke test
         run: python scripts/deepseek_rationale_smoke.py
+      - name: Run synthetic frozen-candidate rerank smoke test
+        run: python scripts/deepseek_candidate_rerank_smoke.py
