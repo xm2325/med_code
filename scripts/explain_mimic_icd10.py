@@ -59,14 +59,17 @@ def main() -> None:
     if args.deepseek:
         few_shot = pd.read_csv(args.few_shot_csv).fillna("").to_dict("records") if args.few_shot_csv else []
         client = DeepSeekRationaleClient(model=args.deepseek_model)
-        eligible = [item for item in explanations if item.get("evidence_quotes")]
+        eligible = [
+            item for item in explanations
+            if item.get("evidence_quotes") and not item.get("context_review_required", False)
+        ]
         enhanced = apply_deepseek_rationales(
             eligible,
             client,
             allow_external_llm=args.allow_external_llm,
             data_classification=args.data_classification,
             few_shot_examples=few_shot,
-        )
+        ) if eligible else []
         by_key = {(item["record_id"], item["predicted_code"]): item for item in enhanced}
         explanations = [by_key.get((item["record_id"], item["predicted_code"]), item) for item in explanations]
 
@@ -75,7 +78,7 @@ def main() -> None:
     metrics["n_code_proposals_explained"] = len(explanations)
     (benchmark / "explainability" / "mimic_explainability_manifest.json").write_text(
         json.dumps({
-            "version": "0.0.11",
+            "version": "0.0.12",
             "coding_system": "ICD-10",
             "task_type": "multilabel_document_coding",
             "explanation_unit": "record_code_pair",
