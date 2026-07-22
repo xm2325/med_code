@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from cohortcoder.core import HistoricalCoder
 from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
-from cohortcoder.knowledge import load_terminology_knowledge
+from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.realdata import predict_uncoded
 
@@ -49,6 +49,7 @@ def main() -> None:
     )
     coder = HistoricalCoder(history_weight=float(policy["history_weight"]), top_k=10).fit(historical, terminology)
     explanations = explain_predictions(aligned, terminology, coder=coder)
+    explanations = attach_knowledge_provenance(explanations, terminology)
 
     if args.deepseek:
         few_shot = pd.read_csv(args.few_shot_csv).fillna("").to_dict("records") if args.few_shot_csv else []
