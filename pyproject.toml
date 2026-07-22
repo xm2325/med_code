@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "med-code"
-version = "0.0.13"
-description = "Explainable clinical coding with audited benchmarks, biomedical retrieval, reranking, and evidence-quality gates"
+version = "0.0.14"
+description = "Explainable clinical coding with audited benchmarks, uncertainty-aware routing, Top-K human choice, and grounded candidate rationales"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
