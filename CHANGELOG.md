@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.11
+
+- Adds explicit benchmark profiles so CADEC MedDRA normalization and MIMIC ICD-10 document coding are not treated as the same prediction task.
+- Adds MIMIC-IV-Note discharge-summary + `diagnoses_icd` preparation with ICD-10 filtering and deterministic patient-level (`subject_id`) splitting.
+- Adds a true multi-label historical/terminology retrieval baseline for ICD-10 coding rather than duplicating one discharge summary into fake single-label examples.
+- Adds validation-only model selection and a per-code proposal threshold that maximises recall subject to a prespecified proposal precision target.
+- Explicitly prevents interpreting per-code proposal precision as the percentage of whole discharge summaries that can be fully auto-coded.
+- Adds seen/unseen ICD-code recall, precision/recall@k, micro/macro F1, terminology-only ablation, and proposal-policy stress tests.
+- Adds one explanation object per proposed ICD code, with verbatim evidence, terminology provenance, historical support, context audit, and retain/remove faithfulness diagnostics.
+- Adds generic human rationale span evaluation by record-code pair using audited character offsets and character-level precision/recall/F1.
+- Adds a side-by-side CADEC/MIMIC benchmark report that intentionally does not compute a pooled score across incompatible tasks.
+- Adds benchmark/data-governance documentation for credentialed MIMIC-IV-Note and source-version tracking.
+
 ## v0.0.10
 
 - Adds exact character-offset evidence spans for each proposed coding label.
