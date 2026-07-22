@@ -21,9 +21,9 @@ class Prediction:
 class HistoricalCoder:
     """Auditable retrieval baseline combining terminology and historical coding memory.
 
-    This is intentionally a transparent baseline. More complex dense encoders,
-    cross-encoders, or LLM rerankers should be compared against the same held-out
-    split rather than assumed to improve performance.
+    Terminology and historical examples use separate TF-IDF spaces. This keeps the
+    `history_weight=0` ablation genuinely terminology-only: historical text cannot
+    change the terminology vocabulary or IDF weights when its score is disabled.
     """
 
     def __init__(self, history_weight: float = 0.5, top_k: int = 10):
@@ -32,6 +32,11 @@ class HistoricalCoder:
         self.history_weight = history_weight
         self.top_k = top_k
 
+    @staticmethod
+    def _safe_texts(values: pd.Series) -> list[str]:
+        texts = [str(value) for value in values.fillna("")]
+        return [text if text.strip() else "__empty__" for text in texts]
+
     def fit(self, history: pd.DataFrame, terminology: pd.DataFrame) -> "HistoricalCoder":
         required_history = {"text", "gold_code", "gold_term"}
         required_terms = {"code", "term"}
@@ -39,20 +44,29 @@ class HistoricalCoder:
             raise ValueError(f"history requires columns: {sorted(required_history)}")
         if not required_terms.issubset(terminology.columns):
             raise ValueError(f"terminology requires columns: {sorted(required_terms)}")
+        if history.empty:
+            raise ValueError("history must contain at least one record")
+        if terminology.empty:
+            raise ValueError("terminology must contain at least one code")
 
         self.history = history.reset_index(drop=True).copy()
         self.terminology = terminology.drop_duplicates("code").reset_index(drop=True).copy()
-        self.vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
-        corpus = self.terminology["term"].fillna("").tolist() + self.history["text"].fillna("").tolist()
-        self.vectorizer.fit(corpus)
-        self.term_matrix = self.vectorizer.transform(self.terminology["term"].fillna(""))
-        self.history_matrix = self.vectorizer.transform(self.history["text"].fillna(""))
+
+        term_texts = self._safe_texts(self.terminology["term"])
+        history_texts = self._safe_texts(self.history["text"])
+
+        self.term_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
+        self.history_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
+        self.term_matrix = self.term_vectorizer.fit_transform(term_texts)
+        self.history_matrix = self.history_vectorizer.fit_transform(history_texts)
         return self
 
     def predict_one(self, text: str) -> Prediction:
-        query = self.vectorizer.transform([text])
-        term_scores = cosine_similarity(query, self.term_matrix)[0]
-        hist_scores = cosine_similarity(query, self.history_matrix)[0]
+        query_text = str(text) if str(text).strip() else "__empty__"
+        term_query = self.term_vectorizer.transform([query_text])
+        history_query = self.history_vectorizer.transform([query_text])
+        term_scores = cosine_similarity(term_query, self.term_matrix)[0]
+        hist_scores = cosine_similarity(history_query, self.history_matrix)[0]
 
         history_by_code: dict[str, float] = {}
         for idx, score in enumerate(hist_scores):
