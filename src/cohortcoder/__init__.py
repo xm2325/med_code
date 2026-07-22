@@ -19,7 +19,8 @@ from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_of
 from .registry import register_experiment, stable_json_hash, write_data_card, write_model_card
 from .release_gate import evaluate_release_readiness
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
+from .review_service import ReviewQueue
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 __all__ = [name for name in globals() if not name.startswith("_")]
