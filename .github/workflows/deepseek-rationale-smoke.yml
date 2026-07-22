@@ -1,0 +1,29 @@
+name: DeepSeek rationale smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rationale-smoke:
+    runs-on: ubuntu-latest
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Check secret presence without printing it
+        run: |
+          python - <<'PY'
+          import os
+          if not os.environ.get('DEEPSEEK_API_KEY'):
+              raise SystemExit('DEEPSEEK_API_KEY repository secret is not available to this workflow')
+          print('DEEPSEEK_API_KEY is configured')
+          PY
+      - name: Run synthetic locked-code rationale smoke test
+        run: python scripts/deepseek_rationale_smoke.py
