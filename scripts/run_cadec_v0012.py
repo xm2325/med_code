@@ -41,12 +41,7 @@ def main() -> None:
     split_path = data_dir / "cadec_split.csv"
     records, parse_stats = parse_cadec(args.cadec_root, parsed_path)
     terminology = load_terminology_knowledge(args.terminology, coding_system="MedDRA")
-    audit = write_cadec_audit_artifacts(
-        records,
-        audit_dir,
-        terminology,
-        sample_size=args.audit_sample_size,
-    )
+    audit = write_cadec_audit_artifacts(records, audit_dir, terminology, sample_size=args.audit_sample_size)
     if not audit["ready_for_benchmark"] and not args.allow_audit_failures:
         (output / "pipeline_summary.json").write_text(json.dumps({
             "status": "blocked_by_dataset_audit",
@@ -66,13 +61,8 @@ def main() -> None:
         data_is_synthetic=False,
         seed=args.seed,
     )
-    stamp_benchmark_artifacts(
-        benchmark_dir,
-        version="0.0.12",
-        benchmark_profile="cadec_meddra_normalization",
-    )
+    stamp_benchmark_artifacts(benchmark_dir, version="0.0.12", benchmark_profile="cadec_meddra_normalization")
 
-    # Plot generation is descriptive held-out evaluation only; it never selects a policy.
     import pandas as pd
     write_evaluation_plots(
         benchmark_dir,
@@ -81,26 +71,25 @@ def main() -> None:
         pd.read_csv(benchmark_dir / "policy_stress_test.csv"),
     )
 
-    explain_cmd = [
+    subprocess.run([
         sys.executable,
         str(ROOT / "scripts" / "explain_benchmark.py"),
         "--records", str(split_path),
         "--terminology", str(args.terminology),
         "--coding-system", "MedDRA",
         "--benchmark-dir", str(benchmark_dir),
-    ]
-    subprocess.run(explain_cmd, check=True)
+    ], check=True)
 
-    casebook_cmd = [
+    subprocess.run([
         sys.executable,
         str(ROOT / "scripts" / "build_review_casebook.py"),
         "--predictions", str(benchmark_dir / "predictions.csv"),
         "--explanations", str(benchmark_dir / "explanations.csv"),
+        "--records", str(split_path),
         "--output-dir", str(casebook_dir),
         "--max-cases", str(args.casebook_size),
         "--seed", str(args.seed),
-    ]
-    subprocess.run(casebook_cmd, check=True)
+    ], check=True)
 
     summary = {
         "status": "completed",
