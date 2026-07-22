@@ -6,6 +6,7 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -31,16 +32,18 @@ class MultiLabelPrediction:
 class MultiLabelHistoricalCoder:
     """Transparent multi-label ICD ranking baseline for long clinical documents.
 
-    Terminology and historical-document retrieval use separate vector spaces. Historical
-    evidence for a code is the maximum similarity to a TRAIN document carrying that code.
-    This is an auditable baseline, not a claim of state-of-the-art long-document coding.
+    Terminology and historical text use separate vector spaces. To avoid comparing every
+    new note with every TRAIN note during ranking, historical expert coding is aggregated
+    into one sparse text centroid per code. Raw TRAIN notes are retained only for on-demand
+    explanation provenance retrieval.
     """
 
-    def __init__(self, history_weight: float = 0.5, top_k: int = 100):
+    def __init__(self, history_weight: float = 0.5, top_k: int = 100, max_history_features: int = 100_000):
         if not 0 <= history_weight <= 1:
             raise ValueError("history_weight must be between 0 and 1")
         self.history_weight = float(history_weight)
         self.top_k = int(top_k)
+        self.max_history_features = int(max_history_features)
 
     @staticmethod
     def _safe_texts(values: Iterable[object]) -> list[str]:
@@ -65,31 +68,70 @@ class MultiLabelHistoricalCoder:
         history_texts = self._safe_texts(self.history["text"])
 
         self.term_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
-        self.history_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
+        # Word n-grams are substantially more scalable than unrestricted character
+        # n-grams for hundreds of thousands of long discharge summaries.
+        self.history_vectorizer = TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+            min_df=1 if len(history_texts) < 50 else 2,
+            max_features=self.max_history_features,
+            sublinear_tf=True,
+        )
         self.term_matrix = self.term_vectorizer.fit_transform(term_texts)
         self.history_matrix = self.history_vectorizer.fit_transform(history_texts)
         self.history_codes = [parse_code_list(value) for value in self.history["gold_codes_json"]]
         self.code_to_term = dict(zip(self.terminology["code"].astype(str), self.terminology["term"].astype(str)))
+        self.code_to_index = {str(code): idx for idx, code in enumerate(self.terminology["code"].astype(str))}
+
+        counts: dict[str, int] = {}
+        for codes in self.history_codes:
+            for code in set(codes):
+                if code in self.code_to_index:
+                    counts[code] = counts.get(code, 0) + 1
+        rows: list[int] = []
+        cols: list[int] = []
+        values: list[float] = []
+        for doc_idx, codes in enumerate(self.history_codes):
+            for code in set(codes):
+                code_idx = self.code_to_index.get(code)
+                if code_idx is None:
+                    continue
+                rows.append(code_idx)
+                cols.append(doc_idx)
+                values.append(1.0 / counts[code])
+        incidence = csr_matrix(
+            (values, (rows, cols)),
+            shape=(len(self.terminology), len(self.history)),
+            dtype=float,
+        )
+        self.code_history_matrix = incidence @ self.history_matrix
         return self
 
-    def rank_one(self, text: str) -> MultiLabelPrediction:
+    def _score_vectors(self, text: str) -> tuple[np.ndarray, np.ndarray]:
         query_text = str(text or "").strip() or "__empty__"
         term_scores = cosine_similarity(self.term_vectorizer.transform([query_text]), self.term_matrix)[0]
-        hist_scores = cosine_similarity(self.history_vectorizer.transform([query_text]), self.history_matrix)[0]
+        history_scores = cosine_similarity(
+            self.history_vectorizer.transform([query_text]),
+            self.code_history_matrix,
+        )[0]
+        return term_scores, history_scores
 
-        history_by_code: dict[str, float] = {}
-        for idx, similarity in enumerate(hist_scores):
-            for code in self.history_codes[idx]:
-                history_by_code[code] = max(history_by_code.get(code, 0.0), float(similarity))
+    def score_code(self, text: str, code: str) -> float:
+        idx = self.code_to_index.get(str(code))
+        if idx is None:
+            return 0.0
+        term_scores, history_scores = self._score_vectors(text)
+        return float((1.0 - self.history_weight) * term_scores[idx] + self.history_weight * history_scores[idx])
 
+    def rank_one(self, text: str) -> MultiLabelPrediction:
+        term_scores, history_scores = self._score_vectors(text)
         candidates: list[dict] = []
         for idx, row in self.terminology.iterrows():
-            code = str(row["code"])
             terminology_score = float(term_scores[idx])
-            history_score = float(history_by_code.get(code, 0.0))
+            history_score = float(history_scores[idx])
             score = (1.0 - self.history_weight) * terminology_score + self.history_weight * history_score
             candidates.append({
-                "code": code,
+                "code": str(row["code"]),
                 "term": str(row["term"]),
                 "score": float(score),
                 "terminology_score": terminology_score,
@@ -187,12 +229,7 @@ def select_threshold_max_recall_at_precision(
     *,
     target_precision: float = 0.95,
 ) -> float | None:
-    """Select a validation-only proposal threshold.
-
-    Primary objective: maximise micro recall subject to a prespecified micro precision.
-    Ties prefer more code proposals and then the higher threshold. This policy concerns
-    per-code suggestions, not automatic acceptance of an entire multi-label note.
-    """
+    """Select a validation-only per-code proposal threshold."""
     if not 0 <= target_precision <= 1:
         raise ValueError("target_precision must be between 0 and 1")
     scores = sorted({
