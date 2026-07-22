@@ -8,6 +8,13 @@ on:
       - 'scripts/run_deepseek_mednorm_real.py'
       - 'scripts/publish_v011_results.py'
       - 'src/cohortcoder/deepseek_real_eval.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/deepseek-real-mednorm.yml'
+      - 'scripts/run_deepseek_mednorm_real.py'
+      - 'scripts/publish_v011_results.py'
+      - 'src/cohortcoder/deepseek_real_eval.py'
   workflow_dispatch:
 
 permissions:
@@ -15,6 +22,7 @@ permissions:
 
 jobs:
   real-evaluation:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -63,6 +71,7 @@ jobs:
           path: /tmp/medcode-v011-real
           retention-days: 30
       - name: Commit aggregate results and selected examples
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
