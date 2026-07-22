@@ -1,0 +1,28 @@
+{
+  "release": "0.1.0",
+  "software_release_complete": true,
+  "required_capabilities": [
+    "audited_real_data_adapter",
+    "audit_replay",
+    "expert_feedback_ledger",
+    "frozen_policy",
+    "held_out_evaluation",
+    "persistent_human_review",
+    "results_contract",
+    "topk_grounded_rationales",
+    "uncertainty_routing"
+  ],
+  "capabilities": {
+    "audited_real_data_adapter": true,
+    "held_out_evaluation": true,
+    "results_contract": true,
+    "frozen_policy": true,
+    "uncertainty_routing": true,
+    "topk_grounded_rationales": true,
+    "persistent_human_review": true,
+    "expert_feedback_ledger": true,
+    "audit_replay": true
+  },
+  "missing_required_capabilities": [],
+  "important_boundary": "software_release_complete does not imply clinical deployment readiness or proven real-data performance"
+}

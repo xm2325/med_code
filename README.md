@@ -1,266 +1,231 @@
-# MedCode — v0.0.13
+# MedCode — v0.1.0
 
-Research prototype for **explainable clinical coding** using terminology knowledge, historical expert-coded records, stronger biomedical retrieval/reranking, and auditable evidence.
+MedCode is an explainable clinical-coding research/application toolkit for **MedDRA concept normalisation** and **ICD coding support**.
+
+The main workflow is:
 
 ```text
 clinical text
     ↓
-ICD-10 / MedDRA code candidates
+terminology retrieval + historical expert-coding memory
     ↓
-lexical terminology + historical coding memory
+optional biomedical dense retrieval / reranking
     ↓
-optional biomedical dense retrieval
+ranked code candidates
     ↓
-optional cross-encoder / frozen-candidate LLM reranking
-    ↓
-selected code
-    ↓
-which exact words support it?
-    ↓
-why do those words support this code?
-    ↓
-faithfulness + clinical context + explanation quality gate
-    ↓
-AUTO_CANDIDATE / CODE_PROPOSAL / HUMAN_REVIEW
+uncertainty + OOD + evidence/context checks
+    ├── AUTO_CANDIDATE
+    ├── TOP_K_HUMAN_CHOICE
+    └── FULL_EXPERT_REVIEW
+              ↓
+for every displayed candidate:
+exact source evidence + terminology support + historical provenance + rationale
+              ↓
+persistent expert review
+              ↓
+versioned feedback ledger
+              ↓
+future-release learning memory
+              ↓
+replayable audit trail
 ```
 
-The core rule remains: **a stronger model does not get a weaker evidence standard**. A model may improve candidate retrieval or ranking, but the final code still has to pass the same source-evidence and review safeguards.
+## What v0.1.0 means
 
-## v0.0.13: model quality without weakening auditability
+v0.1.0 is the first **software-complete application release**. It does **not** mean that clinical deployment is validated or that any particular real-data accuracy has already been proven.
 
-### 1. Biomedical dense retrieval
+The release contract requires:
 
-An optional sentence-transformer-compatible model can add semantic similarity between:
+- audited real-data adapters;
+- held-out evaluation and a Results Contract;
+- frozen model/policy artifacts;
+- uncertainty-aware routing;
+- Top-K human choice;
+- a separate evidence/rationale object for every displayed candidate;
+- persistent expert review;
+- a versioned feedback loop that cannot rewrite frozen TEST results;
+- replayable audit bundles and decision traces.
 
-- the clinical mention and terminology concepts;
-- the clinical mention and historical expert-coded examples, aggregated by code.
+See `release/v0.1.0.json` and `docs/V010_RELEASE.md`.
 
-The repository does not bundle model weights or silently download them from the core package. Supply a model name or local path explicitly with `--dense-model`.
+## Core evidence rule
 
-### 2. Cross-encoder reranking
+A code is never considered explainable merely because an LLM wrote a plausible paragraph.
 
-An optional cross-encoder can rerank a **frozen candidate pool**. It cannot create a code outside the supplied terminology dictionary.
+For each candidate MedDRA/ICD code, MedCode keeps separate:
 
-### 3. Validation-only staged model selection
+1. **Source evidence** — exact verbatim text spans and offsets when available.
+2. **Terminology support** — preferred term, synonyms, definition, hierarchy and knowledge source when supplied.
+3. **Historical provenance** — similar TRAIN historical expert-coded examples for the same code.
+4. **Rationale** — why those supplied facts support that candidate.
+5. **Faithfulness/context checks** — whether evidence affects the model score and whether negation/uncertainty/family-history context requires review.
 
-The advanced CADEC benchmark does not assume a larger model is better:
+Missing evidence is shown as missing; it must not be invented.
+
+## Uncertain cases: Top-K human choice
+
+MedCode supports three operational routes:
 
 ```text
-TRAIN
-  ↓
-build retrieval/indexes
-
-VALIDATION
-  1. choose historical-memory weight
-  2. decide whether dense fusion improves results
-  3. decide whether cross-encoder reranking improves results
-  4. break ties in favour of the simpler model
-
-TEST
-  ↓
-evaluate the frozen final configuration once
+AUTO_CANDIDATE
+TOP_K_HUMAN_CHOICE
+FULL_EXPERT_REVIEW
 ```
 
-The selected configuration is written to `frozen_policy.json` and can be rebuilt for explanation and future inference.
+For `TOP_K_HUMAN_CHOICE`, the reviewer sees up to K alternatives. **Every option** has its own evidence/rationale package, not only the model's first choice.
 
-### 4. DeepSeek has two separate roles
-
-**Candidate reranker**
-
-```text
-frozen Top-N codes
-    ↓
-DeepSeek fixed-prompt reranking
-    ↓
-exact same code set, different order only
-```
-
-The output is rejected if a code is added, removed, or duplicated.
-
-**Rationale writer**
-
-```text
-selected code already locked
-    +
-approved verbatim evidence
-    ↓
-why-this-code explanation
-```
-
-The rationale writer cannot change the code or manufacture new evidence.
-
-External DeepSeek calls require explicit opt-in and remain blocked for `restricted` or `private` clinical data in the provided client.
-
-### 5. Explanation quality gate
-
-After coding and explanation generation, every explanation is classified as `PASS`, `WARN`, or `FAIL` using auditable checks such as:
-
-- evidence exists;
-- quotes are verbatim in the source;
-- obvious negation/uncertainty/family-history context does not require review;
-- terminology support is present;
-- retain/remove faithfulness diagnostics are available where supported.
-
-A failed explanation can only make the operational decision more conservative:
-
-```text
-AUTO_CANDIDATE / CODE_PROPOSAL
-        ↓
-HUMAN_REVIEW
-```
-
-It can never promote a review case to automatic handling.
-
-## Benchmark A — CADEC → MedDRA
-
-Task type: **single-label concept normalization**.
-
-Primary evaluation:
-
-- Accuracy@1 / Accuracy@5;
-- candidate Recall@10;
-- seen vs unseen codes;
-- candidate-generation vs ranking failures;
-- terminology-only vs historical-memory value;
-- validation-selected AUTO/HUMAN_REVIEW workload;
-- grounded evidence and expert rationale review.
-
-### Audited advanced run
+Build review packets:
 
 ```bash
-python -m pip install -e '.[models]'
+python scripts/build_topk_review_packets.py \
+  --predictions outputs/predictions_with_text.csv \
+  --terminology /secure/terminology.csv \
+  --output-dir outputs/review \
+  --top-k 5
+```
 
+Optional interactive review UI:
+
+```bash
+python -m pip install -e '.[app]'
+MEDCODE_REVIEW_DB=review_queue.sqlite3 streamlit run review_app.py
+```
+
+The review queue records accepted top-1 codes, alternative Top-K selections, recoding outside Top-K, escalation and no-code decisions.
+
+## Expert feedback without evaluation leakage
+
+Review feedback is stored with:
+
+- model release and frozen-policy identity;
+- original Top-K candidate set and original route;
+- human final action/code;
+- correction reason and hashed reviewer identifier.
+
+Feedback may become **future-release training memory**. It never mutates the historical TEST labels, predictions or metrics of the release that generated the review item.
+
+Useful feedback metrics include top-1 accept rate, Top-K rescue rate and outside-Top-K correction rate.
+
+## Benchmark profiles
+
+### CADEC → MedDRA
+
+Single-label adverse-event/medical concept normalisation.
+
+The audited path preserves original BRAT spans, including discontinuous spans, and checks source-offset integrity before benchmarking.
+
+```bash
 python scripts/run_cadec_v0013.py \
   --cadec-root /path/to/CADEC \
-  --terminology /secure/path/meddra_candidates.csv \
-  --output-dir outputs/cadec_v0013 \
-  --target-auto-accuracy 0.95 \
-  --dense-model /path/or/model-name \
-  --cross-encoder-model /path/or/model-name
+  --terminology /secure/authorised_meddra.csv \
+  --output-dir outputs/cadec
 ```
 
-Both advanced model arguments are optional. With neither supplied, the run remains a clean lexical/historical baseline and still uses validation-only model selection.
+Optional dense/cross-encoder backends must earn selection on VALIDATION before the frozen configuration is evaluated on TEST.
 
-Main outputs include:
+### MedNorm → MedDRA
 
-```text
-outputs/cadec_v0013/
-├── data/
-├── audit/
-├── benchmark/
-│   ├── model_selection.csv
-│   ├── model_provenance.json
-│   ├── metrics.json
-│   ├── results_contract.json
-│   ├── frozen_policy.json
-│   ├── predictions.csv
-│   ├── explanation_quality.json
-│   └── explanations.html
-├── casebook/
-│   ├── review_casebook.csv
-│   └── review_casebook.html
-└── pipeline_summary.json
-```
+A public real-data concept-normalisation path is available through `scripts/run_mednorm_real.py`.
 
-### Optional frozen-candidate DeepSeek reranking
+Without an authorised full MedDRA terminology file, the runner uses **TRAIN-derived aliases only**. That is an honest closed-code diagnostic: unseen TEST codes are structurally unavailable and the result must not be presented as a full open-set MedDRA benchmark.
 
-Fix the prompt/model policy on development or validation first. Then, for an explicitly allowed public/synthetic dataset:
+With an authorised terminology file:
 
 ```bash
-python scripts/rerank_frozen_candidates_deepseek.py \
-  --records outputs/cadec_v0013/data/cadec_split.csv \
-  --predictions outputs/cadec_v0013/benchmark/validation_predictions.csv \
-  --split val \
-  --output-dir outputs/cadec_v0013/deepseek_val \
-  --data-classification public \
-  --allow-external-llm
+python scripts/run_mednorm_real.py \
+  --output-dir outputs/mednorm \
+  --external-terminology /secure/authorised_meddra.csv
 ```
 
-Do not tune the prompt on held-out TEST labels.
+The official dataset/licence record remains the source authority; a public mirror may be used only as a transport convenience.
 
-## Benchmark B — MIMIC-IV-Note → ICD-10
+### MIMIC-IV-Note → ICD-10
 
-Task type: **multi-label document coding**.
-
-The v0.0.12 audited patient-disjoint MIMIC path remains available:
+True multi-label discharge-summary coding with patient-disjoint splitting.
 
 ```bash
 python scripts/run_mimic_v0012.py \
   --records /secure/derived/mimic_icd10_records.csv \
   --terminology /secure/derived/icd10_terminology.csv \
-  --output-dir /secure/results/mimic_v0012 \
-  --target-proposal-precision 0.95
+  --output-dir /secure/results/mimic
 ```
 
-The explanation quality gate added in v0.0.13 also applies to per-code MIMIC explanations. A target proposal precision applies to **individual code proposals**, not to complete-note automation.
+A target proposal precision applies to **individual code proposals**, not to the percentage of complete notes that can be automatically coded.
 
-MIMIC source and derived patient-level data must stay outside the public repository.
+## DeepSeek integration
 
-## Explainability output
+DeepSeek has two deliberately separate roles:
 
-For each proposed code, MedCode can show:
+**Candidate reranking**
 
 ```text
-Code
-MedDRA / ICD-10 code + preferred term
-
-Evidence
-exact verbatim source span(s) + character offsets
-
-Why this code?
-terminology mapping + optional historical support
-
-Model support
-lexical / dense / reranker scores where available
-
-Faithfulness
-selected-code score on original input
-evidence-only score
-evidence-removed score
-
-Clinical context
-affirmed / negated / uncertain / family-history / historical
-
-Final operational decision
-AUTO_CANDIDATE / CODE_PROPOSAL / HUMAN_REVIEW
+frozen Top-N candidate codes
+        ↓
+DeepSeek
+        ↓
+same exact code set, reordered only
 ```
 
-For CADEC, task-provided BRAT mention spans are preserved exactly rather than re-found by naive string matching.
+Responses that add, remove or duplicate candidate codes are rejected.
 
-## Evidence boundary
+**Rationale writing**
 
-A result is not automatically reportable because the model is large or the metric looks strong.
+```text
+locked selected/candidate code
++
+approved verbatim evidence
++
+terminology knowledge
+        ↓
+DeepSeek rationale
+```
 
-The existing Results Contract and dataset-readiness gates still require:
+The code is locked and returned evidence must match the approved source evidence. The provided external client blocks `restricted`/`private` data by default; do not send governed BSRBR/MIMIC clinical text to an external endpoint unless governance explicitly permits it.
 
-- external reference labels;
-- group-disjoint held-out TEST data;
-- no TEST-derived terminology leakage;
-- no TEST tuning;
-- non-synthetic data;
-- recorded provenance;
-- dataset audit readiness.
+`DEEPSEEK_API_KEY` is read from environment/GitHub secrets only and is never committed.
 
-An explicit audit override may continue a debugging run, but results are forced to non-reportable status.
+## Evaluation outputs
 
-## Data governance
+Depending on the benchmark, MedCode reports:
 
-Do not commit:
+- Accuracy@1/@K or multi-label F1/precision/recall;
+- candidate recall@K;
+- seen vs unseen-code performance;
+- candidate-generation vs ranking failures;
+- terminology-only vs historical-memory value;
+- validation-selected coverage/workload trade-offs;
+- uncertainty route counts;
+- explanation grounded/verbatim/quality rates;
+- expert feedback rescue/correction rates;
+- Results Contract reportability status.
 
-- raw patient/participant-level clinical data;
-- MIMIC notes or derived patient-level tables;
-- BSRBR free text or restricted cohort extracts;
-- governed rationale annotations;
-- a full licensed MedDRA distribution;
-- API keys or secrets.
+Do not pool CADEC Accuracy@1 and MIMIC multi-label F1 into one score; they are different prediction tasks.
 
-`DEEPSEEK_API_KEY` is read from the environment/GitHub secret only when the optional external-LLM path is explicitly invoked.
+## Audit and replay
 
-## Documentation
+A release can build an `audit_bundle.json` containing SHA256 fingerprints for metrics, predictions, frozen policy, Results Contract and experiment manifest.
 
-- `docs/REAL_BENCHMARK_READINESS.md` — pre-flight audit and reportability chain.
-- `docs/MODEL_QUALITY_V0013.md` — dense retrieval, reranking, DeepSeek separation, and explanation quality gates.
-- `docs/EXPLAINABILITY.md` — rationale/evidence design and methodological caveats.
-- `docs/BENCHMARKS.md` — CADEC vs MIMIC task definitions and metric boundaries.
+```bash
+python scripts/build_audit_bundle.py --benchmark-dir outputs/benchmark --release 0.1.0
+```
 
-No real CADEC, MIMIC, ICD-10, or MedDRA performance number is implied by the repository code alone. Clinical-performance claims require execution on the corresponding held-out human-reference dataset under the Results Contract.
+A decision trace can record:
+
+```text
+model prediction
+→ uncertainty
+→ explanation quality
+→ route before review
+→ human review event
+→ final code/status
+```
+
+This makes later review possible without silently rewriting historical outputs.
+
+## Release vs clinical readiness
+
+`software_release_complete = true` means the v0.1 software capabilities are present.
+
+Clinical or operational deployment additionally requires, at minimum, appropriate data governance, authorised terminology resources, real held-out human-reference evaluation, prospective validation, expert review of rationale plausibility, calibration/monitoring and local safety approval.
+
+No real CADEC, MedNorm, MIMIC, BSRBR, ICD-10 or MedDRA performance number is implied by the code alone.
