@@ -185,6 +185,8 @@ def apply_deepseek_rationales(
     enhanced: list[dict[str, Any]] = []
     for original in explanations:
         item = dict(original)
+        original_status = str(item.get("explanation_status", ""))
+        original_source = str(item.get("explanation_source", "grounded_deterministic"))
         result = client.generate(
             item,
             allow_external_llm=allow_external_llm,
@@ -199,8 +201,13 @@ def apply_deepseek_rationales(
             item["llm_knowledge_support"] = str(payload.get("knowledge_support", ""))
             item["llm_evidence_quotes"] = list(payload.get("evidence_quotes", []))
             item["explanation_source"] = f"deepseek:{result['model']}"
-            item["explanation_status"] = "grounded_llm_validated"
+            item["llm_rationale_status"] = "validated"
+            # Grounding is a property of the evidence layer and must not be changed by
+            # the optional wording layer.
+            item["explanation_status"] = original_status
         else:
-            item["explanation_status"] = "llm_rejected_fallback_to_grounded_deterministic"
+            item["explanation_source"] = original_source
+            item["llm_rationale_status"] = "rejected_fallback_to_deterministic"
+            item["explanation_status"] = original_status
         enhanced.append(item)
     return enhanced
