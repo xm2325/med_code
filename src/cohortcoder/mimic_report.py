@@ -17,6 +17,7 @@ def write_mimic_report(output_dir: str | Path) -> Path:
     profile = _read_json(output / "benchmark_profile.json")
     contract = _read_json(output / "results_contract.json")
     leakage = _read_json(output / "leakage_audit.json")
+    audit = _read_json(output.parent / "audit" / "dataset_audit.json")
     stress = pd.read_csv(output / "code_proposal_policy_stress.csv") if (output / "code_proposal_policy_stress.csv").exists() else pd.DataFrame()
     novelty = pd.read_csv(output / "open_set_code_recall.csv") if (output / "open_set_code_recall.csv").exists() else pd.DataFrame()
     model_selection = pd.read_csv(output / "model_selection.csv") if (output / "model_selection.csv").exists() else pd.DataFrame()
@@ -40,10 +41,11 @@ def write_mimic_report(output_dir: str | Path) -> Path:
 
     html = f"""<!doctype html><html><head><meta charset='utf-8'><title>MedCode MIMIC ICD-10 benchmark</title>
 <style>body{{font-family:Arial,sans-serif;max-width:1200px;margin:2rem auto;padding:0 1rem;line-height:1.5}}table{{border-collapse:collapse;width:100%;margin:1rem 0}}th,td{{border:1px solid #ccc;padding:.5rem;text-align:left}}th{{background:#f4f4f4}}.warning{{padding:1rem;border:1px solid #b66;background:#fff5f2}}code,pre{{white-space:pre-wrap}}</style></head><body>
-<h1>MedCode v0.0.11 — MIMIC-IV-Note → ICD-10</h1>
+<h1>MedCode v0.0.12 — MIMIC-IV-Note → ICD-10</h1>
 <p><b>Task:</b> {escape(str(profile.get('task_type', 'multilabel_document_coding')))}</p>
 <p><b>Results status:</b> {escape(str(contract.get('status', metrics.get('results_status', 'unknown'))))} &nbsp; <b>Reportable:</b> {escape(str(contract.get('reportable', metrics.get('results_reportable'))))}</p>
 <div class='warning'><b>Interpretation guard:</b> {escape(warning)}</div>
+<h2>Pre-flight dataset readiness</h2><pre>{escape(json.dumps(audit, indent=2)) if audit else 'No v0.0.12 audit artifact found.'}</pre>
 <h2>Held-out TEST coding metrics</h2>
 {metric_table.to_html(index=False)}
 <h2>Validation-selected code-proposal policy stress test</h2>
@@ -54,8 +56,8 @@ def write_mimic_report(output_dir: str | Path) -> Path:
 <h2>Historical-memory model selection</h2>
 {model_selection.to_html(index=False) if not model_selection.empty else '<p>No model-selection output.</p>'}
 <h2>Leakage audit</h2><pre>{escape(json.dumps(leakage, indent=2))}</pre>
-<h2>Next explainability step</h2>
-<p>Run <code>scripts/explain_mimic_icd10.py</code> to create one evidence/rationale object per proposed ICD code. Coding performance, faithfulness, and expert plausibility should be evaluated separately.</p>
+<h2>Explainability</h2>
+<p>Run <code>scripts/explain_mimic_icd10.py</code> or use the v0.0.12 one-command runner to create one evidence/rationale object per proposed ICD code. Coding performance, faithfulness, and expert plausibility remain separate evaluation axes.</p>
 </body></html>"""
     path = output / "report.html"
     path.write_text(html, encoding="utf-8")
