@@ -1,4 +1,4 @@
-.PHONY: install test demo explainable-demo
+.PHONY: install test demo explainable-demo multilabel-demo
 
 install:
 	python -m pip install -e .
@@ -11,3 +11,6 @@ demo:
 
 explainable-demo:
 	python scripts/run_explainable_demo.py
+
+multilabel-demo:
+	python scripts/run_multilabel_synthetic_demo.py

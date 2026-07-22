@@ -9,6 +9,7 @@ from .analysis import (
     subgroup_metrics,
     write_evaluation_plots,
 )
+from .benchmark_profiles import CADEC_MEDDRA, MIMIC_IV_ICD10, BenchmarkProfile, get_benchmark_profile
 from .core import HistoricalCoder, accuracy_at_k, coverage_accuracy
 from .explain import (
     EvidenceSpan,
@@ -19,14 +20,19 @@ from .explain import (
 )
 from .knowledge import load_terminology_knowledge, prepare_terminology_knowledge
 from .llm import DeepSeekRationaleClient, ExternalLLMPolicyError, validate_llm_rationale
+from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
+from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 __all__ = [
     "HistoricalCoder",
+    "MultiLabelHistoricalCoder",
     "accuracy_at_k",
     "coverage_accuracy",
+    "ranking_metrics",
+    "threshold_metrics",
     "ResultsContract",
     "build_results_contract",
     "contract_from_benchmark_metadata",
@@ -48,4 +54,10 @@ __all__ = [
     "DeepSeekRationaleClient",
     "ExternalLLMPolicyError",
     "validate_llm_rationale",
+    "BenchmarkProfile",
+    "CADEC_MEDDRA",
+    "MIMIC_IV_ICD10",
+    "get_benchmark_profile",
+    "evaluate_rationale_overlap",
+    "validate_rationale_offsets",
 ]

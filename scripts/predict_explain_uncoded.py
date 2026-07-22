@@ -20,6 +20,19 @@ from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.realdata import predict_uncoded
 
 
+def _apply_llm_only_when_grounded(explanations, client, *, allow_external_llm, data_classification, few_shot_examples):
+    eligible = [item for item in explanations if item.get("evidence_quotes") and not item.get("context_review_required", False)]
+    enhanced = apply_deepseek_rationales(
+        eligible,
+        client,
+        allow_external_llm=allow_external_llm,
+        data_classification=data_classification,
+        few_shot_examples=few_shot_examples,
+    ) if eligible else []
+    by_key = {(item["record_id"], item["predicted_code"]): item for item in enhanced}
+    return [by_key.get((item["record_id"], item["predicted_code"]), item) for item in explanations]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Predict codes for new records and produce grounded explanations")
     parser.add_argument("--historical", required=True)
@@ -59,7 +72,7 @@ def main() -> None:
     if args.deepseek:
         few_shot = pd.read_csv(args.few_shot_csv).fillna("").to_dict("records") if args.few_shot_csv else []
         client = DeepSeekRationaleClient(model=args.deepseek_model)
-        explanations = apply_deepseek_rationales(
+        explanations = _apply_llm_only_when_grounded(
             explanations,
             client,
             allow_external_llm=args.allow_external_llm,

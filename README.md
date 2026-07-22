@@ -1,91 +1,131 @@
-# MedCode — v0.0.10
+# MedCode — v0.0.11
 
-Research prototype for explainable clinical coding using terminology knowledge and historical expert-coded free text.
+Research prototype for **explainable clinical coding** using terminology knowledge and historical expert-coded text.
 
-## Core question
-
-Can historical expert coding reduce future manual coding workload while keeping agreement with expert reference coding above a prespecified target — **and can every proposed code show the exact supporting text and an auditable explanation?**
-
-The intended transfer setting is a longitudinal cohort such as BSRBR-RA, but the same pipeline can be run against one coding system at a time, for example ICD-10 or MedDRA.
-
-## v0.0.10: code + evidence + why
+The desired output is not only a code:
 
 ```text
-Clinical record / follow-up text
-        ↓
-ICD-10 or MedDRA code
-        ↓
-WHY this code?
-        ↓
-WHICH exact words support it?
-        ↓
-terminology knowledge + historical expert-coded support
-        ↓
-faithfulness audit: retain evidence / remove evidence
-        ↓
-AUTO_CANDIDATE or HUMAN_REVIEW
+clinical text
+    ↓
+ICD-10 / MedDRA code
+    ↓
+which exact words support it?
+    ↓
+why do those words support this code?
+    ↓
+terminology knowledge + historical expert-coded provenance
+    ↓
+faithfulness / plausibility checks
+    ↓
+AUTO_CANDIDATE, CODE_PROPOSAL, or HUMAN_REVIEW
 ```
 
-Every explanation keeps the selected code locked. The explanation layer cannot silently substitute another code.
+The explanation layer keeps the selected code locked. It cannot silently replace the code or invent evidence that is absent from the source text.
 
-### Example output shape
+## v0.0.11: two real benchmark profiles
+
+v0.0.11 makes an important distinction between two different clinical coding tasks.
+
+### A. CADEC → MedDRA
 
 ```text
-Proposed code
-MedDRA <code> — Myalgia
+patient-authored post
+    -> annotated adverse-event mention
+    -> one MedDRA concept
+    -> evidence + rationale
+```
 
-Evidence in the record
-"severe muscle pain"
+Task type: **single-label concept normalization**.
+
+Primary metrics include Accuracy@1/5, candidate recall, and validation-selected AUTO/HUMAN_REVIEW performance.
+
+Split unit: source document/post.
+
+### B. MIMIC-IV-Note → ICD-10
+
+```text
+discharge summary
+    -> multiple ICD-10 diagnosis codes
+    -> one evidence/rationale object per proposed code
+```
+
+Task type: **multi-label document coding**.
+
+Primary metrics include micro/macro F1, precision/recall@k, seen/unseen-code recall, and a validation-selected per-code proposal policy.
+
+Split unit: `subject_id`. All admissions for one patient stay in one split.
+
+**Do not compare CADEC Accuracy@1 directly with MIMIC micro-F1 as if they were the same task.** `compare_benchmarks.py` creates a side-by-side report but intentionally does not compute a pooled score.
+
+See `docs/BENCHMARKS.md`.
+
+## Explainability
+
+For every proposed code, MedCode can emit:
+
+```text
+Code
+ICD-10 I21.4 — Non-ST elevation myocardial infarction
+
+Evidence
+"NSTEMI"
+"troponin elevation with ischemic changes"
 
 Why this code?
-The proposed coding label is grounded in the highlighted wording, which overlaps
-terminology expressions for Myalgia. Similar historical expert-coded records are
-shown separately as supporting provenance.
+The proposed code is supported by the highlighted source wording and the supplied
+terminology knowledge. Similar historical expert-coded examples are shown separately.
 
-Faithfulness
-- selected-code score on original model input
-- selected-code score using evidence only
+External knowledge
+preferred term / synonyms / definition / hierarchy / knowledge source
+
+Historical support
+similar TRAIN records carrying the same code
+
+Faithfulness audit
+- selected-code score on the original model input
+- selected-code score with evidence only
 - selected-code score after evidence removal
 ```
 
-The actual code/term must come from the supplied terminology resource; the repository does not redistribute a licensed MedDRA dictionary.
+Evidence spans are copied verbatim from the source text with character offsets.
 
-## Explainability design
+v0.0.11 also supports comparison with human rationale annotations using:
 
-v0.0.10 is informed by Mingyang Li's Manchester work on explainable ICD coding and the EACL 2026 paper *Evaluation and LLM-Guided Learning of ICD Coding Rationales*.
+```text
+record_id,code,start,end,quote
+```
 
-The project keeps two questions separate:
+and reports character-level rationale precision, recall, and F1 by record-code pair.
 
-- **faithfulness** — does the highlighted evidence actually affect the model's selected-code score?
-- **plausibility** — would a clinical expert judge the evidence/rationale as appropriate?
+The design is informed by Mingyang Li's Manchester work and the EACL 2026 paper *Evaluation and LLM-Guided Learning of ICD Coding Rationales*: **faithfulness** and **plausibility** remain separate evaluation questions.
 
-The system therefore writes both perturbation-style faithfulness diagnostics and a `rationale_review_template.csv` for expert plausibility review.
+See `docs/EXPLAINABILITY.md` and `docs/BENCHMARKS.md`.
 
-See `docs/EXPLAINABILITY.md` for the full design and methodological caveats.
+## Optional DeepSeek rationale writer
 
-## Optional DeepSeek rationale generation
-
-`DEEPSEEK_API_KEY` is read from the environment when the optional DeepSeek explanation path is used.
+`DEEPSEEK_API_KEY` is read from the environment only when the optional LLM path is explicitly enabled.
 
 DeepSeek is used as a **locked-code rationale writer**, not as an unrestricted coding agent:
 
-- it receives the already-selected code;
-- it receives only approved verbatim evidence spans plus terminology knowledge by default;
-- it cannot change the code;
-- quoted evidence must exactly match the allowed source text;
-- invalid output is rejected and falls back to the deterministic grounded explanation.
+- the code is already selected before the call;
+- only approved evidence spans and terminology knowledge are supplied by default;
+- the returned code must equal the locked code;
+- returned evidence quotes must match the approved verbatim source spans;
+- invalid output is rejected and deterministic grounded output is retained.
 
-External calls require explicit `--allow-external-llm` and are blocked for `restricted` or `private` clinical data. For BSRBR or other governed cohorts, use an approved/local model endpoint unless external processing is explicitly permitted.
+External calls require explicit opt-in and are blocked by the client for `restricted` or `private` clinical data. Do not send MIMIC, BSRBR, or other governed clinical text to an external endpoint unless the applicable governance explicitly permits it.
 
 ## Quick start
 
 ```bash
 python -m pip install -e .
 pytest -q
-python scripts/run_demo.py
+python scripts/run_explainable_demo.py
 ```
 
-## Real-data benchmark
+## Benchmark A — CADEC → MedDRA
+
+Prepare CADEC:
 
 ```bash
 python scripts/prepare_cadec_public.py \
@@ -95,51 +135,102 @@ python scripts/prepare_cadec_public.py \
 python scripts/split_real_dataset.py \
   --records data/processed/cadec.csv \
   --output data/processed/cadec_with_split.csv
+```
 
+Run the single-label MedDRA benchmark using an authorised terminology resource:
+
+```bash
 python scripts/run_real_benchmark.py \
   --records data/processed/cadec_with_split.csv \
   --terminology /secure/path/meddra_candidates.csv \
   --coding-system MedDRA \
-  --output-dir outputs/cadec_v0010 \
+  --benchmark-profile cadec_meddra_normalization \
+  --output-dir outputs/cadec_v0011 \
   --reference-labels-external
 ```
 
-Then generate grounded explanations for the untouched TEST predictions:
+Generate evidence-grounded explanations:
 
 ```bash
 python scripts/explain_benchmark.py \
   --records data/processed/cadec_with_split.csv \
   --terminology /secure/path/meddra_candidates.csv \
   --coding-system MedDRA \
-  --benchmark-dir outputs/cadec_v0010
+  --benchmark-dir outputs/cadec_v0011
 ```
 
-For public/synthetic data only, optional DeepSeek rationales can be generated with:
+## Benchmark B — MIMIC-IV-Note → ICD-10
+
+MIMIC-IV-Note is credentialed-access PhysioNet data. Keep all source and derived patient-level files outside this public repository.
+
+A reproducible default is to use MIMIC-IV-Note v2.2 with the corresponding MIMIC-IV v2.2 diagnosis tables and record the exact versions in the experiment manifest.
+
+Prepare one multi-label record per hospitalization and split by patient:
 
 ```bash
-python scripts/explain_benchmark.py \
-  --records data/processed/cadec_with_split.csv \
-  --terminology /secure/path/meddra_candidates.csv \
-  --coding-system MedDRA \
-  --benchmark-dir outputs/cadec_v0010 \
-  --deepseek \
-  --allow-external-llm \
-  --data-classification public
+python scripts/prepare_mimic_iv_icd10.py \
+  --discharge /secure/mimic-iv-note/2.2/note/discharge.csv.gz \
+  --diagnoses /secure/mimiciv/2.2/hosp/diagnoses_icd.csv.gz \
+  --dictionary /secure/mimiciv/2.2/hosp/d_icd_diagnoses.csv.gz \
+  --output /secure/derived/mimic_icd10_records.csv
+
+python scripts/prepare_icd10_terminology.py \
+  --dictionary /secure/mimiciv/2.2/hosp/d_icd_diagnoses.csv.gz \
+  --output /secure/derived/icd10_terminology.csv
 ```
 
-## New uncoded records: prediction + explanation
+Run the multi-label benchmark:
 
 ```bash
-python scripts/predict_explain_uncoded.py \
-  --historical historical_train.csv \
-  --terminology /secure/path/meddra_candidates.csv \
-  --coding-system MedDRA \
-  --input new_uncoded.csv \
-  --frozen-policy outputs/cadec_v0010/frozen_policy.json \
-  --output-dir outputs/new_records
+python scripts/run_mimic_icd10_benchmark.py \
+  --records /secure/derived/mimic_icd10_records.csv \
+  --terminology /secure/derived/icd10_terminology.csv \
+  --output-dir /secure/results/mimic_v0011 \
+  --target-proposal-precision 0.95 \
+  --reference-labels-external
 ```
 
-This writes the code proposal, confidence, AUTO/REVIEW decision, exact evidence spans, explanation, terminology support, historical support, and faithfulness diagnostics.
+Generate **one explanation per proposed ICD code**:
+
+```bash
+python scripts/explain_mimic_icd10.py \
+  --records /secure/derived/mimic_icd10_records.csv \
+  --terminology /secure/derived/icd10_terminology.csv \
+  --benchmark-dir /secure/results/mimic_v0011
+```
+
+For MIMIC, `target-proposal-precision=0.95` means a target precision for **individual code proposals**. It does not mean that 95% of entire discharge summaries can be completely auto-coded.
+
+## Human rationale evaluation
+
+When governed human rationale annotations are available:
+
+```bash
+python scripts/evaluate_rationale_annotations.py \
+  --explanations /secure/results/mimic_v0011/explainability/explanations.csv \
+  --reference /secure/rationales/reference_spans.csv \
+  --records /secure/derived/mimic_icd10_records.csv \
+  --output-dir /secure/results/mimic_v0011/rationale_eval
+```
+
+The evaluator first audits source offsets/quotes, then reports record-code character-level overlap metrics.
+
+A fluent LLM rationale does not make an incorrect code correct. Evaluate separately:
+
+1. **coding performance**;
+2. **evidence faithfulness**;
+3. **human/expert plausibility**.
+
+## Side-by-side benchmark summary
+
+```bash
+python scripts/compare_benchmarks.py \
+  --cadec-dir outputs/cadec_v0011 \
+  --mimic-dir /secure/results/mimic_v0011 \
+  --output-dir outputs/dual_benchmark_v0011
+```
+
+Outputs include `dual_benchmark_summary.html`, but no pooled score is calculated across the incompatible tasks.
 
 ## Terminology schema
 
@@ -149,41 +240,23 @@ Recommended columns:
 system,code,term,synonyms,definition,hierarchy,knowledge_source
 ```
 
-`term` stays clean for display. Synonyms and definitions are added only to a separate retrieval `search_text` representation.
-
-One benchmark run targets one coding system. Filter ICD-10 and MedDRA into separate runs rather than mixing their code spaces.
-
-## Main outputs
-
-Benchmark outputs include:
-
-- `metrics.json`
-- `predictions.csv`
-- `model_selection.csv`
-- `results_contract.json`
-- `frozen_policy.json`
-- `open_set_metrics.csv`
-- `candidate_retrieval_diagnostics.csv`
-- `historical_memory_value.json`
-- `coverage_accuracy.png`
-- `policy_workload.png`
-
-Explainability outputs include:
-
-- `explanations.csv`
-- `explanations.jsonl`
-- `explanations.html` — record-level view with highlighted evidence
-- `explainability_metrics.json`
-- `rationale_review_template.csv`
+`term` stays human-readable. Synonyms and definitions can contribute to a separate retrieval representation. One benchmark run targets one coding system; do not mix ICD-10 and MedDRA code spaces in one candidate dictionary.
 
 ## Evidence boundary
 
-A benchmark result is reportable only when the Results Contract confirms external human reference labels, group-disjoint held-out TEST data, no TEST-derived terminology leakage, no TEST tuning, non-synthetic data, and recorded provenance.
+A benchmark is marked reportable only when the Results Contract confirms the required conditions: external reference labels, group-disjoint held-out TEST data, no TEST-derived terminology leakage, no TEST tuning, non-synthetic data, and recorded provenance.
 
-A fluent LLM rationale does not make an incorrect code correct. Code accuracy, rationale faithfulness, and expert plausibility must be evaluated separately.
+Synthetic smoke tests, oracle diagnostics, and TEST-tuned analyses must not be presented as clinical performance evidence.
 
-## Data and terminology
+## Data governance
 
-Do not commit raw participant-level data, processed sensitive data, or a full licensed MedDRA distribution. Supply terminology locally under the applicable licence.
+Do not commit:
+
+- raw participant/patient-level clinical data;
+- MIMIC notes or derived patient-level datasets;
+- governed rationale annotations derived from MIMIC;
+- BSRBR free text or restricted cohort extracts;
+- a full licensed MedDRA distribution;
+- API keys or secrets.
 
 This repository is a research coding-support prototype, not a clinical decision system.
