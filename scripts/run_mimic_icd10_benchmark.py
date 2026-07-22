@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument("--terminology", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--target-proposal-precision", type=float, default=0.95)
-    parser.add_argument("--source-version", default="MIMIC-IV-Note 2.2 + MIMIC-IV")
+    parser.add_argument("--source-version", default="MIMIC-IV-Note 2.2 + MIMIC-IV 2.2")
     parser.add_argument("--data-is-synthetic", action="store_true")
     parser.add_argument("--reference-labels-external", action="store_true")
     args = parser.parse_args()
