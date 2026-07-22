@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.analysis import write_evaluation_plots
+from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
 from cohortcoder.benchmark_profiles import PROFILES, get_benchmark_profile
 from cohortcoder.data import load_coding_records
 from cohortcoder.knowledge import load_terminology_knowledge
@@ -36,9 +37,12 @@ metrics = run_real_benchmark(
 )
 
 output = Path(a.output_dir)
+profile_name = None
 if a.benchmark_profile:
     profile = get_benchmark_profile(a.benchmark_profile)
+    profile_name = profile.name
     (output / "benchmark_profile.json").write_text(json.dumps(profile.to_dict(), indent=2), encoding="utf-8")
+stamp_benchmark_artifacts(output, version="0.0.12", benchmark_profile=profile_name)
 write_evaluation_plots(
     output,
     pd.read_csv(output / "open_set_metrics.csv"),

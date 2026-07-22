@@ -10,6 +10,7 @@ from .analysis import (
     write_evaluation_plots,
 )
 from .benchmark_profiles import CADEC_MEDDRA, MIMIC_IV_ICD10, BenchmarkProfile, get_benchmark_profile
+from .cadec import audit_cadec_records, parse_cadec, write_cadec_audit_artifacts
 from .core import HistoricalCoder, accuracy_at_k, coverage_accuracy
 from .explain import (
     EvidenceSpan,
@@ -20,11 +21,12 @@ from .explain import (
 )
 from .knowledge import load_terminology_knowledge, prepare_terminology_knowledge
 from .llm import DeepSeekRationaleClient, ExternalLLMPolicyError, validate_llm_rationale
+from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 
 __all__ = [
     "HistoricalCoder",
@@ -60,4 +62,9 @@ __all__ = [
     "get_benchmark_profile",
     "evaluate_rationale_overlap",
     "validate_rationale_offsets",
+    "parse_cadec",
+    "audit_cadec_records",
+    "write_cadec_audit_artifacts",
+    "audit_mimic_records",
+    "write_mimic_audit_artifacts",
 ]
