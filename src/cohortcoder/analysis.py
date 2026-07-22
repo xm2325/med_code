@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Iterable
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -30,10 +32,8 @@ def _candidate_codes(value: object) -> list[str]:
 def choose_threshold_max_coverage(predictions: pd.DataFrame, target_accuracy: float) -> float | None:
     """Choose the validation threshold with maximum coverage subject to target accuracy.
 
-    This is intentionally different from taking the first high-confidence threshold
-    that reaches the target. The study question is how much manual review can be
-    reduced while preserving a prespecified agreement target, so coverage must be
-    maximised on validation data only.
+    The study question is how much manual review can be reduced while preserving a
+    prespecified agreement target, so coverage is maximised on validation data only.
     """
     if not 0 <= target_accuracy <= 1:
         raise ValueError("target_accuracy must be between 0 and 1")
@@ -189,3 +189,51 @@ def failure_summary(diagnostics: pd.DataFrame) -> pd.DataFrame:
                 "rate": float(count / len(subset)) if len(subset) else None,
             })
     return pd.DataFrame(rows)
+
+
+def write_evaluation_plots(
+    output_dir: str | Path,
+    open_set: pd.DataFrame,
+    coverage_curve: pd.DataFrame,
+    policy_stress: pd.DataFrame,
+) -> None:
+    """Write presentation-ready evaluation figures without changing any policy."""
+    output = Path(output_dir)
+    output.mkdir(parents=True, exist_ok=True)
+
+    if not coverage_curve.empty:
+        fig, ax = plt.subplots(figsize=(7, 5))
+        ordered = coverage_curve.sort_values("coverage")
+        ax.plot(ordered["coverage"] * 100, ordered["accuracy"] * 100, marker="o")
+        ax.set_xlabel("Automatically coded records (%)")
+        ax.set_ylabel("Exact-code agreement (%)")
+        ax.set_title("Held-out coverage–accuracy curve")
+        ax.grid(True, alpha=0.25)
+        fig.tight_layout()
+        fig.savefig(output / "coverage_accuracy.png", dpi=180)
+        plt.close(fig)
+
+    novelty = open_set[open_set["subgroup"].isin(["seen_code", "unseen_code"])].copy()
+    novelty = novelty.dropna(subset=["accuracy_at_1"])
+    if not novelty.empty:
+        fig, ax = plt.subplots(figsize=(7, 5))
+        labels = novelty["subgroup"].str.replace("_", " ").str.title()
+        ax.bar(labels, novelty["accuracy_at_1"] * 100)
+        ax.set_ylabel("Exact-code agreement (%)")
+        ax.set_title("Seen vs unseen historical codes")
+        ax.set_ylim(0, 100)
+        fig.tight_layout()
+        fig.savefig(output / "open_set_accuracy.png", dpi=180)
+        plt.close(fig)
+
+    if not policy_stress.empty:
+        fig, ax = plt.subplots(figsize=(7, 5))
+        ax.plot(policy_stress["target_accuracy"] * 100, policy_stress["test_coverage"] * 100, marker="o")
+        ax.set_xlabel("Prespecified validation agreement target (%)")
+        ax.set_ylabel("Held-out records automatically coded (%)")
+        ax.set_title("Workload reduction under frozen validation-selected policies")
+        ax.set_ylim(0, 100)
+        ax.grid(True, alpha=0.25)
+        fig.tight_layout()
+        fig.savefig(output / "policy_workload.png", dpi=180)
+        plt.close(fig)
