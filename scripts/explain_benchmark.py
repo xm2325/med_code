@@ -12,10 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.core import HistoricalCoder
+from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
-from cohortcoder.realdata import assign_document_splits, load_records
+from cohortcoder.realdata import assign_document_splits
 
 
 def _attach_test_text(records: pd.DataFrame, predictions: pd.DataFrame, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -56,7 +57,7 @@ def main() -> None:
     manifest_path = benchmark / "experiment_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     seed = int(manifest.get("seed", 42))
-    records = load_records(args.records)
+    records = load_coding_records(args.records)
     terminology = load_terminology_knowledge(args.terminology, coding_system=args.coding_system)
     train, aligned = _attach_test_text(records, predictions, seed)
 
