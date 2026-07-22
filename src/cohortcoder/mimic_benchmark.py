@@ -12,11 +12,11 @@ from .mimic import assert_subject_disjoint
 from .multilabel import (
     MultiLabelHistoricalCoder,
     parse_code_list,
-    rank_dataframe,
     ranking_metrics,
     select_threshold_max_recall_at_precision,
     threshold_metrics,
 )
+from .multilabel_batch import rank_dataframe_batched
 from .results import contract_from_benchmark_metadata, write_results_contract
 
 
@@ -91,9 +91,10 @@ def run_mimic_icd10_benchmark(
     target_proposal_precision: float = 0.95,
     external_human_reference: bool = True,
     data_is_synthetic: bool = False,
-    source_version: str = "MIMIC-IV-Note 2.2 + MIMIC-IV",
+    source_version: str = "MIMIC-IV-Note 2.2 + MIMIC-IV 2.2",
+    batch_size: int = 64,
 ) -> dict[str, Any]:
-    """Run the v0.0.11 patient-disjoint multi-label ICD-10 benchmark.
+    """Run the patient-disjoint multi-label ICD-10 benchmark.
 
     The threshold policy applies to individual code proposals. It must not be described
     as the fraction of entire discharge summaries that can be automatically coded.
@@ -103,6 +104,8 @@ def run_mimic_icd10_benchmark(
         raise ValueError(f"MIMIC benchmark records require {sorted(required)}")
     if not {"code", "term"}.issubset(terminology.columns):
         raise ValueError("terminology requires code and term")
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
     assert_subject_disjoint(records)
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -116,7 +119,7 @@ def run_mimic_icd10_benchmark(
     tuning_rows = []
     for history_weight in [0.0, 0.25, 0.50, 0.75, 1.0]:
         coder = MultiLabelHistoricalCoder(history_weight=history_weight, top_k=100).fit(train, terminology)
-        val_predictions = rank_dataframe(coder, val)
+        val_predictions = rank_dataframe_batched(coder, val, batch_size=batch_size)
         metrics = ranking_metrics(val_predictions, k_values=(5, 10, 20))
         tuning_rows.append({"history_weight": history_weight, **metrics})
     tuning = pd.DataFrame(tuning_rows)
@@ -128,9 +131,9 @@ def run_mimic_icd10_benchmark(
 
     selected = MultiLabelHistoricalCoder(history_weight=float(best.history_weight), top_k=100).fit(train, terminology)
     baseline = MultiLabelHistoricalCoder(history_weight=0.0, top_k=100).fit(train, terminology)
-    val_predictions = rank_dataframe(selected, val)
-    test_predictions = rank_dataframe(selected, test)
-    baseline_test = rank_dataframe(baseline, test)
+    val_predictions = rank_dataframe_batched(selected, val, batch_size=batch_size)
+    test_predictions = rank_dataframe_batched(selected, test, batch_size=batch_size)
+    baseline_test = rank_dataframe_batched(baseline, test, batch_size=batch_size)
 
     threshold = select_threshold_max_recall_at_precision(
         val_predictions,
@@ -186,6 +189,7 @@ def run_mimic_icd10_benchmark(
         "task_type": MIMIC_IV_ICD10.task_type,
         "policy_unit": "individual_code_proposal",
         "full_note_automation_claim_allowed": False,
+        "batch_size": int(batch_size),
     }
 
     test_predictions.to_csv(output / "predictions.csv", index=False)
@@ -202,6 +206,7 @@ def run_mimic_icd10_benchmark(
         "code_proposal_threshold": threshold,
         "target_code_proposal_precision": float(target_proposal_precision),
         "policy_unit": "individual_code_proposal",
+        "full_note_automation_claim_allowed": False,
     })
     _dump(output / "leakage_audit.json", {
         "split_unit": "subject_id",
@@ -214,6 +219,8 @@ def run_mimic_icd10_benchmark(
         "external_human_reference": bool(external_human_reference),
         "data_is_synthetic": bool(data_is_synthetic),
         "test_used_for_selection_or_tuning": False,
+        "batch_size": int(batch_size),
+        "data_governance": "credentialed_source_and_sensitive_derivatives",
     })
     _dump(output / "data_fingerprints.json", {
         "records_sha256": sha256(records.to_csv(index=False).encode()).hexdigest(),
