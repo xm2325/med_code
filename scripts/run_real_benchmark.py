@@ -8,8 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.analysis import write_evaluation_plots
+from cohortcoder.data import load_coding_records
 from cohortcoder.knowledge import load_terminology_knowledge
-from cohortcoder.realdata import load_records, run_real_benchmark
+from cohortcoder.realdata import run_real_benchmark
 
 
 p = argparse.ArgumentParser()
@@ -23,7 +24,7 @@ p.add_argument("--reference-labels-external", action="store_true")
 a = p.parse_args()
 
 metrics = run_real_benchmark(
-    load_records(a.records),
+    load_coding_records(a.records),
     load_terminology_knowledge(a.terminology, coding_system=a.coding_system),
     a.output_dir,
     target_auto_accuracy=a.target_auto_accuracy,
