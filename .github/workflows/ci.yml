@@ -13,9 +13,14 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - name: Install dependencies
+      - name: Install
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run tests
+          pip install -e .
+      - name: Tests
         run: pytest -q
+      - name: Package import smoke
+        run: python -c "import cohortcoder; from cohortcoder.realdata import run_real_benchmark; print(cohortcoder.__version__)"
+      - name: Demo smoke
+        run: python scripts/run_demo.py

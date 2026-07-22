@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "med-code"
-version = "0.0.7"
-description = "Research prototype for historical expert-assisted clinical coding and selective review"
+version = "0.0.8"
+description = "Historical expert-assisted clinical coding and selective review research prototype"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -17,7 +17,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4"]
-rerank = ["sentence-transformers>=2.2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
