@@ -22,8 +22,9 @@ class HistoricalCoder:
     """Auditable retrieval baseline combining terminology and historical coding memory.
 
     Terminology and historical examples use separate TF-IDF spaces. This keeps the
-    `history_weight=0` ablation genuinely terminology-only: historical text cannot
-    change the terminology vocabulary or IDF weights when its score is disabled.
+    ``history_weight=0`` ablation genuinely terminology-only. v0.0.10 also exposes
+    per-code scores so rationale faithfulness can be tested by retaining/removing
+    evidence without changing the coding model.
     """
 
     def __init__(self, history_weight: float = 0.5, top_k: int = 10):
@@ -52,8 +53,16 @@ class HistoricalCoder:
         self.history = history.reset_index(drop=True).copy()
         self.terminology = terminology.drop_duplicates("code").reset_index(drop=True).copy()
 
-        term_texts = self._safe_texts(self.terminology["term"])
-        history_texts = self._safe_texts(self.history["text"])
+        term_column = "search_text" if "search_text" in self.terminology.columns else "term"
+        term_texts = self._safe_texts(self.terminology[term_column])
+        if "mention" in self.history.columns:
+            history_values = self.history["mention"].where(
+                self.history["mention"].fillna("").astype(str).str.strip().str.len() > 0,
+                self.history["text"],
+            )
+        else:
+            history_values = self.history["text"]
+        history_texts = self._safe_texts(history_values)
 
         self.term_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
         self.history_vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=1)
@@ -61,17 +70,35 @@ class HistoricalCoder:
         self.history_matrix = self.history_vectorizer.fit_transform(history_texts)
         return self
 
-    def predict_one(self, text: str) -> Prediction:
+    def _score_arrays(self, text: str) -> tuple[np.ndarray, np.ndarray]:
         query_text = str(text) if str(text).strip() else "__empty__"
         term_query = self.term_vectorizer.transform([query_text])
         history_query = self.history_vectorizer.transform([query_text])
         term_scores = cosine_similarity(term_query, self.term_matrix)[0]
         hist_scores = cosine_similarity(history_query, self.history_matrix)[0]
+        return term_scores, hist_scores
 
+    def _history_scores_by_code(self, hist_scores: np.ndarray) -> dict[str, float]:
         history_by_code: dict[str, float] = {}
         for idx, score in enumerate(hist_scores):
             code = str(self.history.iloc[idx]["gold_code"])
             history_by_code[code] = max(history_by_code.get(code, 0.0), float(score))
+        return history_by_code
+
+    def score_code(self, text: str, code: str) -> float:
+        """Return the same combined retrieval score used for ranking one code."""
+        term_scores, hist_scores = self._score_arrays(text)
+        history_by_code = self._history_scores_by_code(hist_scores)
+        matched = self.terminology.index[self.terminology["code"].astype(str) == str(code)].tolist()
+        if not matched:
+            return 0.0
+        terminology_score = float(term_scores[matched[0]])
+        historical_score = history_by_code.get(str(code), 0.0)
+        return float((1 - self.history_weight) * terminology_score + self.history_weight * historical_score)
+
+    def predict_one(self, text: str) -> Prediction:
+        term_scores, hist_scores = self._score_arrays(text)
+        history_by_code = self._history_scores_by_code(hist_scores)
 
         rows = []
         for idx, row in self.terminology.iterrows():
@@ -82,6 +109,7 @@ class HistoricalCoder:
             rows.append({
                 "code": code,
                 "term": str(row["term"]),
+                "system": str(row.get("system", "")),
                 "score": final_score,
                 "terminology_score": terminology_score,
                 "history_score": historical_score,
@@ -97,6 +125,7 @@ class HistoricalCoder:
         historical_cases = [
             {
                 "text": str(self.history.iloc[i]["text"]),
+                "mention": str(self.history.iloc[i].get("mention", "")),
                 "code": str(self.history.iloc[i]["gold_code"]),
                 "term": str(self.history.iloc[i]["gold_term"]),
                 "similarity": float(hist_scores[i]),
