@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.analysis import write_evaluation_plots
-from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
+from cohortcoder.artifact_metadata import apply_dataset_readiness_gate, stamp_benchmark_artifacts
 from cohortcoder.cadec import parse_cadec, write_cadec_audit_artifacts
 from cohortcoder.cadec_report import write_cadec_report
 from cohortcoder.knowledge import load_terminology_knowledge
@@ -63,6 +63,10 @@ def main() -> None:
         seed=args.seed,
     )
     stamp_benchmark_artifacts(benchmark_dir, version="0.0.12", benchmark_profile="cadec_meddra_normalization")
+    apply_dataset_readiness_gate(
+        benchmark_dir,
+        dataset_readiness_passed=bool(audit["ready_for_benchmark"]),
+    )
 
     import pandas as pd
     write_evaluation_plots(
@@ -93,8 +97,9 @@ def main() -> None:
     ], check=True)
     write_cadec_report(benchmark_dir)
 
+    summary_status = "completed" if audit["ready_for_benchmark"] else "completed_with_audit_override_nonreportable"
     summary = {
-        "status": "completed",
+        "status": summary_status,
         "version": "0.0.12",
         "parse_stats": parse_stats,
         "dataset_audit": audit,
