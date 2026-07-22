@@ -39,7 +39,7 @@ MIMIC_IV_ICD10 = BenchmarkProfile(
     coding_system="ICD-10",
     split_unit="subject_id",
     gold_structure="multiple ICD-10 diagnosis codes per hospitalization/discharge summary",
-    primary_metrics=("micro_f1", "macro_f1", "precision_at_10", "recall_at_10"),
+    primary_metrics=("selective_micro_f1", "selective_macro_f1", "precision_at_10", "recall_at_10"),
     rationale_unit="record-and-code evidence span(s)",
     access_note="Credentialed PhysioNet data. Do not commit notes, derived note text, or patient-level annotations to a public repository.",
 )
