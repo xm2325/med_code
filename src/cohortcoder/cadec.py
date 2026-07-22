@@ -120,6 +120,8 @@ def parse_cadec(
             textbounds[str(parsed["annotation_id"])] = parsed
 
         for line in meddra_lines:
+            if "meddra" not in line.lower():
+                continue
             target_match = _TARGET_RE.search(line)
             code_match = _CODE_RE.search(line)
             if not (target_match and code_match):
