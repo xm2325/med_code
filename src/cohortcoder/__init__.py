@@ -2,6 +2,7 @@
 
 from .advanced import AdvancedModelConfig, AdvancedSingleLabelCoder, CrossEncoderCandidateReranker, DenseSemanticIndex
 from .analysis import annotate_prediction_diagnostics, choose_threshold_max_coverage, coverage_accuracy_curve, failure_summary, policy_stress_test, subgroup_metrics, write_evaluation_plots
+from .audit_replay import ARTIFACT_SCHEMA_VERSION, build_audit_bundle, decision_trace, sha256_file, validate_audit_bundle
 from .benchmark_profiles import CADEC_MEDDRA, MIMIC_IV_ICD10, BenchmarkProfile, get_benchmark_profile
 from .cadec import audit_cadec_records, parse_cadec, write_cadec_audit_artifacts
 from .candidate_rationales import build_candidate_rationales, build_review_packet
@@ -22,5 +23,5 @@ from .results import ResultsContract, build_results_contract, contract_from_benc
 from .review_service import ReviewQueue
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.0.18"
+__version__ = "0.0.19"
 __all__ = [name for name in globals() if not name.startswith("_")]
