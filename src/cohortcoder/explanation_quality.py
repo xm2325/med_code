@@ -77,12 +77,20 @@ def summarize_explanation_quality(explanations: Iterable[dict[str, Any]]) -> dic
     items = list(explanations)
     gates = [str((item.get("explanation_quality") or {}).get("gate", "")) for item in items]
     n = len(items)
+    auto_like = {"AUTO_CANDIDATE", "CODE_PROPOSAL"}
+    before = [str(item.get("decision_before_explanation_quality_gate", item.get("decision", ""))) for item in items]
+    after = [str(item.get("decision", "")) for item in items]
+    n_before_auto = sum(value in auto_like for value in before)
+    n_after_auto = sum(value in auto_like for value in after)
     return {
         "n": n,
         "pass_rate": gates.count("PASS") / n if n else 0.0,
         "warn_rate": gates.count("WARN") / n if n else 0.0,
         "fail_rate": gates.count("FAIL") / n if n else 0.0,
         "n_decisions_downgraded": sum(bool(item.get("explanation_quality_decision_override")) for item in items),
+        "automatic_or_proposal_rate_before_quality_gate": n_before_auto / n if n else 0.0,
+        "automatic_or_proposal_rate_after_quality_gate": n_after_auto / n if n else 0.0,
+        "additional_review_rate_due_to_explanation_gate": (n_before_auto - n_after_auto) / n if n else 0.0,
     }
 
 
