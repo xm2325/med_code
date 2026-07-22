@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from cohortcoder.clinical_context import audit_explanation_context
 from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
-from cohortcoder.explanation_quality import apply_explanation_quality_gate, summarize_explanation_quality
+from cohortcoder.explanation_quality import apply_explanation_quality_gate, write_explanation_quality_artifacts
 from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.model_factory import build_singlelabel_coder_from_policy
@@ -102,8 +102,7 @@ def main() -> None:
         )
 
     explanations = apply_explanation_quality_gate(explanations)
-    quality = summarize_explanation_quality(explanations)
-    (benchmark / "explanation_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
+    quality = write_explanation_quality_artifacts(benchmark, explanations)
     metrics = write_explanation_artifacts(benchmark, explanations)
     metrics["quality_gate"] = quality
     print(json.dumps(metrics, indent=2))
