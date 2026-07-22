@@ -25,7 +25,11 @@ CADEC / other human-labelled free text
         -> results_contract.json + frozen_policy.json
 ```
 
-A key v0.0.9 correction is the AUTO/REVIEW threshold objective. The previous implementation returned the first high-confidence threshold that met the target, which could unnecessarily minimise automation. v0.0.9 selects the threshold that **maximises validation coverage subject to the prespecified validation accuracy target**. TEST remains untouched during threshold selection.
+Two methodological corrections are central to this release.
+
+First, the AUTO/REVIEW threshold now **maximises validation coverage subject to the prespecified validation accuracy target**. The previous first-feasible-threshold rule could unnecessarily minimise automation. TEST remains untouched during threshold selection.
+
+Second, terminology retrieval and historical-case retrieval now use separate TF-IDF spaces. Therefore `history_weight=0` is a genuine terminology-only baseline: historical text cannot alter its vocabulary or IDF weights. This makes the estimated value of historical expert coding interpretable as an actual ablation rather than a partially shared representation.
 
 ## Quick start
 
@@ -75,8 +79,9 @@ v0.0.9 analysis outputs:
 - `candidate_retrieval_diagnostics.csv` — gold candidate rank and per-case failure type
 - `failure_summary.csv` — candidate-generation vs ranking failures
 - `historical_memory_value.json` — held-out terminology-only vs selected historical-memory comparison
-- `coverage_accuracy.csv` — descriptive held-out coverage/accuracy curve
-- `policy_stress_test.csv` — validation-selected policies evaluated unchanged on TEST at 90/95/98/99% targets
+- `coverage_accuracy.csv` and `coverage_accuracy.png` — descriptive held-out coverage/accuracy relationship
+- `policy_stress_test.csv` and `policy_workload.png` — validation-selected policies evaluated unchanged on TEST at 90/95/98/99% targets
+- `open_set_accuracy.png` — seen-code vs unseen-code exact agreement
 - `terminology_only_test_predictions.csv` — pre-specified baseline predictions
 
 See `docs/EVALUATION_OUTPUTS.md` for interpretation rules.
