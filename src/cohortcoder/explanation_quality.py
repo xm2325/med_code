@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
+from pathlib import Path
 from typing import Any, Iterable
+
+import pandas as pd
 
 
 def evaluate_explanation_quality(explanation: dict[str, Any]) -> dict[str, Any]:
@@ -80,3 +84,31 @@ def summarize_explanation_quality(explanations: Iterable[dict[str, Any]]) -> dic
         "fail_rate": gates.count("FAIL") / n if n else 0.0,
         "n_decisions_downgraded": sum(bool(item.get("explanation_quality_decision_override")) for item in items),
     }
+
+
+def write_explanation_quality_artifacts(output_dir: str | Path, explanations: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    items = list(explanations)
+    output = Path(output_dir)
+    output.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for item in items:
+        quality = item.get("explanation_quality") or evaluate_explanation_quality(item)
+        rows.append({
+            "record_id": str(item.get("record_id", "")),
+            "predicted_code": str(item.get("predicted_code", "")),
+            "predicted_term": str(item.get("predicted_term", "")),
+            "quality_gate": str(quality.get("gate", "")),
+            "quality_failures_json": json.dumps(quality.get("failures", [])),
+            "quality_warnings_json": json.dumps(quality.get("warnings", [])),
+            "verbatim_evidence": bool(quality.get("verbatim_evidence", False)),
+            "knowledge_present": bool(quality.get("knowledge_present", False)),
+            "comprehensiveness_positive": quality.get("comprehensiveness_positive"),
+            "decision_before_gate": str(item.get("decision_before_explanation_quality_gate", "")),
+            "decision_after_gate": str(item.get("decision", "")),
+            "decision_downgraded": bool(item.get("explanation_quality_decision_override", False)),
+        })
+    frame = pd.DataFrame(rows)
+    frame.to_csv(output / "explanation_quality_cases.csv", index=False)
+    summary = summarize_explanation_quality(items)
+    (output / "explanation_quality.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    return summary
