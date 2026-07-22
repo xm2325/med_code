@@ -8,6 +8,14 @@ from typing import Any
 
 import pandas as pd
 
+from .analysis import (
+    annotate_prediction_diagnostics,
+    choose_threshold_max_coverage,
+    coverage_accuracy_curve,
+    failure_summary,
+    policy_stress_test,
+    subgroup_metrics,
+)
 from .core import HistoricalCoder, accuracy_at_k
 from .results import contract_from_benchmark_metadata, write_results_contract
 
@@ -162,17 +170,58 @@ def _predict_frame(coder: HistoricalCoder, df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _choose_threshold(validation: pd.DataFrame, target: float) -> float | None:
-    for threshold in sorted(validation.confidence.unique(), reverse=True):
-        accepted = validation[validation.confidence >= threshold]
-        if len(accepted) and float(accepted.correct.mean()) >= target:
-            return float(threshold)
-    return None
+def _metric_for_subgroup(table: pd.DataFrame, subgroup: str, metric: str) -> float | None:
+    row = table[table["subgroup"] == subgroup]
+    if row.empty or pd.isna(row.iloc[0][metric]):
+        return None
+    return float(row.iloc[0][metric])
 
 
-def run_real_benchmark(records: pd.DataFrame, terminology: pd.DataFrame, output_dir: str | Path, *,
-                       target_auto_accuracy: float = 0.95, external_human_reference: bool = True,
-                       data_is_synthetic: bool = False, seed: int = 42) -> dict[str, Any]:
+def _write_html_report(
+    output: Path,
+    contract_status: str,
+    contract_reportable: bool,
+    metrics: dict[str, Any],
+    open_set: pd.DataFrame,
+    policy_stress: pd.DataFrame,
+    failures: pd.DataFrame,
+) -> None:
+    html = f"""<html><body>
+<h1>MedCode v0.0.9 benchmark</h1>
+<p>Status: <b>{contract_status}</b></p>
+<p>Reportable: <b>{contract_reportable}</b></p>
+<h2>Primary held-out TEST metrics</h2>
+<ul>
+<li>Accuracy@1: {metrics['accuracy_at_1']:.3f}</li>
+<li>Accuracy@5: {metrics['accuracy_at_5']:.3f}</li>
+<li>AUTO candidate rate: {metrics['auto_candidate_rate']:.3f}</li>
+<li>AUTO candidate accuracy: {metrics['auto_candidate_accuracy']}</li>
+<li>Human review rate: {metrics['human_review_rate']:.3f}</li>
+<li>Selected historical-memory weight: {metrics['selected_history_weight']:.2f}</li>
+<li>Historical-memory Acc@1 delta vs terminology-only: {metrics['historical_memory_accuracy_delta']:.3f}</li>
+</ul>
+<h2>Seen/unseen code analysis</h2>
+{open_set.to_html(index=False)}
+<h2>Validation-selected policy stress test</h2>
+<p>Each threshold below is selected on validation only, then evaluated unchanged on TEST.</p>
+{policy_stress.to_html(index=False)}
+<h2>Failure taxonomy</h2>
+{failures.to_html(index=False)}
+<p><b>Note:</b> the TEST coverage-accuracy curve is descriptive evaluation, not a source of deployment threshold selection.</p>
+</body></html>"""
+    (output / "report.html").write_text(html, encoding="utf-8")
+
+
+def run_real_benchmark(
+    records: pd.DataFrame,
+    terminology: pd.DataFrame,
+    output_dir: str | Path,
+    *,
+    target_auto_accuracy: float = 0.95,
+    external_human_reference: bool = True,
+    data_is_synthetic: bool = False,
+    seed: int = 42,
+) -> dict[str, Any]:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     data = records.copy()
@@ -197,28 +246,58 @@ def run_real_benchmark(records: pd.DataFrame, terminology: pd.DataFrame, output_
         })
     tuning_df = pd.DataFrame(tuning)
     tuning_df.to_csv(output / "model_selection.csv", index=False)
-    best = tuning_df.sort_values(["val_accuracy_at_1", "val_accuracy_at_5", "history_weight"], ascending=[False, False, True]).iloc[0]
+    best = tuning_df.sort_values(
+        ["val_accuracy_at_1", "val_accuracy_at_5", "history_weight"],
+        ascending=[False, False, True],
+    ).iloc[0]
 
-    coder = HistoricalCoder(history_weight=float(best.history_weight), top_k=10).fit(train, terminology)
-    validation_predictions = _predict_frame(coder, val)
-    test_predictions = _predict_frame(coder, test)
-    threshold = _choose_threshold(validation_predictions, target_auto_accuracy)
+    selected_coder = HistoricalCoder(history_weight=float(best.history_weight), top_k=10).fit(train, terminology)
+    baseline_coder = HistoricalCoder(history_weight=0.0, top_k=10).fit(train, terminology)
+    validation_predictions = _predict_frame(selected_coder, val)
+    test_predictions = _predict_frame(selected_coder, test)
+    baseline_test_predictions = _predict_frame(baseline_coder, test)
+
+    # v0.0.9: choose the threshold that maximises validation coverage while meeting
+    # the prespecified accuracy target. TEST remains untouched during policy selection.
+    threshold = choose_threshold_max_coverage(validation_predictions, target_auto_accuracy)
     test_predictions["decision"] = "HUMAN_REVIEW"
     if threshold is not None:
         test_predictions.loc[test_predictions.confidence >= threshold, "decision"] = "AUTO_CANDIDATE"
-    auto = test_predictions.decision == "AUTO_CANDIDATE"
 
-    test_candidate_lists = [json.loads(value) for value in test_predictions.candidates_json]
+    seen_codes = {str(code) for code in train.gold_code if str(code)}
+    diagnostics = annotate_prediction_diagnostics(test_predictions, seen_codes, candidate_k=10)
+    auto = diagnostics.decision == "AUTO_CANDIDATE"
+    test_candidate_lists = [json.loads(value) for value in diagnostics.candidates_json]
+    open_set = subgroup_metrics(diagnostics)
+    coverage_curve = coverage_accuracy_curve(diagnostics)
+    policy_stress = policy_stress_test(validation_predictions, diagnostics)
+    failures = failure_summary(diagnostics)
+
+    baseline_acc1 = float(baseline_test_predictions.correct.mean())
+    selected_acc1 = float(diagnostics.correct.mean())
+    historical_memory_value = {
+        "terminology_only_test_accuracy_at_1": baseline_acc1,
+        "selected_method_test_accuracy_at_1": selected_acc1,
+        "selected_history_weight": float(best.history_weight),
+        "accuracy_at_1_delta": selected_acc1 - baseline_acc1,
+        "interpretation": "Descriptive held-out comparison; model selection used validation only.",
+    }
+
     metrics = {
-        "n_test": len(test_predictions),
-        "accuracy_at_1": float(test_predictions.correct.mean()),
-        "accuracy_at_5": accuracy_at_k(test_predictions.gold_code, test_candidate_lists, 5),
+        "n_test": len(diagnostics),
+        "accuracy_at_1": selected_acc1,
+        "accuracy_at_5": accuracy_at_k(diagnostics.gold_code, test_candidate_lists, 5),
         "selected_history_weight": float(best.history_weight),
         "selected_threshold": threshold,
+        "threshold_selection_rule": "max_validation_coverage_subject_to_target_accuracy",
         "auto_candidate_rate": float(auto.mean()),
-        "auto_candidate_accuracy": float(test_predictions.loc[auto, "correct"].mean()) if auto.any() else None,
+        "auto_candidate_accuracy": float(diagnostics.loc[auto, "correct"].mean()) if auto.any() else None,
         "human_review_rate": float((~auto).mean()),
         "target_auto_accuracy": target_auto_accuracy,
+        "seen_code_accuracy_at_1": _metric_for_subgroup(open_set, "seen_code", "accuracy_at_1"),
+        "unseen_code_accuracy_at_1": _metric_for_subgroup(open_set, "unseen_code", "accuracy_at_1"),
+        "candidate_recall_at_10": _metric_for_subgroup(open_set, "all", "candidate_recall_at_10"),
+        "historical_memory_accuracy_delta": selected_acc1 - baseline_acc1,
     }
 
     overlap = set(train.record_id) & set(test.record_id)
@@ -233,37 +312,51 @@ def run_real_benchmark(records: pd.DataFrame, terminology: pd.DataFrame, output_
     metrics["results_status"] = contract.status
     metrics["results_reportable"] = contract.reportable
 
-    test_predictions.to_csv(output / "predictions.csv", index=False)
+    diagnostics.to_csv(output / "predictions.csv", index=False)
     validation_predictions.to_csv(output / "validation_predictions.csv", index=False)
+    baseline_test_predictions.to_csv(output / "terminology_only_test_predictions.csv", index=False)
+    open_set.to_csv(output / "open_set_metrics.csv", index=False)
+    coverage_curve.to_csv(output / "coverage_accuracy.csv", index=False)
+    policy_stress.to_csv(output / "policy_stress_test.csv", index=False)
+    failures.to_csv(output / "failure_summary.csv", index=False)
+    diagnostics[[
+        "record_id", "gold_code", "predicted_code", "gold_candidate_rank",
+        "code_novelty", "error_type", "confidence", "decision",
+    ]].to_csv(output / "candidate_retrieval_diagnostics.csv", index=False)
+
     _dump(output / "metrics.json", metrics)
+    _dump(output / "historical_memory_value.json", historical_memory_value)
     write_results_contract(output / "results_contract.json", contract)
     _dump(output / "leakage_audit.json", {"record_id_overlap": len(overlap)})
     _dump(output / "frozen_policy.json", {
-        "version": "0.0.8",
+        "version": "0.0.9",
         "history_weight": float(best.history_weight),
         "decision_threshold": threshold,
+        "threshold_selection_rule": "max_validation_coverage_subject_to_target_accuracy",
         "target_auto_accuracy": target_auto_accuracy,
     })
     _dump(output / "experiment_manifest.json", {
-        "version": "0.0.8",
+        "version": "0.0.9",
         "seed": seed,
         "external_human_reference": external_human_reference,
         "data_is_synthetic": data_is_synthetic,
+        "policy_targets": [0.90, 0.95, 0.98, 0.99],
     })
     _dump(output / "data_fingerprints.json", {
         "records_sha256": sha256(data.to_csv(index=False).encode()).hexdigest(),
         "terminology_sha256": sha256(terminology.to_csv(index=False).encode()).hexdigest(),
     })
-    test_predictions[test_predictions.correct == 0].to_csv(output / "error_analysis.csv", index=False)
-    (output / "report.html").write_text(
-        f"<html><body><h1>MedCode v0.0.8 benchmark</h1><p>Status: <b>{contract.status}</b></p><p>Reportable: <b>{contract.reportable}</b></p><p>Accuracy@1: {metrics['accuracy_at_1']:.3f}</p><p>AUTO rate: {metrics['auto_candidate_rate']:.3f}</p><p>AUTO accuracy: {metrics['auto_candidate_accuracy']}</p><p>Human review rate: {metrics['human_review_rate']:.3f}</p></body></html>",
-        encoding="utf-8",
-    )
+    diagnostics[diagnostics.correct == 0].to_csv(output / "error_analysis.csv", index=False)
+    _write_html_report(output, contract.status, contract.reportable, metrics, open_set, policy_stress, failures)
     return metrics
 
 
-def predict_uncoded(historical: pd.DataFrame, terminology: pd.DataFrame, new_records: pd.DataFrame,
-                    frozen_policy: dict[str, Any]) -> pd.DataFrame:
+def predict_uncoded(
+    historical: pd.DataFrame,
+    terminology: pd.DataFrame,
+    new_records: pd.DataFrame,
+    frozen_policy: dict[str, Any],
+) -> pd.DataFrame:
     coder = HistoricalCoder(history_weight=float(frozen_policy["history_weight"]), top_k=10).fit(historical, terminology)
     query = new_records["mention"].where(new_records["mention"].astype(str).str.len() > 0, new_records["text"])
     predictions = coder.predict(query)
