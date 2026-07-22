@@ -39,12 +39,7 @@ def main() -> None:
 
     records = pd.read_csv(args.records, dtype=str, keep_default_na=False)
     terminology = load_terminology_knowledge(args.terminology, coding_system="ICD-10")
-    audit = write_mimic_audit_artifacts(
-        records,
-        terminology,
-        audit_dir,
-        sample_size=args.audit_sample_size,
-    )
+    audit = write_mimic_audit_artifacts(records, terminology, audit_dir, sample_size=args.audit_sample_size)
     if not audit["ready_for_benchmark"] and not args.allow_audit_failures:
         (output / "pipeline_summary.json").write_text(json.dumps({
             "status": "blocked_by_dataset_audit",
@@ -67,10 +62,13 @@ def main() -> None:
         version="0.0.12",
         benchmark_profile="mimic_iv_note_icd10_multilabel",
     )
-    apply_dataset_readiness_gate(
-        benchmark_dir,
-        dataset_readiness_passed=bool(audit["ready_for_benchmark"]),
-    )
+    readiness_passed = bool(audit["ready_for_benchmark"])
+    apply_dataset_readiness_gate(benchmark_dir, dataset_readiness_passed=readiness_passed)
+    metrics["dataset_readiness_passed"] = readiness_passed
+    if not readiness_passed:
+        metrics["results_reportable"] = False
+        metrics["results_status"] = "non_reportable"
+        metrics["non_reportable_reason"] = "dataset_preflight_audit_failed_or_was_overridden"
     write_mimic_report(benchmark_dir)
 
     subprocess.run([
@@ -81,7 +79,7 @@ def main() -> None:
         "--benchmark-dir", str(benchmark_dir),
     ], check=True)
 
-    summary_status = "completed" if audit["ready_for_benchmark"] else "completed_with_audit_override_nonreportable"
+    summary_status = "completed" if readiness_passed else "completed_with_audit_override_nonreportable"
     summary = {
         "status": summary_status,
         "version": "0.0.12",
