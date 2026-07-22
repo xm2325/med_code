@@ -166,7 +166,7 @@ class AdvancedSingleLabelCoder:
 
     Candidate generation is separated from reranking. The code space is fixed by the
     supplied terminology table; neither dense retrieval nor the reranker can invent a
-    code outside that dictionary.
+    code outside that dictionary. A zero fusion weight makes that backend fully inert.
     """
 
     def __init__(
@@ -181,8 +181,8 @@ class AdvancedSingleLabelCoder:
         self.config = config
         self.top_k = int(top_k)
         self.retrieval_pool = max(int(retrieval_pool), self.top_k)
-        self.dense_index = dense_index
-        self.reranker = reranker
+        self.dense_index = dense_index if float(config.dense_weight) > 0 else None
+        self.reranker = reranker if float(config.reranker_weight) > 0 else None
 
     def fit(self, history: pd.DataFrame, terminology: pd.DataFrame) -> "AdvancedSingleLabelCoder":
         self.history = history.reset_index(drop=True).copy()
@@ -212,11 +212,16 @@ class AdvancedSingleLabelCoder:
             for code, parts in dense_rows.items()
         }
         dense_norm = _minmax(dense_combined)
-        candidate_codes = set(lexical_scores)
+
+        candidate_codes = list(lexical_scores.keys())
+        seen = set(candidate_codes)
         if dense_norm:
-            candidate_codes.update(
-                code for code, _ in sorted(dense_norm.items(), key=lambda item: item[1], reverse=True)[: self.retrieval_pool]
-            )
+            dense_ranked = sorted(dense_norm.items(), key=lambda item: (-float(item[1]), str(item[0])))
+            for code, _ in dense_ranked[: self.retrieval_pool]:
+                if code not in seen:
+                    candidate_codes.append(code)
+                    seen.add(code)
+
         rows: list[dict[str, Any]] = []
         for code in candidate_codes:
             matched = self.terminology[self.terminology["code"].astype(str) == str(code)]
@@ -234,9 +239,10 @@ class AdvancedSingleLabelCoder:
                 "dense_score": dense_score,
                 "retrieval_score": float(combined),
             })
-        rows.sort(key=lambda item: item["retrieval_score"], reverse=True)
+        rows.sort(key=lambda item: (-float(item["retrieval_score"]), str(item["code"])))
         rows = rows[: self.retrieval_pool]
-        if self.reranker is not None and self.config.reranker_weight > 0 and rows:
+
+        if self.reranker is not None and rows:
             raw = self.reranker.score_candidates(text, rows)
             rerank_norm = _minmax(raw)
             for item in rows:
@@ -249,7 +255,7 @@ class AdvancedSingleLabelCoder:
             for item in rows:
                 item["reranker_score"] = 0.0
                 item["score"] = float(item["retrieval_score"])
-        rows.sort(key=lambda item: item["score"], reverse=True)
+        rows.sort(key=lambda item: (-float(item["score"]), str(item["code"])))
         return rows, lexical_prediction.historical_cases
 
     def predict_one(self, text: str) -> Prediction:
