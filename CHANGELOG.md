@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.13
+
+- Adds optional biomedical dense retrieval through a user-supplied sentence-transformer-compatible model or local path.
+- Adds optional cross-encoder reranking over a frozen candidate pool; rerankers cannot create codes outside the supplied terminology dictionary.
+- Adds staged validation-only selection of historical-memory, dense-fusion, and cross-encoder weights, with ties resolved in favour of simpler models.
+- Adds an advanced CADEC runner that preserves the v0.0.12 audit/readiness gates and freezes the selected model family in `frozen_policy.json`.
+- Adds constrained DeepSeek frozen-candidate reranking; responses are rejected when codes are added, removed, or duplicated.
+- Keeps DeepSeek candidate reranking separate from locked-code rationale writing so coding and explanation effects can be evaluated independently.
+- Adds a conservative explanation quality gate covering verbatim evidence, clinical-context review flags, terminology support, and faithfulness diagnostics.
+- Explanation-quality failures may downgrade AUTO/CODE_PROPOSAL decisions to HUMAN_REVIEW but can never promote a review case to automatic handling.
+- Adds model provenance, explanation-quality artifacts, advanced-model tests, and frozen-policy reconstruction for explainability.
+
 ## v0.0.12
 
 - Adds a stricter CADEC BRAT/MedDRA parser that preserves discontinuous spans instead of collapsing them into one evidence interval.

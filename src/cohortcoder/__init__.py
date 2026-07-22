@@ -1,5 +1,11 @@
 """MedCode research prototype."""
 
+from .advanced import (
+    AdvancedModelConfig,
+    AdvancedSingleLabelCoder,
+    CrossEncoderCandidateReranker,
+    DenseSemanticIndex,
+)
 from .analysis import (
     annotate_prediction_diagnostics,
     choose_threshold_max_coverage,
@@ -19,17 +25,27 @@ from .explain import (
     extract_evidence_spans,
     write_explanation_artifacts,
 )
+from .explanation_quality import (
+    apply_explanation_quality_gate,
+    evaluate_explanation_quality,
+    summarize_explanation_quality,
+)
 from .knowledge import load_terminology_knowledge, prepare_terminology_knowledge
 from .llm import DeepSeekRationaleClient, ExternalLLMPolicyError, validate_llm_rationale
+from .llm_rerank import DeepSeekCandidateReranker, validate_rerank_payload
 from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 
 __all__ = [
     "HistoricalCoder",
+    "AdvancedModelConfig",
+    "AdvancedSingleLabelCoder",
+    "DenseSemanticIndex",
+    "CrossEncoderCandidateReranker",
     "MultiLabelHistoricalCoder",
     "accuracy_at_k",
     "coverage_accuracy",
@@ -51,11 +67,16 @@ __all__ = [
     "build_explanation_record",
     "explain_predictions",
     "write_explanation_artifacts",
+    "apply_explanation_quality_gate",
+    "evaluate_explanation_quality",
+    "summarize_explanation_quality",
     "load_terminology_knowledge",
     "prepare_terminology_knowledge",
     "DeepSeekRationaleClient",
+    "DeepSeekCandidateReranker",
     "ExternalLLMPolicyError",
     "validate_llm_rationale",
+    "validate_rerank_payload",
     "BenchmarkProfile",
     "CADEC_MEDDRA",
     "MIMIC_IV_ICD10",

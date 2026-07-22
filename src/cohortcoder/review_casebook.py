@@ -23,14 +23,21 @@ def build_review_casebook(
 ) -> pd.DataFrame:
     """Create an audit-first case sample for clinical/coder review.
 
-    Priority cases are selected before random correct controls. The function assumes
-    explanations were generated in the same row order as predictions; if row counts do
-    not match, explanation columns are not positionally attached.
+    Explanation-stage decisions are allowed to make a case more conservative. When the
+    explanation artifact has downgraded AUTO_CANDIDATE to HUMAN_REVIEW, that final
+    decision replaces the earlier prediction-stage decision in the review casebook.
     """
     df = predictions.reset_index(drop=True).copy().fillna("")
     if explanations is not None and len(explanations) == len(df):
         exp = explanations.reset_index(drop=True).copy().fillna("")
-        for column in ["why", "explanation_status", "evidence_quotes_json", "evidence_spans_json", "coding_system"]:
+        for column in [
+            "why",
+            "explanation_status",
+            "evidence_quotes_json",
+            "evidence_spans_json",
+            "coding_system",
+            "decision",
+        ]:
             if column in exp:
                 df[column] = exp[column]
 
@@ -103,7 +110,7 @@ def write_review_casebook(output_dir: str | Path, casebook: pd.DataFrame) -> Non
 <p><b>Record:</b> {escape(str(row.get('record_id', '')))}</p>
 <p><b>Gold:</b> {escape(str(row.get('gold_code', '')))} {escape(str(row.get('gold_term', '')))}</p>
 <p><b>Predicted:</b> {escape(str(row.get('predicted_code', '')))} {escape(str(row.get('predicted_term', '')))}</p>
-<p><b>Confidence:</b> {escape(str(row.get('confidence', '')))} &nbsp; <b>Decision:</b> {escape(str(row.get('decision', '')))}</p>
+<p><b>Confidence:</b> {escape(str(row.get('confidence', '')))} &nbsp; <b>Final decision after explanation audit:</b> {escape(str(row.get('decision', '')))}</p>
 <h3>Original context</h3><div class='record'>{escape(context)}</div>
 <h3>Task mention</h3><p>{escape(mention)}</p>
 <h3>Why</h3><p>{escape(str(row.get('why', '')))}</p>
