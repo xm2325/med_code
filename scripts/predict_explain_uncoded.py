@@ -12,10 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.core import HistoricalCoder
+from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
-from cohortcoder.realdata import load_records, predict_uncoded
+from cohortcoder.realdata import predict_uncoded
 
 
 def main() -> None:
@@ -35,8 +36,8 @@ def main() -> None:
 
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    historical = load_records(args.historical)
-    new_records = load_records(args.input)
+    historical = load_coding_records(args.historical)
+    new_records = load_coding_records(args.input)
     terminology = load_terminology_knowledge(args.terminology, coding_system=args.coding_system)
     policy = json.loads(Path(args.frozen_policy).read_text(encoding="utf-8"))
 
