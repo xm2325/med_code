@@ -11,6 +11,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from cohortcoder.clinical_context import audit_explanation_context
 from cohortcoder.core import HistoricalCoder
 from cohortcoder.data import load_coding_records
 from cohortcoder.explain import explain_predictions, write_explanation_artifacts
@@ -50,6 +51,7 @@ def main() -> None:
     coder = HistoricalCoder(history_weight=float(policy["history_weight"]), top_k=10).fit(historical, terminology)
     explanations = explain_predictions(aligned, terminology, coder=coder)
     explanations = attach_knowledge_provenance(explanations, terminology)
+    explanations = audit_explanation_context(explanations)
 
     if args.deepseek:
         few_shot = pd.read_csv(args.few_shot_csv).fillna("").to_dict("records") if args.few_shot_csv else []
