@@ -63,10 +63,13 @@ def main() -> None:
         seed=args.seed,
     )
     stamp_benchmark_artifacts(benchmark_dir, version="0.0.12", benchmark_profile="cadec_meddra_normalization")
-    apply_dataset_readiness_gate(
-        benchmark_dir,
-        dataset_readiness_passed=bool(audit["ready_for_benchmark"]),
-    )
+    readiness_passed = bool(audit["ready_for_benchmark"])
+    apply_dataset_readiness_gate(benchmark_dir, dataset_readiness_passed=readiness_passed)
+    metrics["dataset_readiness_passed"] = readiness_passed
+    if not readiness_passed:
+        metrics["results_reportable"] = False
+        metrics["results_status"] = "non_reportable"
+        metrics["non_reportable_reason"] = "dataset_preflight_audit_failed_or_was_overridden"
 
     import pandas as pd
     write_evaluation_plots(
@@ -97,7 +100,7 @@ def main() -> None:
     ], check=True)
     write_cadec_report(benchmark_dir)
 
-    summary_status = "completed" if audit["ready_for_benchmark"] else "completed_with_audit_override_nonreportable"
+    summary_status = "completed" if readiness_passed else "completed_with_audit_override_nonreportable"
     summary = {
         "status": summary_status,
         "version": "0.0.12",
