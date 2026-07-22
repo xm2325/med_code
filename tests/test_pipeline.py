@@ -1,11 +1,19 @@
+import json
 import sys
 from pathlib import Path
+
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder import HistoricalCoder, accuracy_at_k, coverage_accuracy
+from cohortcoder.analysis import (
+    annotate_prediction_diagnostics,
+    choose_threshold_max_coverage,
+    policy_stress_test,
+    subgroup_metrics,
+)
 from cohortcoder.results import build_results_contract, contract_from_benchmark_metadata
 from cohortcoder.realdata import assign_document_splits, assert_document_disjoint
 
@@ -87,3 +95,60 @@ def test_document_split_keeps_source_document_together():
     out = assign_document_splits(df, seed=11, train=0.5, val=0.25)
     assert_document_disjoint(out)
     assert out.groupby("record_id")["split"].nunique().max() == 1
+
+
+def test_threshold_selection_maximises_validation_coverage_subject_to_accuracy():
+    validation = pd.DataFrame({
+        "confidence": [0.90, 0.80, 0.70],
+        "correct": [1, 1, 0],
+    })
+    # 0.90 reaches 100% accuracy at 1/3 coverage, but 0.80 reaches the same
+    # target at 2/3 coverage and must therefore be selected.
+    assert choose_threshold_max_coverage(validation, 1.0) == 0.80
+
+
+def test_seen_unseen_and_failure_taxonomy():
+    predictions = pd.DataFrame([
+        {
+            "gold_code": "A",
+            "predicted_code": "A",
+            "correct": 1,
+            "candidates_json": json.dumps([{"code": "A"}, {"code": "B"}]),
+        },
+        {
+            "gold_code": "C",
+            "predicted_code": "B",
+            "correct": 0,
+            "candidates_json": json.dumps([{"code": "B"}, {"code": "C"}]),
+        },
+        {
+            "gold_code": "D",
+            "predicted_code": "B",
+            "correct": 0,
+            "candidates_json": json.dumps([{"code": "B"}, {"code": "C"}]),
+        },
+    ])
+    diagnostics = annotate_prediction_diagnostics(predictions, {"A", "B", "C"})
+    assert diagnostics.loc[0, "error_type"] == "correct"
+    assert diagnostics.loc[1, "error_type"] == "ranking_failure"
+    assert diagnostics.loc[2, "error_type"] == "candidate_generation_failure"
+    assert diagnostics.loc[2, "code_novelty"] == "unseen_code"
+    metrics = subgroup_metrics(diagnostics)
+    unseen = metrics[metrics.subgroup == "unseen_code"].iloc[0]
+    assert unseen.n == 1
+    assert unseen.accuracy_at_1 == 0.0
+
+
+def test_policy_stress_threshold_is_selected_from_validation_only():
+    validation = pd.DataFrame({
+        "confidence": [0.95, 0.85, 0.60],
+        "correct": [1, 1, 0],
+    })
+    test = pd.DataFrame({
+        "confidence": [0.90, 0.80, 0.70],
+        "correct": [1, 0, 1],
+    })
+    result = policy_stress_test(validation, test, targets=[1.0])
+    assert result.iloc[0].validation_threshold == 0.85
+    assert result.iloc[0].test_n_auto == 1
+    assert result.iloc[0].test_accuracy == 1.0
