@@ -18,6 +18,7 @@ from cohortcoder.explain import explain_predictions, write_explanation_artifacts
 from cohortcoder.knowledge import attach_knowledge_provenance, load_terminology_knowledge
 from cohortcoder.llm import DeepSeekRationaleClient, apply_deepseek_rationales
 from cohortcoder.realdata import assign_document_splits
+from cohortcoder.source_evidence import apply_task_input_spans
 
 
 def _attach_test_text(records: pd.DataFrame, predictions: pd.DataFrame, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -29,8 +30,12 @@ def _attach_test_text(records: pd.DataFrame, predictions: pd.DataFrame, seed: in
     test["_occurrence"] = test.groupby("record_id").cumcount()
     pred = predictions.copy()
     pred["_occurrence"] = pred.groupby("record_id").cumcount()
+    source_columns = ["record_id", "_occurrence", "text", "mention"]
+    for optional in ["spans_json", "start", "end", "annotation_id", "is_discontinuous"]:
+        if optional in test.columns:
+            source_columns.append(optional)
     merged = pred.merge(
-        test[["record_id", "_occurrence", "text", "mention"]],
+        test[source_columns],
         on=["record_id", "_occurrence"],
         how="left",
         validate="one_to_one",
@@ -78,6 +83,8 @@ def main() -> None:
     policy = json.loads((benchmark / "frozen_policy.json").read_text(encoding="utf-8"))
     coder = HistoricalCoder(history_weight=float(policy["history_weight"]), top_k=10).fit(train, terminology)
     explanations = explain_predictions(aligned, terminology, coder=coder)
+    if "spans_json" in aligned.columns:
+        explanations = apply_task_input_spans(explanations, aligned)
     explanations = attach_knowledge_provenance(explanations, terminology)
     explanations = audit_explanation_context(explanations)
 
