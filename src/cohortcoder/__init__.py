@@ -7,6 +7,7 @@ from .analysis import (
     failure_summary,
     policy_stress_test,
     subgroup_metrics,
+    write_evaluation_plots,
 )
 from .core import HistoricalCoder, accuracy_at_k, coverage_accuracy
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
@@ -27,4 +28,5 @@ __all__ = [
     "failure_summary",
     "policy_stress_test",
     "subgroup_metrics",
+    "write_evaluation_plots",
 ]
