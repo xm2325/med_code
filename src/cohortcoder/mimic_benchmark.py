@@ -116,12 +116,15 @@ def run_mimic_icd10_benchmark(
     if min(len(train), len(val), len(test)) == 0:
         raise ValueError("train/val/test must all be non-empty")
 
+    # All candidate history weights share identical terminology/history vector spaces
+    # and code centroids. Build these indexes once, then change only the fusion weight.
+    coder = MultiLabelHistoricalCoder(history_weight=0.0, top_k=100).fit(train, terminology)
     tuning_rows = []
     for history_weight in [0.0, 0.25, 0.50, 0.75, 1.0]:
-        coder = MultiLabelHistoricalCoder(history_weight=history_weight, top_k=100).fit(train, terminology)
-        val_predictions = rank_dataframe_batched(coder, val, batch_size=batch_size)
-        metrics = ranking_metrics(val_predictions, k_values=(5, 10, 20))
-        tuning_rows.append({"history_weight": history_weight, **metrics})
+        coder.history_weight = float(history_weight)
+        val_predictions_for_weight = rank_dataframe_batched(coder, val, batch_size=batch_size)
+        weight_metrics = ranking_metrics(val_predictions_for_weight, k_values=(5, 10, 20))
+        tuning_rows.append({"history_weight": history_weight, **weight_metrics})
     tuning = pd.DataFrame(tuning_rows)
     tuning.to_csv(output / "model_selection.csv", index=False)
     best = tuning.sort_values(
@@ -129,11 +132,12 @@ def run_mimic_icd10_benchmark(
         ascending=[False, False, True],
     ).iloc[0]
 
-    selected = MultiLabelHistoricalCoder(history_weight=float(best.history_weight), top_k=100).fit(train, terminology)
-    baseline = MultiLabelHistoricalCoder(history_weight=0.0, top_k=100).fit(train, terminology)
-    val_predictions = rank_dataframe_batched(selected, val, batch_size=batch_size)
-    test_predictions = rank_dataframe_batched(selected, test, batch_size=batch_size)
-    baseline_test = rank_dataframe_batched(baseline, test, batch_size=batch_size)
+    coder.history_weight = float(best.history_weight)
+    val_predictions = rank_dataframe_batched(coder, val, batch_size=batch_size)
+    test_predictions = rank_dataframe_batched(coder, test, batch_size=batch_size)
+    coder.history_weight = 0.0
+    baseline_test = rank_dataframe_batched(coder, test, batch_size=batch_size)
+    coder.history_weight = float(best.history_weight)
 
     threshold = select_threshold_max_recall_at_precision(
         val_predictions,
@@ -220,6 +224,7 @@ def run_mimic_icd10_benchmark(
         "data_is_synthetic": bool(data_is_synthetic),
         "test_used_for_selection_or_tuning": False,
         "batch_size": int(batch_size),
+        "index_reuse_during_weight_selection": True,
         "data_governance": "credentialed_source_and_sensitive_derivatives",
     })
     _dump(output / "data_fingerprints.json", {
