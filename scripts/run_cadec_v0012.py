@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cohortcoder.analysis import write_evaluation_plots
+from cohortcoder.artifact_metadata import stamp_benchmark_artifacts
 from cohortcoder.cadec import parse_cadec, write_cadec_audit_artifacts
 from cohortcoder.knowledge import load_terminology_knowledge
 from cohortcoder.realdata import assign_document_splits, run_real_benchmark
@@ -64,6 +65,11 @@ def main() -> None:
         external_human_reference=True,
         data_is_synthetic=False,
         seed=args.seed,
+    )
+    stamp_benchmark_artifacts(
+        benchmark_dir,
+        version="0.0.12",
+        benchmark_profile="cadec_meddra_normalization",
     )
 
     # Plot generation is descriptive held-out evaluation only; it never selects a policy.
