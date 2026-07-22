@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "med-code"
-version = "0.0.6"
+version = "0.0.7"
 description = "Research prototype for historical expert-assisted clinical coding and selective review"
 readme = "README.md"
 requires-python = ">=3.10"
