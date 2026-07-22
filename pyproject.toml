@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "med-code"
-version = "0.0.11"
-description = "Explainable historical expert-assisted clinical coding across MedDRA normalization and ICD-10 multi-label benchmarks"
+version = "0.0.12"
+description = "Explainable clinical coding with audited real-data benchmark pipelines for MedDRA normalization and ICD-10 multi-label coding"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
