@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from io import BytesIO
 import hashlib
 import json
-from typing import Any
+from typing import Any, Iterable, Mapping
 from urllib.parse import quote
 from urllib.request import urlopen
 
@@ -19,6 +20,64 @@ OFFICIAL_MEDNORM = {
 }
 
 
+def _select_tabular_repo_file(siblings: Iterable[Mapping[str, Any]]) -> str | None:
+    """Choose a likely source CSV/TSV from a Hugging Face repository listing."""
+    candidates: list[str] = []
+    for item in siblings:
+        name = str(item.get("rfilename", "") or "")
+        lower = name.lower()
+        if not name or lower.startswith(".") or lower.endswith("readme.md"):
+            continue
+        if lower.endswith((".csv", ".tsv", ".txt")):
+            candidates.append(name)
+    if not candidates:
+        return None
+    # Prefer filenames that look like the dataset itself, then CSV, then shortest path.
+    return sorted(
+        candidates,
+        key=lambda name: (
+            0 if "mednorm" in name.lower() else 1,
+            0 if name.lower().endswith(".csv") else 1,
+            name.count("/"),
+            len(name),
+            name,
+        ),
+    )[0]
+
+
+def fetch_hf_mirror_file(
+    *,
+    dataset: str = "awacke1/MedNorm2SnomedCT2UMLS",
+    revision: str = "main",
+    timeout_seconds: int = 60,
+) -> pd.DataFrame:
+    """Download the small public mirror as one tabular file instead of hundreds of row-API calls.
+
+    The Hugging Face copy is only a transport convenience. The official Mendeley record in
+    ``OFFICIAL_MEDNORM`` remains the source/licence authority.
+    """
+    api_url = "https://huggingface.co/api/datasets/" + quote(dataset, safe="/")
+    with urlopen(api_url, timeout=timeout_seconds) as response:
+        metadata = json.loads(response.read().decode("utf-8"))
+    filename = _select_tabular_repo_file(metadata.get("siblings", []))
+    if not filename:
+        raise FileNotFoundError("No CSV/TSV source file found in the Hugging Face mirror")
+    download_url = (
+        "https://huggingface.co/datasets/"
+        + quote(dataset, safe="/")
+        + "/resolve/"
+        + quote(revision, safe="")
+        + "/"
+        + quote(filename, safe="/")
+        + "?download=true"
+    )
+    with urlopen(download_url, timeout=timeout_seconds) as response:
+        raw = response.read()
+    suffix = filename.lower().rsplit(".", 1)[-1]
+    sep = "\t" if suffix in {"tsv", "txt"} else ","
+    return pd.read_csv(BytesIO(raw), sep=sep, dtype=str, keep_default_na=False)
+
+
 def fetch_hf_mirror_rows(
     *,
     dataset: str = "awacke1/MedNorm2SnomedCT2UMLS",
@@ -27,11 +86,10 @@ def fetch_hf_mirror_rows(
     max_rows: int | None = None,
     page_size: int = 100,
 ) -> pd.DataFrame:
-    """Fetch a convenience mirror through the Hugging Face dataset-viewer rows API.
+    """Fallback dataset-viewer row API.
 
-    The mirror is not treated as the licensing authority. `OFFICIAL_MEDNORM` remains the
-    source/licence record and must be cited in reports. This helper exists to make a public,
-    reproducible evaluation path easier when the official archive UI is inconvenient.
+    Prefer ``fetch_hf_mirror_file`` for normal runs. This paginated fallback remains useful if
+    the mirror repository layout changes.
     """
     rows: list[dict[str, Any]] = []
     offset = 0
@@ -57,6 +115,15 @@ def fetch_hf_mirror_rows(
     return pd.DataFrame(rows[:max_rows] if max_rows is not None else rows)
 
 
+def fetch_hf_mirror_dataframe(*, max_rows: int | None = None) -> pd.DataFrame:
+    """Fast mirror loader with a conservative rows-API fallback."""
+    try:
+        frame = fetch_hf_mirror_file()
+        return frame.head(max_rows).copy() if max_rows is not None else frame
+    except Exception:
+        return fetch_hf_mirror_rows(max_rows=max_rows)
+
+
 def prepare_mednorm_single_meddra(frame: pd.DataFrame) -> pd.DataFrame:
     required = {"original_dataset", "instance_id", "phrase", "single_mapped_meddra_codes"}
     missing = required - set(frame.columns)
@@ -79,9 +146,11 @@ def assign_cross_dataset_split(records: pd.DataFrame, *, test_source: str = "CAD
     data["split"] = "train"
     data.loc[data["source_dataset"].astype(str).str.lower() == str(test_source).lower(), "split"] = "test"
     train_mask = data["split"] == "train"
+
     def is_val(record_id: str) -> bool:
         value = int(hashlib.sha256(str(record_id).encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
         return value < float(val_fraction)
+
     data.loc[train_mask & data["record_id"].astype(str).map(is_val), "split"] = "val"
     if not {"train", "val", "test"}.issubset(set(data["split"])):
         raise ValueError("Cross-dataset split requires non-empty train/val/test")
