@@ -1,6 +1,11 @@
 import pandas as pd
 
-from cohortcoder.ra_comorbidity import confidence_review_curve, evaluate_discordance, public_mipa_ra_summary
+from cohortcoder.ra_comorbidity import (
+    confidence_review_curve,
+    evaluate_discordance,
+    public_mipa_ra_summary,
+    validate_discordance_table,
+)
 
 
 def test_hidden_comorbidity_recovery_is_separate_from_code_recall():
@@ -42,3 +47,30 @@ def test_public_mipa_summary_deduplicates_patients():
     assert summary["population_prevalence_claim_allowed"] is False
     assert counts.loc["hypertension", "positive_patients"] == 1
     assert counts.loc["depression", "positive_patients"] == 1
+
+
+def test_reportable_input_requires_grounded_evidence():
+    df = pd.DataFrame([
+        {"subject_id": "1", "phenotype": "x", "gold": 1, "code": 0, "text": 1, "evidence": "explicit disease mention"},
+    ])
+    validate_discordance_table(df, require_evidence=True)
+    df.loc[0, "evidence"] = ""
+    try:
+        validate_discordance_table(df, require_evidence=True)
+    except ValueError as exc:
+        assert "source evidence" in str(exc)
+    else:
+        raise AssertionError("missing evidence should fail validation")
+
+
+def test_split_leakage_is_rejected():
+    df = pd.DataFrame([
+        {"subject_id": "1", "phenotype": "x", "gold": 1, "code": 0, "text": 1, "split": "train"},
+        {"subject_id": "1", "phenotype": "x", "gold": 1, "code": 0, "text": 1, "split": "test"},
+    ])
+    try:
+        validate_discordance_table(df)
+    except ValueError as exc:
+        assert "patient leakage" in str(exc)
+    else:
+        raise AssertionError("subject overlap across splits should fail validation")
