@@ -1,0 +1,127 @@
+name: v0.2.1 selective policy calibration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v021-selective-policy.yml'
+      - 'scripts/run_v021_policy_calibration.py'
+      - 'src/cohortcoder/selective_policy.py'
+      - 'tests/test_selective_policy_v021.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  selective-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Focused selective-policy tests
+        id: focused_tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q tests/test_selective_policy_v021.py 2>&1 | tee /tmp/v021-tests.log
+      - name: Run disjoint policy-calibration evaluation
+        id: evaluation
+        if: steps.focused_tests.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_v021_policy_calibration.py \
+            --output-dir /tmp/medcode-v021-policy \
+            --candidate-result results/v0.2/candidate_generation_results.json \
+            --train-limit 3000 \
+            --model-selection-validation-limit 200 \
+            --policy-calibration-limit 1000 \
+            --test-limit 500 \
+            --target-auto-accuracy 0.95 \
+            --alpha 0.05 \
+            --min-auto 20 2>&1 | tee /tmp/v021-policy.log
+      - name: Upload v0.2.1 artifacts
+        if: steps.evaluation.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: medcode-v0.2.1-selective-policy
+          path: /tmp/medcode-v021-policy
+          retention-days: 30
+      - name: Persist result or diagnostics
+        if: always()
+        env:
+          TEST_OUTCOME: ${{ steps.focused_tests.outcome }}
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p results/v0.2/selective_policy
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out = Path('results/v0.2/selective_policy')
+          payload = {
+              'release': '0.2.1-selective-policy',
+              'workflow_run_id': os.environ.get('RUN_ID'),
+              'focused_tests_outcome': os.environ.get('TEST_OUTCOME') or 'skipped',
+              'evaluation_outcome': os.environ.get('EVALUATION_OUTCOME') or 'skipped',
+          }
+          (out / 'execution_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          for source, target in [('/tmp/v021-tests.log', 'focused_tests.log'), ('/tmp/v021-policy.log', 'execution.log')]:
+              p = Path(source)
+              if p.exists():
+                  lines = p.read_text(encoding='utf-8', errors='replace').splitlines()
+                  (out / target).write_text('\n'.join(lines[-250:]) + '\n', encoding='utf-8')
+          run = Path('/tmp/medcode-v021-policy')
+          if run.exists():
+              for name in ['v021_selective_policy_results.json', 'policy_calibration_predictions.csv']:
+                  src = run / name
+                  if src.exists():
+                      (out / name).write_bytes(src.read_bytes())
+          result = run / 'v021_selective_policy_results.json'
+          if result.exists():
+              data = json.loads(result.read_text(encoding='utf-8'))
+              policies = data['policies']
+              lines = [
+                  '# MedCode v0.2.1 selective-policy result', '',
+                  '| Policy | TEST coverage | TEST Accuracy@1 | Release eligible |',
+                  '|---|---:|---:|---:|',
+              ]
+              for key in ['previous_reused_model_selection_validation','independent_empirical_policy_calibration','conservative_lower_bound_policy']:
+                  item = policies[key]
+                  test = item['held_out_test']
+                  cov = 'n/a' if test['coverage'] is None else f"{100*test['coverage']:.1f}%"
+                  acc = 'n/a' if test['accuracy_at_1'] is None else f"{100*test['accuracy_at_1']:.1f}%"
+                  lines.append(f"| {key} | {cov} | {acc} | {item['release_eligible']} |")
+              lines += ['', data['release_rule']]
+              (out / 'RESULTS.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/v0.2/selective_policy
+          if git diff --cached --quiet; then
+            echo 'No v0.2.1 result/status changes'
+          else
+            git commit -m 'Record v0.2.1 selective-policy evaluation'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Enforce successful v0.2.1 evaluation
+        if: always()
+        env:
+          TEST_OUTCOME: ${{ steps.focused_tests.outcome }}
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: |
+          test "${TEST_OUTCOME}" = "success"
+          test "${EVALUATION_OUTCOME}" = "success"
