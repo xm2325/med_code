@@ -1,25 +1,2 @@
-...........................................................F.            [100%]
-=================================== FAILURES ===================================
-_____________________ test_uncertainty_margin_and_routing ______________________
-
-    def test_uncertainty_margin_and_routing():
-        candidates = [
-            {"code": "A", "term": "Alpha", "score": 0.9},
-            {"code": "B", "term": "Beta", "score": 0.3},
-        ]
-        u = candidate_uncertainty(candidates)
-        assert round(u["score_margin"], 6) == 0.6
-        policy = ReviewRoutingPolicy(auto_threshold=0.8, topk_choice_threshold=0.4, min_margin_for_auto=0.1)
->       assert policy.route(confidence=0.9, uncertainty=u) == "AUTO_CANDIDATE"
-E       AssertionError: assert 'TOP_K_HUMAN_CHOICE' == 'AUTO_CANDIDATE'
-E         
-E         - AUTO_CANDIDATE
-E         + TOP_K_HUMAN_CHOICE
-
-tests/test_uncertainty_review_v0014.py:15: AssertionError
-=========================== short test summary info ============================
-FAILED tests/test_uncertainty_review_v0014.py::test_uncertainty_margin_and_routing - AssertionError: assert 'TOP_K_HUMAN_CHOICE' == 'AUTO_CANDIDATE'
-  
-  - AUTO_CANDIDATE
-  + TOP_K_HUMAN_CHOICE
-1 failed, 60 passed in 2.52s
+.............................................................            [100%]
+61 passed in 3.07s

@@ -1,6 +1,6 @@
 {
-  "workflow_run_id": "29990869929",
-  "tests_outcome": "failure",
-  "package_smoke_outcome": "skipped",
-  "demo_smoke_outcome": "skipped"
+  "workflow_run_id": "29991029992",
+  "tests_outcome": "success",
+  "package_smoke_outcome": "success",
+  "demo_smoke_outcome": "success"
 }
