@@ -5,6 +5,10 @@ on:
     paths:
       - 'scripts/run_public_interim_benchmarks.py'
       - '.github/workflows/public-interim-benchmarks.yml'
+  pull_request:
+    paths:
+      - 'scripts/run_public_interim_benchmarks.py'
+      - '.github/workflows/public-interim-benchmarks.yml'
   workflow_dispatch:
 
 permissions:
