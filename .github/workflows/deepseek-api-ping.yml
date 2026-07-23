@@ -1,0 +1,56 @@
+name: DeepSeek API connectivity check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/deepseek-api-ping.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - name: Validate key and one JSON API response
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ.get('DEEPSEEK_API_KEY')
+          if not key:
+              raise SystemExit('DEEPSEEK_API_KEY missing')
+          body = {
+              'model': 'deepseek-v4-pro',
+              'messages': [
+                  {'role': 'system', 'content': 'Return JSON only.'},
+                  {'role': 'user', 'content': 'Return {"status":"ok"} exactly as JSON.'},
+              ],
+              'response_format': {'type': 'json_object'},
+              'temperature': 0,
+              'max_tokens': 40,
+              'stream': False,
+          }
+          req = urllib.request.Request(
+              'https://api.deepseek.com/chat/completions',
+              data=json.dumps(body).encode(),
+              headers={'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'},
+              method='POST',
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=45) as response:
+                  outer = json.loads(response.read().decode())
+          except urllib.error.HTTPError as exc:
+              text = exc.read().decode('utf-8', errors='replace')[:1000]
+              raise SystemExit(f'DeepSeek HTTP {exc.code}: {text}')
+          content = outer['choices'][0]['message']['content']
+          parsed = json.loads(content)
+          if parsed.get('status') != 'ok':
+              raise SystemExit(f'Unexpected model JSON: {parsed}')
+          print('DeepSeek API connectivity and JSON output: PASS')
+          print('Model:', outer.get('model', 'unknown'))
+          print('Usage present:', bool(outer.get('usage')))
+          PY
