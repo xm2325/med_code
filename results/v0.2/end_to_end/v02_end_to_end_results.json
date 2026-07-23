@@ -1,0 +1,81 @@
+{
+  "release": "0.2.0-end-to-end",
+  "dataset": {
+    "name": "MedNorm: A Corpus and Embeddings for Cross-terminology Medical Concept Normalisation",
+    "doi": "10.17632/b9x7xxb9sz.1",
+    "official_url": "https://data.mendeley.com/datasets/b9x7xxb9sz/1",
+    "licence": "CC BY-NC 3.0",
+    "authors": "Maksim Belousov; William G. Dixon; Goran Nenadic",
+    "n_reported_rows": 27979,
+    "task_use": "medical concept normalisation benchmark",
+    "licence_authority": "official Mendeley Data record",
+    "mirror_note": "A third-party mirror may be used only as a transport convenience; it does not override the official licence."
+  },
+  "evaluation_design": {
+    "n_total_real_records": 27979,
+    "n_train_full": 18025,
+    "n_val_full": 3157,
+    "n_test_full": 6797,
+    "n_train_model_sample": 3000,
+    "n_validation_sample": 200,
+    "n_test_sample": 500,
+    "sampling_seed": 20260723,
+    "test_source": "CADEC",
+    "candidate_config_source": "results/v0.2/candidate_generation_results.json",
+    "candidate_config_frozen_from_validation_only": {
+      "history_weight": 0.25,
+      "word_weight": 0.15
+    },
+    "deepseek_subset_size": 50
+  },
+  "v0_2_retrieval": {
+    "n": 500,
+    "accuracy_at_1": 0.67,
+    "recall_at_5": 0.844,
+    "recall_at_20": 0.886,
+    "recall_at_50": 0.9,
+    "validation_selected_auto_threshold": 0.3870297828664988,
+    "target_auto_accuracy": 0.95,
+    "routes": {
+      "AUTO_CANDIDATE": {
+        "n": 326,
+        "coverage": 0.652,
+        "accuracy_at_1": 0.8404907975460123,
+        "recall_at_5": 0.9355828220858896
+      },
+      "TOP_K_HUMAN_CHOICE": {
+        "n": 174,
+        "coverage": 0.348,
+        "accuracy_at_1": 0.3505747126436782,
+        "recall_at_5": 0.6724137931034483
+      }
+    }
+  },
+  "v0_2_deepseek": {
+    "n_paired_subset_cases": 50,
+    "deepseek_model": "deepseek-v4-pro",
+    "deepseek_workers": 6,
+    "n_valid_deepseek_responses": 49,
+    "deepseek_valid_response_rate": 0.98,
+    "retrieval_accuracy_at_1": 0.56,
+    "deepseek_accuracy_at_1_accepted_only": 0.6122448979591837,
+    "pipeline_accuracy_at_1_with_fallback": 0.62,
+    "pipeline_delta_vs_retrieval": 0.05999999999999994,
+    "fixed_candidate_recall_at_5": 0.78,
+    "cases_corrected_by_deepseek": 5,
+    "cases_harmed_by_deepseek": 2,
+    "net_corrected_minus_harmed": 3
+  },
+  "rationale_contract": {
+    "every_displayed_option_has_real_phrase_evidence": true,
+    "accepted_llm_output_preserves_fixed_candidate_set": true,
+    "accepted_llm_output_requires_one_rationale_per_candidate": true,
+    "invalid_llm_output_uses_deterministic_grounded_fallback": true
+  },
+  "interpretation_boundary": [
+    "This remains a TRAIN-derived closed-code public-data benchmark, not a licensed full-MedDRA open-set evaluation.",
+    "The candidate configuration was frozen from validation-only selection before this held-out TEST evaluation.",
+    "The DeepSeek comparison is paired on a fixed-seed subset; larger repeated evaluations are required before claiming stable superiority.",
+    "Recall@K is candidate availability, not observed human-assisted accuracy."
+  ]
+}
