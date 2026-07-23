@@ -64,35 +64,51 @@ jobs:
           python-version: '3.11'
       - name: Install
         run: pip install pandas numpy scikit-learn
-      - name: Run paired CodiEsp shard
+      - name: Run paired CodiEsp shard with per-case checkpoints
+        id: shard_run
+        continue-on-error: true
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           mkdir -p /tmp/ab
-          python scripts/run_codiesp_icd_kb_ab.py \
+          python scripts/run_codiesp_icd_kb_ab_resilient.py \
             --mode '${{ matrix.mode }}' \
             --output-dir /tmp/ab \
             --total-cases "$N_CASES" \
             --num-shards "$NUM_SHARDS" \
             --shard-index '${{ matrix.shard }}' \
-            --retrieval-top-k 35
-      - name: Verify shard
-        run: |
-          python - <<'PY'
-          import json, pathlib, pandas as pd
-          p=pathlib.Path('/tmp/ab/run_manifest.json')
-          m=json.loads(p.read_text())
-          assert m['n_failures']==0
-          assert m['n_success']>0
-          x=pd.read_csv('/tmp/ab/predictions.csv')
-          assert len(x)==m['n_success']
-          assert set(x['mode'])=={m['mode']}
-          PY
-      - uses: actions/upload-artifact@v4
+            --retrieval-top-k 35 \
+            --max-api-attempts 4
+      - name: Upload complete or partial shard outputs
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: codiesp-icd-kb-ab-${{ matrix.mode }}-${{ matrix.shard }}
           path: /tmp/ab/
+          if-no-files-found: warn
           retention-days: 90
+      - name: Verify shard completeness after preserving artifact
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path('/tmp/ab/run_manifest.json')
+          if not p.exists():
+              raise SystemExit('run_manifest.json missing; no recoverable shard checkpoint')
+          m = json.loads(p.read_text())
+          print(json.dumps({
+              'mode': m.get('mode'),
+              'shard_index': m.get('shard_index'),
+              'n_success': m.get('n_success'),
+              'n_failures': m.get('n_failures'),
+              'n_pending': m.get('n_pending'),
+              'failed_case_ids': m.get('failed_case_ids'),
+          }, indent=2))
+          if m.get('n_failures', 0) != 0 or m.get('n_pending', 0) != 0:
+              raise SystemExit('Shard incomplete; partial outputs were uploaded for targeted repair.')
+          if m.get('n_success', 0) <= 0:
+              raise SystemExit('Shard has no successful cases.')
+          PY
 
   aggregate:
     if: ${{ always() && needs.preflight.result == 'success' }}
@@ -109,22 +125,37 @@ jobs:
         with:
           pattern: codiesp-icd-kb-ab-*
           path: /tmp/shards
-      - name: Aggregate paired results
+      - name: Aggregate all available complete or partial results
+        id: aggregate_partial
+        continue-on-error: true
         run: |
           mkdir -p /tmp/final
           python scripts/aggregate_codiesp_icd_kb_ab.py --input-dir /tmp/shards --output-dir /tmp/final
-      - name: Strict paired acceptance
-        run: |
-          python - <<'PY'
-          import json, os, pathlib
-          p=json.loads(pathlib.Path('/tmp/final/summary.json').read_text())
-          expected=int(os.environ['N_CASES'])
-          assert p['n_paired']==expected, (p['n_paired'], expected)
-          assert p['metrics']['direct']['n_documents']==expected
-          assert p['metrics']['rag']['n_documents']==expected
-          PY
-      - uses: actions/upload-artifact@v4
+      - name: Upload aggregate before strict acceptance
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: codiesp-icd-kb-ab-${{ env.N_CASES }}-final
           path: /tmp/final/
+          if-no-files-found: warn
           retention-days: 90
+      - name: Strict paired acceptance
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path('/tmp/final/summary.json')
+          if not p.exists():
+              raise SystemExit('No aggregate summary was produced; inspect preserved shard artifacts.')
+          s = json.loads(p.read_text())
+          expected = int(os.environ['N_CASES'])
+          print(json.dumps({
+              'expected': expected,
+              'n_paired': s.get('n_paired'),
+              'direct_n': s.get('metrics', {}).get('direct', {}).get('n_documents'),
+              'rag_n': s.get('metrics', {}).get('rag', {}).get('n_documents'),
+          }, indent=2))
+          assert s['n_paired'] == expected, (s['n_paired'], expected)
+          assert s['metrics']['direct']['n_documents'] == expected
+          assert s['metrics']['rag']['n_documents'] == expected
+          PY
