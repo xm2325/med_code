@@ -32,5 +32,5 @@ from .scientific_acceptance import ScientificThresholds, assess_confirmatory_rec
 from .selective_policy import SelectivePolicySelection, apply_frozen_threshold, one_sided_binomial_lower_bound, select_threshold_by_accuracy_lower_bound
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __all__ = [name for name in globals() if not name.startswith("_")]
