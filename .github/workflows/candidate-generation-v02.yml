@@ -10,6 +10,7 @@ on:
     paths:
       - '.github/workflows/candidate-generation-v02.yml'
       - 'scripts/run_candidate_generation_v02.py'
+      - 'scripts/run_candidate_generation_v02_batch.py'
       - 'src/cohortcoder/candidate_generation.py'
       - 'src/cohortcoder/mednorm.py'
       - 'tests/test_candidate_generation_v02.py'
@@ -18,6 +19,7 @@ on:
     paths:
       - '.github/workflows/candidate-generation-v02.yml'
       - 'scripts/run_candidate_generation_v02.py'
+      - 'scripts/run_candidate_generation_v02_batch.py'
       - 'src/cohortcoder/candidate_generation.py'
       - 'src/cohortcoder/mednorm.py'
       - 'tests/test_candidate_generation_v02.py'
@@ -55,7 +57,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python scripts/run_candidate_generation_v02.py \
+          python scripts/run_candidate_generation_v02_batch.py \
             --output-dir /tmp/medcode-v02-candidates \
             --train-limit 3000 \
             --validation-limit 200 \
