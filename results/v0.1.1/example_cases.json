@@ -1,0 +1,2108 @@
+[
+  {
+    "record_id": "ARTHROTEC.13.ann_TT7",
+    "source_dataset": "CADEC",
+    "real_phrase": "menstrual cramps without vaginal bleeding",
+    "gold_code": "10013935",
+    "gold_seen_in_train": true,
+    "route": "TOP_K_HUMAN_CHOICE",
+    "baseline_top1": "10055798",
+    "deepseek_top1": null,
+    "pipeline_top1_with_fallback": "10055798",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": false,
+    "deepseek_validation_errors": [
+      "non_verbatim_or_unapproved_evidence"
+    ],
+    "overall_uncertainty": "",
+    "candidate_options": [
+      {
+        "code": "10055798",
+        "term": "bleeding",
+        "baseline_rank": 1,
+        "deepseek_rank": null,
+        "model_score": 0.43190444603859035,
+        "real_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10055798",
+          "term": "bleeding",
+          "model_score": 0.43190444603859035,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 41,
+              "quote": "menstrual cramps without vaginal bleeding",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "bleeding",
+                "bleed"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "menstrual cramps without vaginal bleeding"
+          ],
+          "rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10055798 — bleeding. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "bleeding",
+            "synonyms": "loosing so much blood | blood | bled | hemorrhaging | bleed | internal bleeding | hemorrhage | hemorrhagic events | symptomatic bleeding | hemorrhagic event | bleeding-related adverse reactions | bleeding at a critical site | bleed at critical site | crnm | clinically relevant nonmajor bleeding | bleeds | symptomatic bleeding in a critical area | symptomatic bleeding in a critical organ | mbe | bleeding events | hemorrhagic reactions",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "bleeding",
+              "code": "10055798",
+              "term": "",
+              "similarity": 0.43190444603859035
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10055798 — bleeding. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10028334",
+        "term": "Night cramps",
+        "baseline_rank": 2,
+        "deepseek_rank": null,
+        "model_score": 0.42822350138229737,
+        "real_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10028334",
+          "term": "Night cramps",
+          "model_score": 0.42822350138229737,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 41,
+              "quote": "menstrual cramps without vaginal bleeding",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "cramps"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "menstrual cramps without vaginal bleeding"
+          ],
+          "rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Night cramps",
+            "synonyms": "Spasm | Cramps of lower extremities | random shoulder spasms | Generalized Spasms | cramps | brain fart | limbs are jumping on their own accord | hasn't stopped shaking her leg the entire hour | spasms | BackSpasms | muscle spasms | muscle cramps | cramping | muscle spasm | metabolism cramp | brain spasms | spasm of the neck muscles",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "cramps",
+              "code": "10028334",
+              "term": "",
+              "similarity": 0.42822350138229737
+            },
+            {
+              "text": "muscle cramps",
+              "code": "10028334",
+              "term": "",
+              "similarity": 0.3243817818134822
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10022437",
+        "term": "Sleeplessness",
+        "baseline_rank": 3,
+        "deepseek_rank": null,
+        "model_score": 0.3840530929664336,
+        "real_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10022437",
+          "term": "Sleeplessness",
+          "model_score": 0.3840530929664336,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 41,
+              "quote": "menstrual cramps without vaginal bleeding",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "menstrual cramps without vaginal bleeding"
+          ],
+          "rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10022437 — Sleeplessness. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Sleeplessness",
+            "synonyms": "productive | wide awake | Insomnia | LACKING SEVERELY IN SLEEP | insomnia | got me uppppp | WIDE AWAKE | I can't remember the last time I slept | sleep-deprived | sleep deprivation | Keeps me up all night | awake approx 36-38 hours | terrified to fall asleep | I was up at 6 am | I'm wide awake once again after 1:00 a.m | thinking it was 8pm | can't even keep you awake | trouble sleeping | trying to get tired | still haven't slept | alertness and trouble sleeping | I'm still awake | awake | not sleeping | won't sleep | was up for 4 days | wide awake yet again past 1:00 a.m | insomniac | no sleep | incapable of sleep | alertness | sleep deprived | Still awake | I won't sleep | Wide awake | awake until 8am | I highly doubt it | can't remember the last time I slept | need sleep | feel more focused | focus | my mind stays woke | be up all night | stay up all night | study | Got a paper to finish in less than # __number__ hrs | night of no sleep | impossible for me to sleep | need to sleep",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "without sleep",
+              "code": "10022437",
+              "term": "",
+              "similarity": 0.3840530929664336
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10022437 — Sleeplessness. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10000081",
+        "term": "Abdominal Cramps",
+        "baseline_rank": 4,
+        "deepseek_rank": null,
+        "model_score": 0.3650594481536728,
+        "real_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10000081",
+          "term": "Abdominal Cramps",
+          "model_score": 0.3650594481536728,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 41,
+              "quote": "menstrual cramps without vaginal bleeding",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "menstrual cramps without vaginal bleeding"
+          ],
+          "rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10000081 — Abdominal Cramps. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Abdominal Cramps",
+            "synonyms": "Abdominal Pain | awful feeling in my stomach | gut pain | cramping stomach | stomach decides it???s the ideal time to start causing me pain | guts are crampy | pain in my gut | abdominal pain | belly pain | abdo pain | 1:30 w a stomach ache",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "Abdominal Cramps",
+              "code": "10000081",
+              "term": "",
+              "similarity": 0.3650594481536728
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10000081 — Abdominal Cramps. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10046910",
+        "term": "Vaginal Hemorrhage",
+        "baseline_rank": 5,
+        "deepseek_rank": null,
+        "model_score": 0.3110837370267721,
+        "real_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10046910",
+          "term": "Vaginal Hemorrhage",
+          "model_score": 0.3110837370267721,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 41,
+              "quote": "menstrual cramps without vaginal bleeding",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "menstrual cramps without vaginal bleeding"
+          ],
+          "rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10046910 — Vaginal Hemorrhage.",
+          "terminology_support": {
+            "term": "Vaginal Hemorrhage",
+            "synonyms": "vaginal hemorrhage",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10046910 — Vaginal Hemorrhage.",
+        "rationale_source": "deterministic_grounded"
+      }
+    ]
+  },
+  {
+    "record_id": "LIPITOR.831.ann_TT2",
+    "source_dataset": "CADEC",
+    "real_phrase": "pain in my arm and shoulder",
+    "gold_code": "10033425",
+    "gold_seen_in_train": true,
+    "route": "AUTO_CANDIDATE",
+    "baseline_top1": "10028391",
+    "deepseek_top1": "10028391",
+    "pipeline_top1_with_fallback": "10028391",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase explicitly states location-specific pain ('arm and shoulder'), so codes with matching body-area synonyms are strongly preferred. However, some relevant codes may not capture the combined mention of both arm and shoulder, and generic pain codes match only the pain aspect without location.",
+    "candidate_options": [
+      {
+        "code": "10028391",
+        "term": "Musculoskeletal Pain",
+        "baseline_rank": 1,
+        "deepseek_rank": 1,
+        "model_score": 0.8016027055046099,
+        "real_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10028391",
+          "term": "Musculoskeletal Pain",
+          "model_score": 0.8016027055046099,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 27,
+              "quote": "pain in my arm and shoulder",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain in my arm and shoulder"
+          ],
+          "rationale": "Source evidence: “pain in my arm and shoulder” Terminology mapping: 10028391 — Musculoskeletal Pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Musculoskeletal Pain",
+            "synonyms": "Shoulder Pain | Pain in buttock | hurt his shoulder | get my shoulder right | Shoulder pain | Knock on my shoulder | musculo-skeletal pain | shoulder ache | shoulders and arms pain | shoulder and neck ache | shoulder pain | musculoskeletal pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "Shoulder Pain",
+              "code": "10028391",
+              "term": "",
+              "similarity": 0.8016027055046099
+            },
+            {
+              "text": "shoulders and arms pain",
+              "code": "10028391",
+              "term": "",
+              "similarity": 0.7473784093695958
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "Directly matches via synonyms that explicitly combine shoulder and arm pain, such as 'shoulders and arms pain' and 'Shoulder Pain', making it the most specific and relevant code.",
+        "deepseek_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "display_rationale": "Directly matches via synonyms that explicitly combine shoulder and arm pain, such as 'shoulders and arms pain' and 'Shoulder Pain', making it the most specific and relevant code.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10033371",
+        "term": "Acute onset pain",
+        "baseline_rank": 2,
+        "deepseek_rank": 3,
+        "model_score": 0.32709187211039326,
+        "real_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10033371",
+          "term": "Acute onset pain",
+          "model_score": 0.32709187211039326,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 27,
+              "quote": "pain in my arm and shoulder",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "Pain"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "pain in my arm and shoulder"
+          ],
+          "rationale": "Source evidence: “pain in my arm and shoulder” Terminology mapping: 10033371 — Acute onset pain.",
+          "terminology_support": {
+            "term": "Acute onset pain",
+            "synonyms": "Ache | Pain | Pain localised | Chronic pain | butt pain | joints are also hurting | worst pain | makes my fingers hurt | hurt | sharp pain | pain | throbbing | terrible joint pain | Achy | hurting so bad | hurts your nostrils | chronic pain | hurts! | muscular, joint, nerve pain | painful b.. | hit by a train | the pain feels worse | get rid of the pain | feel like I was hit by a train. | hurting | living in pain | hurt really bad | Chronic Pain | pains | sore | #chronicpain | earhole aches | painful | #pain | aching | hurts | after-sting | aches and pains | equivalent to torture | achy | lung pain | ache | aches | Aches | beat up | PAIN | shooting fire straight from the depth of hell | owww | agony",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Captures the pain symptom generally, but the phrase does not mention onset or chronicity, and the code's specificity to 'acute onset' is not supported. The match is only at the broad 'pain' level, making it less targeted.",
+        "deepseek_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "display_rationale": "Captures the pain symptom generally, but the phrase does not mention onset or chronicity, and the code's specificity to 'acute onset' is not supported. The match is only at the broad 'pain' level, making it less targeted.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10048010",
+        "term": "Withdrawal Symptoms",
+        "baseline_rank": 3,
+        "deepseek_rank": 5,
+        "model_score": 0.3267392470459795,
+        "real_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10048010",
+          "term": "Withdrawal Symptoms",
+          "model_score": 0.3267392470459795,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 27,
+              "quote": "pain in my arm and shoulder",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain in my arm and shoulder"
+          ],
+          "rationale": "Source evidence: “pain in my arm and shoulder” Terminology mapping: 10048010 — Withdrawal Symptoms.",
+          "terminology_support": {
+            "term": "Withdrawal Symptoms",
+            "synonyms": "Substance Withdrawal Syndrome | Miss your Prozac does | withdrawal symptoms | crashing | Drug withdrawal syndrome | crash | withdrawal | Discontinuation | come off | withdrawals | Coming down | I forgot to take Zoloft for like 2 days and now I'm getting brain zaps | an adderall crash | come down | sertraline withdrawal | coming down | #withdrawals | seroquel withdrawal | Miss your Prozac dose | withdrawal brain zaps | withdrawal. | tapering off prednisone | venlafaxine withdrawal | comedown | my adderall got cut in half and now I'm dying | rather kick heroin than Effexor | cigarette withdrawal | nicotine withdrawal symptoms | withdrawal reactions | withdrawal syndrome | Withdrawal side effects | discontinuation syndrome | my brain felt like a raw pork shoulder inside a spinning fishbowl | cold turkey | #withdrawal symptoms | feeling worse | #withdrawalsymptoms | withdraws | feel shit | withdrawl | coming off it | sucked going from 100mg Desvenlafaxine / day to zero | w/d | difficult to come off | Coming off cymbalta SUCKS | SSRI discontinuation syndrome | days of hell | feels like when you come off heroin | not dangerous but it is damn unpleasant",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Completely unrelated; withdrawal symptoms are not mentioned or implied in the phrase 'pain in my arm and shoulder', and no evidence supports this context.",
+        "deepseek_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "display_rationale": "Completely unrelated; withdrawal symptoms are not mentioned or implied in the phrase 'pain in my arm and shoulder', and no evidence supports this context.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10033425",
+        "term": "Pain in limb",
+        "baseline_rank": 4,
+        "deepseek_rank": 2,
+        "model_score": 0.30288295767047485,
+        "real_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10033425",
+          "term": "Pain in limb",
+          "model_score": 0.30288295767047485,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 27,
+              "quote": "pain in my arm and shoulder",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain in my arm and shoulder"
+          ],
+          "rationale": "Source evidence: “pain in my arm and shoulder” Terminology mapping: 10033425 — Pain in limb.",
+          "terminology_support": {
+            "term": "Pain in limb",
+            "synonyms": "Arm Pain | Foot pain | Hand pain | Pain in lower limb | ankle hurts | Wrist wrist stop hurting | foot feel worse | my foot feel worse | limbs ached | legs ache | pains down arms | legs | killed my leg | hands still sore | leg's in agony | lags haven't stopped aching | feet pain | feel like you got kicked in the leg | pain in my leg | leg is sore | feet are throbbing | leg is so unbelievably sore | leg keeps feeling sore | arms pain | throb | heavy legs | hand?  pain | leg aches prilosec | leg pain | pain in extremities | pain in extremity | pain in the injected extremity | pain in the treated extremity | thigh pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Relevant because 'Pain in limb' includes synonyms like 'Arm Pain' and 'pains down arms', which partially match the arm component. However, 'shoulder' is not explicitly listed, and the phrase mentions both arm and shoulder, so it is less precise than codes that include shoulder.",
+        "deepseek_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "display_rationale": "Relevant because 'Pain in limb' includes synonyms like 'Arm Pain' and 'pains down arms', which partially match the arm component. However, 'shoulder' is not explicitly listed, and the phrase mentions both arm and shoulder, so it is less precise than codes that include shoulder.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10003239",
+        "term": "Coxalgia",
+        "baseline_rank": 5,
+        "deepseek_rank": 4,
+        "model_score": 0.23703609853472316,
+        "real_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10003239",
+          "term": "Coxalgia",
+          "model_score": 0.23703609853472316,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 27,
+              "quote": "pain in my arm and shoulder",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain in my arm and shoulder"
+          ],
+          "rationale": "Source evidence: “pain in my arm and shoulder” Terminology mapping: 10003239 — Coxalgia.",
+          "terminology_support": {
+            "term": "Coxalgia",
+            "synonyms": "Arthralgia | Ache wrists | Knee pain | wrist | need cortisone shots for my knees | hip pain | joint pain | knee pain | knee aching | knee hurts | pain in OA knee | Wrists #painful | hip | hip joints just started hurting | hips | aching knees | knees ache | weak knees | knee ache | Joints killing | knee still painful | pain in my joints | hurt a lot worse in the finger joints | joints hotter and sorer | jointpains | joints hurting | achyness in my joints | legs feelin weak | knees still ache | hips do when walking | hip ache | joints hurt | knees in pain | arthralgia | arthralgias",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Coxalgia primarily refers to hip pain, not arm or shoulder. Although synonyms include 'Arthralgia' (joint pain), the code is anatomically mismatched, and the phrase does not indicate joint-specific pain.",
+        "deepseek_evidence_quotes": [
+          "pain in my arm and shoulder"
+        ],
+        "display_rationale": "Coxalgia primarily refers to hip pain, not arm or shoulder. Although synonyms include 'Arthralgia' (joint pain), the code is anatomically mismatched, and the phrase does not indicate joint-specific pain.",
+        "rationale_source": "deepseek_validated"
+      }
+    ]
+  },
+  {
+    "record_id": "LIPITOR.103.ann_TT1",
+    "source_dataset": "CADEC",
+    "real_phrase": "Muscle aches",
+    "gold_code": "10028411",
+    "gold_seen_in_train": true,
+    "route": "TOP_K_HUMAN_CHOICE",
+    "baseline_top1": "10033371",
+    "deepseek_top1": null,
+    "pipeline_top1_with_fallback": "10033371",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": false,
+    "deepseek_validation_errors": [
+      "api_or_parse_error:JSONDecodeError"
+    ],
+    "overall_uncertainty": "",
+    "candidate_options": [
+      {
+        "code": "10033371",
+        "term": "Acute onset pain",
+        "baseline_rank": 1,
+        "deepseek_rank": null,
+        "model_score": 0.6363685982294316,
+        "real_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10033371",
+          "term": "Acute onset pain",
+          "model_score": 0.6363685982294316,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 12,
+              "quote": "Muscle aches",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "Ache",
+                "aches"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "Muscle aches"
+          ],
+          "rationale": "Source evidence: “Muscle aches” Terminology mapping: 10033371 — Acute onset pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Acute onset pain",
+            "synonyms": "Ache | Pain | Pain localised | Chronic pain | butt pain | joints are also hurting | worst pain | makes my fingers hurt | hurt | sharp pain | pain | throbbing | terrible joint pain | Achy | hurting so bad | hurts your nostrils | chronic pain | hurts! | muscular, joint, nerve pain | painful b.. | hit by a train | the pain feels worse | get rid of the pain | feel like I was hit by a train. | hurting | living in pain | hurt really bad | Chronic Pain | pains | sore | #chronicpain | earhole aches | painful | #pain | aching | hurts | after-sting | aches and pains | equivalent to torture | achy | lung pain | ache | aches | Aches | beat up | PAIN | shooting fire straight from the depth of hell | owww | agony",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "aches",
+              "code": "10033371",
+              "term": "",
+              "similarity": 0.6363685982294316
+            },
+            {
+              "text": "aches",
+              "code": "10033371",
+              "term": "",
+              "similarity": 0.6363685982294316
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10033371 — Acute onset pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10049565",
+        "term": "Muscle Fatigue",
+        "baseline_rank": 2,
+        "deepseek_rank": null,
+        "model_score": 0.5313302839623322,
+        "real_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10049565",
+          "term": "Muscle Fatigue",
+          "model_score": 0.5313302839623322,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 12,
+              "quote": "Muscle aches",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Muscle aches"
+          ],
+          "rationale": "Source evidence: “Muscle aches” Terminology mapping: 10049565 — Muscle Fatigue. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Muscle Fatigue",
+            "synonyms": "",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "Muscle Fatigue",
+              "code": "10049565",
+              "term": "",
+              "similarity": 0.5313302839623322
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10049565 — Muscle Fatigue. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10028334",
+        "term": "Night cramps",
+        "baseline_rank": 3,
+        "deepseek_rank": null,
+        "model_score": 0.5206707061812553,
+        "real_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10028334",
+          "term": "Night cramps",
+          "model_score": 0.5206707061812553,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 12,
+              "quote": "Muscle aches",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Muscle aches"
+          ],
+          "rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Night cramps",
+            "synonyms": "Spasm | Cramps of lower extremities | random shoulder spasms | Generalized Spasms | cramps | brain fart | limbs are jumping on their own accord | hasn't stopped shaking her leg the entire hour | spasms | BackSpasms | muscle spasms | muscle cramps | cramping | muscle spasm | metabolism cramp | brain spasms | spasm of the neck muscles",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "muscle spasms",
+              "code": "10028334",
+              "term": "",
+              "similarity": 0.5206707061812553
+            },
+            {
+              "text": "muscle spasms",
+              "code": "10028334",
+              "term": "",
+              "similarity": 0.5206707061812553
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10028289",
+        "term": "Muscular Atrophy",
+        "baseline_rank": 4,
+        "deepseek_rank": null,
+        "model_score": 0.49673280082424165,
+        "real_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10028289",
+          "term": "Muscular Atrophy",
+          "model_score": 0.49673280082424165,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 12,
+              "quote": "Muscle aches",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Muscle aches"
+          ],
+          "rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028289 — Muscular Atrophy.",
+          "terminology_support": {
+            "term": "Muscular Atrophy",
+            "synonyms": "duchenne muscular dystrophy | Duchenne muscular dystrophy | muscle wasting | muscle atrophy",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028289 — Muscular Atrophy.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10028309",
+        "term": "Muscle hemorrhage",
+        "baseline_rank": 5,
+        "deepseek_rank": null,
+        "model_score": 0.4864450158176051,
+        "real_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10028309",
+          "term": "Muscle hemorrhage",
+          "model_score": 0.4864450158176051,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 12,
+              "quote": "Muscle aches",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Muscle aches"
+          ],
+          "rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028309 — Muscle hemorrhage.",
+          "terminology_support": {
+            "term": "Muscle hemorrhage",
+            "synonyms": "bleeding intramuscular | muscle hemorrhage",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028309 — Muscle hemorrhage.",
+        "rationale_source": "deterministic_grounded"
+      }
+    ]
+  },
+  {
+    "record_id": "ARTHROTEC.46.ann_TT1",
+    "source_dataset": "CADEC",
+    "real_phrase": "Naseua",
+    "gold_code": "10028813",
+    "gold_seen_in_train": true,
+    "route": "TOP_K_HUMAN_CHOICE",
+    "baseline_top1": "10028735",
+    "deepseek_top1": "10028813",
+    "pipeline_top1_with_fallback": "10028813",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase 'Naseua' is likely a typographical error for 'nausea,' but there is minor ambiguity due to possible alternate interpretations. Confidence is high for nausea.",
+    "candidate_options": [
+      {
+        "code": "10028735",
+        "term": "Nasal congestion (finding)",
+        "baseline_rank": 1,
+        "deepseek_rank": 2,
+        "model_score": 0.21852937086963614,
+        "real_evidence_quotes": [
+          "Naseua"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10028735",
+          "term": "Nasal congestion (finding)",
+          "model_score": 0.21852937086963614,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 6,
+              "quote": "Naseua",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Naseua"
+          ],
+          "rationale": "Source evidence: “Naseua” Terminology mapping: 10028735 — Nasal congestion (finding). 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Nasal congestion (finding)",
+            "synonyms": "stuffy sinuses | stuffed nose | nasal congestion",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "nasal congestion",
+              "code": "10028735",
+              "term": "",
+              "similarity": 0.21852937086963614
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "The phrase \"Naseua\" does not denote nasal congestion; it contains the substring \"nas\" but is a misspelling of nausea, not related to stuffy nose. The evidence \"Naseua\" has no clinical association with nasal congestion.",
+        "deepseek_evidence_quotes": [
+          "Naseua"
+        ],
+        "display_rationale": "The phrase \"Naseua\" does not denote nasal congestion; it contains the substring \"nas\" but is a misspelling of nausea, not related to stuffy nose. The evidence \"Naseua\" has no clinical association with nasal congestion.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10028810",
+        "term": "Common Cold",
+        "baseline_rank": 2,
+        "deepseek_rank": 3,
+        "model_score": 0.20500740620899574,
+        "real_evidence_quotes": [
+          "Naseua"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10028810",
+          "term": "Common Cold",
+          "model_score": 0.20500740620899574,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 6,
+              "quote": "Naseua",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Naseua"
+          ],
+          "rationale": "Source evidence: “Naseua” Terminology mapping: 10028810 — Common Cold. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Common Cold",
+            "synonyms": "Nasopharyngitis | Cold symptoms | nasopharyngitis",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "nasopharyngitis",
+              "code": "10028810",
+              "term": "",
+              "similarity": 0.20500740620899574
+            },
+            {
+              "text": "nasopharyngitis",
+              "code": "10028810",
+              "term": "",
+              "similarity": 0.20500740620899574
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "\"Naseua\" does not correspond to common cold or nasopharyngitis; the phrase is a misspelling of nausea, not a cold. The evidence \"Naseua\" lacks any link to cold symptoms.",
+        "deepseek_evidence_quotes": [
+          "Naseua"
+        ],
+        "display_rationale": "\"Naseua\" does not correspond to common cold or nasopharyngitis; the phrase is a misspelling of nausea, not a cold. The evidence \"Naseua\" lacks any link to cold symptoms.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10028765",
+        "term": "Perforation of nasal septum",
+        "baseline_rank": 3,
+        "deepseek_rank": 4,
+        "model_score": 0.16157842474441686,
+        "real_evidence_quotes": [
+          "Naseua"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10028765",
+          "term": "Perforation of nasal septum",
+          "model_score": 0.16157842474441686,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 6,
+              "quote": "Naseua",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Naseua"
+          ],
+          "rationale": "Source evidence: “Naseua” Terminology mapping: 10028765 — Perforation of nasal septum.",
+          "terminology_support": {
+            "term": "Perforation of nasal septum",
+            "synonyms": "",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "\"Naseua\" does not refer to nasal septum perforation; the phrase is unrelated to nasal injuries. The evidence \"Naseua\" provides no support.",
+        "deepseek_evidence_quotes": [
+          "Naseua"
+        ],
+        "display_rationale": "\"Naseua\" does not refer to nasal septum perforation; the phrase is unrelated to nasal injuries. The evidence \"Naseua\" provides no support.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10028813",
+        "term": "Nausea",
+        "baseline_rank": 4,
+        "deepseek_rank": 1,
+        "model_score": 0.08820893261789443,
+        "real_evidence_quotes": [
+          "Naseua"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10028813",
+          "term": "Nausea",
+          "model_score": 0.08820893261789443,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 6,
+              "quote": "Naseua",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Naseua"
+          ],
+          "rationale": "Source evidence: “Naseua” Terminology mapping: 10028813 — Nausea.",
+          "terminology_support": {
+            "term": "Nausea",
+            "synonyms": "nausea | nauseous | spins | Finna thrown up | nauseous feeling | dry heaving | wanted to vent | makes me a little less nauseous | nuasea | NAUSEOUS | nauesousness | urge to vomit | nauseated | nauseas | feel like I need to throw up | feel like throwing up | nauseaous | want to throw up | felt like puking | want to vomit | like I might throw up | barfy | nausea and vomiting | constantly feel like puking | seasick-like",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "The phrase \"Naseua\" is a common misspelling of \"nausea,\" as evidenced by the synonym \"nuasea\" in the terminology. The direct match to the term \"Nausea\" makes this the most appropriate code.",
+        "deepseek_evidence_quotes": [
+          "Naseua"
+        ],
+        "display_rationale": "The phrase \"Naseua\" is a common misspelling of \"nausea,\" as evidenced by the synonym \"nuasea\" in the terminology. The direct match to the term \"Nausea\" makes this the most appropriate code.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10078904",
+        "term": "Pseudotumor Cerebri",
+        "baseline_rank": 5,
+        "deepseek_rank": 5,
+        "model_score": 0.08466619214332281,
+        "real_evidence_quotes": [
+          "Naseua"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10078904",
+          "term": "Pseudotumor Cerebri",
+          "model_score": 0.08466619214332281,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 6,
+              "quote": "Naseua",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Naseua"
+          ],
+          "rationale": "Source evidence: “Naseua” Terminology mapping: 10078904 — Pseudotumor Cerebri.",
+          "terminology_support": {
+            "term": "Pseudotumor Cerebri",
+            "synonyms": "Pseudotumor cerebri",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "\"Naseua\" does not indicate pseudotumor cerebri; there is no similarity in phrasing or clinical presentation. The evidence \"Naseua\" is insufficient to justify this code.",
+        "deepseek_evidence_quotes": [
+          "Naseua"
+        ],
+        "display_rationale": "\"Naseua\" does not indicate pseudotumor cerebri; there is no similarity in phrasing or clinical presentation. The evidence \"Naseua\" is insufficient to justify this code.",
+        "rationale_source": "deepseek_validated"
+      }
+    ]
+  },
+  {
+    "record_id": "ARTHROTEC.99.ann_TT3",
+    "source_dataset": "CADEC",
+    "real_phrase": "pain",
+    "gold_code": "10033371",
+    "gold_seen_in_train": true,
+    "route": "AUTO_CANDIDATE",
+    "baseline_top1": "10033371",
+    "deepseek_top1": "10033371",
+    "pipeline_top1_with_fallback": "10033371",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase 'pain' is highly ambiguous as it could refer to general pain or any specific pain location. Without additional context, the most general pain code is ranked first.",
+    "candidate_options": [
+      {
+        "code": "10033371",
+        "term": "Acute onset pain",
+        "baseline_rank": 1,
+        "deepseek_rank": 1,
+        "model_score": 1.0,
+        "real_evidence_quotes": [
+          "pain"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10033371",
+          "term": "Acute onset pain",
+          "model_score": 1.0,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 4,
+              "quote": "pain",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "Pain"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "pain"
+          ],
+          "rationale": "Source evidence: “pain” Terminology mapping: 10033371 — Acute onset pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Acute onset pain",
+            "synonyms": "Ache | Pain | Pain localised | Chronic pain | butt pain | joints are also hurting | worst pain | makes my fingers hurt | hurt | sharp pain | pain | throbbing | terrible joint pain | Achy | hurting so bad | hurts your nostrils | chronic pain | hurts! | muscular, joint, nerve pain | painful b.. | hit by a train | the pain feels worse | get rid of the pain | feel like I was hit by a train. | hurting | living in pain | hurt really bad | Chronic Pain | pains | sore | #chronicpain | earhole aches | painful | #pain | aching | hurts | after-sting | aches and pains | equivalent to torture | achy | lung pain | ache | aches | Aches | beat up | PAIN | shooting fire straight from the depth of hell | owww | agony",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "pain",
+              "code": "10033371",
+              "term": "",
+              "similarity": 1.0
+            },
+            {
+              "text": "pain",
+              "code": "10033371",
+              "term": "",
+              "similarity": 1.0
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "Direct match: term 'Acute onset pain' contains 'pain' and synonyms include 'pain', aligning with the sole evidence token.",
+        "deepseek_evidence_quotes": [
+          "pain"
+        ],
+        "display_rationale": "Direct match: term 'Acute onset pain' contains 'pain' and synonyms include 'pain', aligning with the sole evidence token.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10019211",
+        "term": "Headache",
+        "baseline_rank": 2,
+        "deepseek_rank": 2,
+        "model_score": 0.6049213795744475,
+        "real_evidence_quotes": [
+          "pain"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10019211",
+          "term": "Headache",
+          "model_score": 0.6049213795744475,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 4,
+              "quote": "pain",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain"
+          ],
+          "rationale": "Source evidence: “pain” Terminology mapping: 10019211 — Headache.",
+          "terminology_support": {
+            "term": "Headache",
+            "synonyms": "headaches | mild headache | headache | headache free | head pains | noise in my head | Headaches | head hurts | #chronicdailyheadache | head pain | frontal headache | pains in head | headachy | dull headache | achey head | head is killing me | head hurt | me a head ache | have the biggest splitting head ache | headachey | headaches persistent",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Mismatch: 'Headache' specifies a head location, whereas the evidence only supports general 'pain' without anatomical qualifier.",
+        "deepseek_evidence_quotes": [
+          "pain"
+        ],
+        "display_rationale": "Mismatch: 'Headache' specifies a head location, whereas the evidence only supports general 'pain' without anatomical qualifier.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10015958",
+        "term": "Sore eye",
+        "baseline_rank": 3,
+        "deepseek_rank": 3,
+        "model_score": 0.6045596853011067,
+        "real_evidence_quotes": [
+          "pain"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10015958",
+          "term": "Sore eye",
+          "model_score": 0.6045596853011067,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 4,
+              "quote": "pain",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain"
+          ],
+          "rationale": "Source evidence: “pain” Terminology mapping: 10015958 — Sore eye.",
+          "terminology_support": {
+            "term": "Sore eye",
+            "synonyms": "eyes burn from lack of blinking | Eye pain | eye is still very sore | pain in 1 eye | eye pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Mismatch: 'Sore eye' is specific to ocular pain; the evidence 'pain' provides no anatomical detail.",
+        "deepseek_evidence_quotes": [
+          "pain"
+        ],
+        "display_rationale": "Mismatch: 'Sore eye' is specific to ocular pain; the evidence 'pain' provides no anatomical detail.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10033425",
+        "term": "Pain in limb",
+        "baseline_rank": 4,
+        "deepseek_rank": 4,
+        "model_score": 0.5955620040483852,
+        "real_evidence_quotes": [
+          "pain"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10033425",
+          "term": "Pain in limb",
+          "model_score": 0.5955620040483852,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 4,
+              "quote": "pain",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain"
+          ],
+          "rationale": "Source evidence: “pain” Terminology mapping: 10033425 — Pain in limb.",
+          "terminology_support": {
+            "term": "Pain in limb",
+            "synonyms": "Arm Pain | Foot pain | Hand pain | Pain in lower limb | ankle hurts | Wrist wrist stop hurting | foot feel worse | my foot feel worse | limbs ached | legs ache | pains down arms | legs | killed my leg | hands still sore | leg's in agony | lags haven't stopped aching | feet pain | feel like you got kicked in the leg | pain in my leg | leg is sore | feet are throbbing | leg is so unbelievably sore | leg keeps feeling sore | arms pain | throb | heavy legs | hand?  pain | leg aches prilosec | leg pain | pain in extremities | pain in extremity | pain in the injected extremity | pain in the treated extremity | thigh pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Mismatch: 'Pain in limb' indicates extremity pain; the evidence is simply 'pain' with no limb mention.",
+        "deepseek_evidence_quotes": [
+          "pain"
+        ],
+        "display_rationale": "Mismatch: 'Pain in limb' indicates extremity pain; the evidence is simply 'pain' with no limb mention.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10003988",
+        "term": "Back Pain",
+        "baseline_rank": 5,
+        "deepseek_rank": 5,
+        "model_score": 0.585007739638406,
+        "real_evidence_quotes": [
+          "pain"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10003988",
+          "term": "Back Pain",
+          "model_score": 0.585007739638406,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 4,
+              "quote": "pain",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "pain"
+          ],
+          "rationale": "Source evidence: “pain” Terminology mapping: 10003988 — Back Pain.",
+          "terminology_support": {
+            "term": "Back Pain",
+            "synonyms": "Low Back Pain | back ache | CLBP | back pain | back hurts | lower back | Back ache | back | Back | backache | back pains | pain with a heart attack | lower back pain | two inches of my spine hurts like hell",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Mismatch: 'Back Pain' localizes to the back, while the evidence 'pain' lacks anatomical specificity.",
+        "deepseek_evidence_quotes": [
+          "pain"
+        ],
+        "display_rationale": "Mismatch: 'Back Pain' localizes to the back, while the evidence 'pain' lacks anatomical specificity.",
+        "rationale_source": "deepseek_validated"
+      }
+    ]
+  },
+  {
+    "record_id": "LIPITOR.501.ann_TT6",
+    "source_dataset": "CADEC",
+    "real_phrase": "Depression",
+    "gold_code": "10012378",
+    "gold_seen_in_train": true,
+    "route": "AUTO_CANDIDATE",
+    "baseline_top1": "10012378",
+    "deepseek_top1": null,
+    "pipeline_top1_with_fallback": "10012378",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": false,
+    "deepseek_validation_errors": [
+      "api_or_parse_error:JSONDecodeError"
+    ],
+    "overall_uncertainty": "",
+    "candidate_options": [
+      {
+        "code": "10012378",
+        "term": "Sad mood",
+        "baseline_rank": 1,
+        "deepseek_rank": null,
+        "model_score": 1.0000000000000002,
+        "real_evidence_quotes": [
+          "Depression"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10012378",
+          "term": "Sad mood",
+          "model_score": 1.0000000000000002,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 10,
+              "quote": "Depression",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "depression",
+                "depress"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "Depression"
+          ],
+          "rationale": "Source evidence: “Depression” Terminology mapping: 10012378 — Sad mood. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Sad mood",
+            "synonyms": "Mental Depression | Anxiety depression | Acute depression | Depression aggravated | depression | depress | just want to finally be happy | depression/anxiety | hated my life | me feel disgusting | #fuckyoudepression | depressed | depressive | loneliness | Moderate Depression | Severe Depression | Depression | antidepressant | #depression | depresson | #depressionisreal | Unhappiness | Sadness | #SAD | depressed thoughts | anti-depress | random crying | depressants | tipped me to a dark place | depression. | made me more depressed | more depressed | depressing | sadness | feel a lot more depressed than i did before | depresses",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "depression",
+              "code": "10012378",
+              "term": "",
+              "similarity": 1.0000000000000002
+            },
+            {
+              "text": "depression",
+              "code": "10012378",
+              "term": "",
+              "similarity": 1.0000000000000002
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10012378 — Sad mood. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10057840",
+        "term": "Major Depressive Disorder",
+        "baseline_rank": 2,
+        "deepseek_rank": null,
+        "model_score": 0.7236131466969193,
+        "real_evidence_quotes": [
+          "Depression"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10057840",
+          "term": "Major Depressive Disorder",
+          "model_score": 0.7236131466969193,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 10,
+              "quote": "Depression",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Depression"
+          ],
+          "rationale": "Source evidence: “Depression” Terminology mapping: 10057840 — Major Depressive Disorder.",
+          "terminology_support": {
+            "term": "Major Depressive Disorder",
+            "synonyms": "Melancholia | Major depressive disorder, single episode | MDD | major depression | major depressive disorder | Unipolar Major Depression | major depressive | major depressive disorders",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10057840 — Major Depressive Disorder.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10004939",
+        "term": "Bipolar I disorder",
+        "baseline_rank": 3,
+        "deepseek_rank": null,
+        "model_score": 0.6993200185945164,
+        "real_evidence_quotes": [
+          "Depression"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10004939",
+          "term": "Bipolar I disorder",
+          "model_score": 0.6993200185945164,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 10,
+              "quote": "Depression",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Depression"
+          ],
+          "rationale": "Source evidence: “Depression” Terminology mapping: 10004939 — Bipolar I disorder.",
+          "terminology_support": {
+            "term": "Bipolar I disorder",
+            "synonyms": "Depression, Bipolar | bipolar depression | bipolar I | bipolar I disorder | Bipolar I Disorder | bipolar i disorder",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10004939 — Bipolar I disorder.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10054089",
+        "term": "Depressive Symptoms",
+        "baseline_rank": 4,
+        "deepseek_rank": null,
+        "model_score": 0.6908628030190177,
+        "real_evidence_quotes": [
+          "Depression"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10054089",
+          "term": "Depressive Symptoms",
+          "model_score": 0.6908628030190177,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 10,
+              "quote": "Depression",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Depression"
+          ],
+          "rationale": "Source evidence: “Depression” Terminology mapping: 10054089 — Depressive Symptoms.",
+          "terminology_support": {
+            "term": "Depressive Symptoms",
+            "synonyms": "hard days | empty/hopeless | depression symptoms | depressive symptoms | depressive symptom",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10054089 — Depressive Symptoms.",
+        "rationale_source": "deterministic_grounded"
+      },
+      {
+        "code": "10012374",
+        "term": "Depressed mood",
+        "baseline_rank": 5,
+        "deepseek_rank": null,
+        "model_score": 0.46498157109095756,
+        "real_evidence_quotes": [
+          "Depression"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10012374",
+          "term": "Depressed mood",
+          "model_score": 0.46498157109095756,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 10,
+              "quote": "Depression",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "Depression"
+          ],
+          "rationale": "Source evidence: “Depression” Terminology mapping: 10012374 — Depressed mood.",
+          "terminology_support": {
+            "term": "Depressed mood",
+            "synonyms": "Depressive episode, unspecified | Depressive disorder | feel like complete and utter crap | bummed | makes you feel like crap | shitty | #CantWin | dragging myself through the day | makes you depress | need prozac | depressive disorder | SAD | depressive episodes | depressive episode | depression disorder | depressive disorders | feel like ass | sad | depressed mood | dysthymic disorder",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": null,
+        "deepseek_evidence_quotes": [],
+        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10012374 — Depressed mood.",
+        "rationale_source": "deterministic_grounded"
+      }
+    ]
+  },
+  {
+    "record_id": "VOLTAREN-XR.3.ann_TT3",
+    "source_dataset": "CADEC",
+    "real_phrase": "chest discomfort",
+    "gold_code": "10008469",
+    "gold_seen_in_train": true,
+    "route": "TOP_K_HUMAN_CHOICE",
+    "baseline_top1": "10053155",
+    "deepseek_top1": "10008469",
+    "pipeline_top1_with_fallback": "10008469",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The benchmark phrase 'chest discomfort' is ambiguous; the exact term is preferred, but clinically related codes could be relevant depending on context.",
+    "candidate_options": [
+      {
+        "code": "10053155",
+        "term": "Gastric irritation",
+        "baseline_rank": 1,
+        "deepseek_rank": 3,
+        "model_score": 0.6486218661081479,
+        "real_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10053155",
+          "term": "Gastric irritation",
+          "model_score": 0.6486218661081479,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 16,
+              "quote": "chest discomfort",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "chest discomfort"
+          ],
+          "rationale": "Source evidence: “chest discomfort” Terminology mapping: 10053155 — Gastric irritation. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Gastric irritation",
+            "synonyms": "gi upset | epigastric discomfort",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "epigastric discomfort",
+              "code": "10053155",
+              "term": "",
+              "similarity": 0.6486218661081479
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "Although 'chest discomfort' can be reported with gastric irritation, the code 'Gastric irritation' primarily denotes stomach upset, not a chest symptom.",
+        "deepseek_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "display_rationale": "Although 'chest discomfort' can be reported with gastric irritation, the code 'Gastric irritation' primarily denotes stomach upset, not a chest symptom.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10008479",
+        "term": "Retrosternal pain",
+        "baseline_rank": 2,
+        "deepseek_rank": 2,
+        "model_score": 0.4133880676515853,
+        "real_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10008479",
+          "term": "Retrosternal pain",
+          "model_score": 0.4133880676515853,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 16,
+              "quote": "chest discomfort",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "chest discomfort"
+          ],
+          "rationale": "Source evidence: “chest discomfort” Terminology mapping: 10008479 — Retrosternal pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Retrosternal pain",
+            "synonyms": "Chest pain exertional | Chest Pain | Precordial pain | my chest is exploding | chest pain | chest hurt | chest pains | chest feels worse",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "chest pain",
+              "code": "10008479",
+              "term": "",
+              "similarity": 0.4133880676515853
+            },
+            {
+              "text": "chest pain",
+              "code": "10008479",
+              "term": "",
+              "similarity": 0.4133880676515853
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "'Retrosternal pain' is a specific type of chest discomfort, directly linked to the symptom 'chest discomfort'.",
+        "deepseek_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "display_rationale": "'Retrosternal pain' is a specific type of chest discomfort, directly linked to the symptom 'chest discomfort'.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10024968",
+        "term": "chest infections",
+        "baseline_rank": 3,
+        "deepseek_rank": 4,
+        "model_score": 0.3207162098558125,
+        "real_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10024968",
+          "term": "chest infections",
+          "model_score": 0.3207162098558125,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 16,
+              "quote": "chest discomfort",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "chest discomfort"
+          ],
+          "rationale": "Source evidence: “chest discomfort” Terminology mapping: 10024968 — chest infections. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "chest infections",
+            "synonyms": "chest infection | lower respiratory tract infection",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "chest infection",
+              "code": "10024968",
+              "term": "",
+              "similarity": 0.3207162098558125
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "While 'chest infections' can cause 'chest discomfort', the code represents an infectious condition rather than the symptom itself.",
+        "deepseek_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "display_rationale": "While 'chest infections' can cause 'chest discomfort', the code represents an infectious condition rather than the symptom itself.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10008469",
+        "term": "Chest discomfort",
+        "baseline_rank": 4,
+        "deepseek_rank": 1,
+        "model_score": 0.255690852751666,
+        "real_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10008469",
+          "term": "Chest discomfort",
+          "model_score": 0.255690852751666,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 16,
+              "quote": "chest discomfort",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "Chest discomfort",
+                "chest"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "chest discomfort"
+          ],
+          "rationale": "Source evidence: “chest discomfort” Terminology mapping: 10008469 — Chest discomfort.",
+          "terminology_support": {
+            "term": "Chest discomfort",
+            "synonyms": "Chest tightness | tightness in my chest | chest problems | chest | chest discomfort | chest pressure | chest tightness",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "The term 'Chest discomfort' is an exact lexical match for the benchmark phrase, with synonyms including 'chest discomfort'.",
+        "deepseek_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "display_rationale": "The term 'Chest discomfort' is an exact lexical match for the benchmark phrase, with synonyms including 'chest discomfort'.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10019030",
+        "term": "Hair discoloration",
+        "baseline_rank": 5,
+        "deepseek_rank": 5,
+        "model_score": 0.20959168612477735,
+        "real_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10019030",
+          "term": "Hair discoloration",
+          "model_score": 0.20959168612477735,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 16,
+              "quote": "chest discomfort",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "chest discomfort"
+          ],
+          "rationale": "Source evidence: “chest discomfort” Terminology mapping: 10019030 — Hair discoloration.",
+          "terminology_support": {
+            "term": "Hair discoloration",
+            "synonyms": "hair color changes | hair color depigmentation | hair color graying",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "'Hair discoloration' is unrelated to 'chest discomfort' and is an implausible mapping.",
+        "deepseek_evidence_quotes": [
+          "chest discomfort"
+        ],
+        "display_rationale": "'Hair discoloration' is unrelated to 'chest discomfort' and is an implausible mapping.",
+        "rationale_source": "deepseek_validated"
+      }
+    ]
+  },
+  {
+    "record_id": "LIPITOR.773.ann_TT2",
+    "source_dataset": "CADEC",
+    "real_phrase": "extremly bad pains in arms",
+    "gold_code": "10033371",
+    "gold_seen_in_train": true,
+    "route": "TOP_K_HUMAN_CHOICE",
+    "baseline_top1": "10033425",
+    "deepseek_top1": "10033425",
+    "pipeline_top1_with_fallback": "10033425",
+    "deepseek_call_attempted": true,
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase 'extremly bad pains in arms' clearly indicates limb pain, but 'Pain in limb' does not capture severity. 'Musculoskeletal Pain' is broader. Remainder are mismatches.",
+    "candidate_options": [
+      {
+        "code": "10033425",
+        "term": "Pain in limb",
+        "baseline_rank": 1,
+        "deepseek_rank": 1,
+        "model_score": 0.5437741219786407,
+        "real_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "deterministic_grounding": {
+          "rank": 1,
+          "code": "10033425",
+          "term": "Pain in limb",
+          "model_score": 0.5437741219786407,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 26,
+              "quote": "extremly bad pains in arms",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "extremly bad pains in arms"
+          ],
+          "rationale": "Source evidence: “extremly bad pains in arms” Terminology mapping: 10033425 — Pain in limb. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Pain in limb",
+            "synonyms": "Arm Pain | Foot pain | Hand pain | Pain in lower limb | ankle hurts | Wrist wrist stop hurting | foot feel worse | my foot feel worse | limbs ached | legs ache | pains down arms | legs | killed my leg | hands still sore | leg's in agony | lags haven't stopped aching | feet pain | feel like you got kicked in the leg | pain in my leg | leg is sore | feet are throbbing | leg is so unbelievably sore | leg keeps feeling sore | arms pain | throb | heavy legs | hand?  pain | leg aches prilosec | leg pain | pain in extremities | pain in extremity | pain in the injected extremity | pain in the treated extremity | thigh pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "arms pain",
+              "code": "10033425",
+              "term": "",
+              "similarity": 0.5437741219786407
+            },
+            {
+              "text": "pain in extremity",
+              "code": "10033425",
+              "term": "",
+              "similarity": 0.4520703204247782
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "Directly matches: 'pains in arms' indicates pain in a limb; 'Pain in limb' precisely captures the anatomical location.",
+        "deepseek_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "display_rationale": "Directly matches: 'pains in arms' indicates pain in a limb; 'Pain in limb' precisely captures the anatomical location.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10028391",
+        "term": "Musculoskeletal Pain",
+        "baseline_rank": 2,
+        "deepseek_rank": 2,
+        "model_score": 0.3189466512611552,
+        "real_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "deterministic_grounding": {
+          "rank": 2,
+          "code": "10028391",
+          "term": "Musculoskeletal Pain",
+          "model_score": 0.3189466512611552,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 26,
+              "quote": "extremly bad pains in arms",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "extremly bad pains in arms"
+          ],
+          "rationale": "Source evidence: “extremly bad pains in arms” Terminology mapping: 10028391 — Musculoskeletal Pain. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
+          "terminology_support": {
+            "term": "Musculoskeletal Pain",
+            "synonyms": "Shoulder Pain | Pain in buttock | hurt his shoulder | get my shoulder right | Shoulder pain | Knock on my shoulder | musculo-skeletal pain | shoulder ache | shoulders and arms pain | shoulder and neck ache | shoulder pain | musculoskeletal pain",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [
+            {
+              "text": "shoulders and arms pain",
+              "code": "10028391",
+              "term": "",
+              "similarity": 0.3189466512611552
+            }
+          ],
+          "grounded": true
+        },
+        "deepseek_rationale": "Partially matches: arm pain may be musculoskeletal, but term includes shoulder pain not mentioned; less specific than 'Pain in limb'.",
+        "deepseek_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "display_rationale": "Partially matches: arm pain may be musculoskeletal, but term includes shoulder pain not mentioned; less specific than 'Pain in limb'.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10033371",
+        "term": "Acute onset pain",
+        "baseline_rank": 3,
+        "deepseek_rank": 3,
+        "model_score": 0.29126540544370183,
+        "real_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "deterministic_grounding": {
+          "rank": 3,
+          "code": "10033371",
+          "term": "Acute onset pain",
+          "model_score": 0.29126540544370183,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 26,
+              "quote": "extremly bad pains in arms",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": [
+                "Pain",
+                "pains"
+              ]
+            }
+          ],
+          "evidence_quotes": [
+            "extremly bad pains in arms"
+          ],
+          "rationale": "Source evidence: “extremly bad pains in arms” Terminology mapping: 10033371 — Acute onset pain.",
+          "terminology_support": {
+            "term": "Acute onset pain",
+            "synonyms": "Ache | Pain | Pain localised | Chronic pain | butt pain | joints are also hurting | worst pain | makes my fingers hurt | hurt | sharp pain | pain | throbbing | terrible joint pain | Achy | hurting so bad | hurts your nostrils | chronic pain | hurts! | muscular, joint, nerve pain | painful b.. | hit by a train | the pain feels worse | get rid of the pain | feel like I was hit by a train. | hurting | living in pain | hurt really bad | Chronic Pain | pains | sore | #chronicpain | earhole aches | painful | #pain | aching | hurts | after-sting | aches and pains | equivalent to torture | achy | lung pain | ache | aches | Aches | beat up | PAIN | shooting fire straight from the depth of hell | owww | agony",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "Mismatch: phrase specifies arms, but 'Acute onset pain' lacks anatomical reference; severity alone insufficient without site.",
+        "deepseek_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "display_rationale": "Mismatch: phrase specifies arms, but 'Acute onset pain' lacks anatomical reference; severity alone insufficient without site.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10000087",
+        "term": "Abdominal pain upper",
+        "baseline_rank": 4,
+        "deepseek_rank": 4,
+        "model_score": 0.280981180245953,
+        "real_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "deterministic_grounding": {
+          "rank": 4,
+          "code": "10000087",
+          "term": "Abdominal pain upper",
+          "model_score": 0.280981180245953,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 26,
+              "quote": "extremly bad pains in arms",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "extremly bad pains in arms"
+          ],
+          "rationale": "Source evidence: “extremly bad pains in arms” Terminology mapping: 10000087 — Abdominal pain upper.",
+          "terminology_support": {
+            "term": "Abdominal pain upper",
+            "synonyms": "Stomach ache | Epigastric pain | Upset stomach | pain in the pit of my stomach | stomach | hurt my stomach | upset stomach | tummy pains | stomach ache | Stomach discomfort | gastro pain | stomach hurt | stomach cramps | stomach hurts | stomach pains | stomach is kind of in pain | upset my stomach | stomach cramping | stomach aches | hunger pangs | tummy cramps | stomach/esophagus pain | tummy hurts | stomach pain | abdominal pain upper | upper abdominal pain | stomach discomfort",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "No match: 'Abdominal pain upper' refers to stomach pain, unrelated to 'pains in arms'.",
+        "deepseek_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "display_rationale": "No match: 'Abdominal pain upper' refers to stomach pain, unrelated to 'pains in arms'.",
+        "rationale_source": "deepseek_validated"
+      },
+      {
+        "code": "10022998",
+        "term": "Irritable Mood",
+        "baseline_rank": 5,
+        "deepseek_rank": 5,
+        "model_score": 0.2691544094973565,
+        "real_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "deterministic_grounding": {
+          "rank": 5,
+          "code": "10022998",
+          "term": "Irritable Mood",
+          "model_score": 0.2691544094973565,
+          "evidence_spans": [
+            {
+              "start": 0,
+              "end": 26,
+              "quote": "extremly bad pains in arms",
+              "source": "explicit_mention",
+              "score": 2.0,
+              "matched_phrases": []
+            }
+          ],
+          "evidence_quotes": [
+            "extremly bad pains in arms"
+          ],
+          "rationale": "Source evidence: “extremly bad pains in arms” Terminology mapping: 10022998 — Irritable Mood.",
+          "terminology_support": {
+            "term": "Irritable Mood",
+            "synonyms": "mean | unnecessarily impatient | hangry | pissed off about everything | pissed off | sour mood | attitude | grumpy | highly irritated | annoying | be a fucking bitch | bad mood | rantful | cranky | resting bitch face | serious resting bitch face | I feel like | asshole | irritability | irritated | getting on my nerves | irritable | Irritability | torn faced | makes me an asshole | DRIVING MY FUCKING MIND UP THE FUCKING WALL | crabby | mean, grumpy | irritates | aggravated | pissy | a bitch | annoyed | felt irritable | crabby and argumentative | grouchy asshole | always a bitch | edgey | always ballin for a fight i wanted to punch walls",
+            "definition": "",
+            "hierarchy": "",
+            "knowledge_source": "MedNorm TRAIN-derived aliases; closed-code diagnostic only"
+          },
+          "historical_support": [],
+          "grounded": true
+        },
+        "deepseek_rationale": "No match: 'Irritable Mood' is a mood disorder, not a pain condition; phrase clearly describes physical pain.",
+        "deepseek_evidence_quotes": [
+          "extremly bad pains in arms"
+        ],
+        "display_rationale": "No match: 'Irritable Mood' is a mood disorder, not a pain condition; phrase clearly describes physical pain.",
+        "rationale_source": "deepseek_validated"
+      }
+    ]
+  }
+]

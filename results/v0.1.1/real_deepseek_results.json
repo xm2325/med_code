@@ -1,0 +1,59 @@
+{
+  "release": "0.1.1",
+  "dataset": {
+    "name": "MedNorm: A Corpus and Embeddings for Cross-terminology Medical Concept Normalisation",
+    "doi": "10.17632/b9x7xxb9sz.1",
+    "official_url": "https://data.mendeley.com/datasets/b9x7xxb9sz/1",
+    "licence": "CC BY-NC 3.0",
+    "authors": "Maksim Belousov; William G. Dixon; Goran Nenadic",
+    "n_reported_rows": 27979,
+    "task_use": "medical concept normalisation benchmark",
+    "licence_authority": "official Mendeley Data record",
+    "mirror_note": "A third-party mirror may be used only as a transport convenience; it does not override the official licence."
+  },
+  "baseline": {
+    "n_total_real_records": 27979,
+    "n_train_full": 18025,
+    "n_val_full": 3157,
+    "n_test_full": 6797,
+    "n_train_model_sample": 3000,
+    "n_validation_sample": 200,
+    "n_baseline_test_sample": 500,
+    "sampling_seed": 20260723,
+    "test_source": "CADEC",
+    "candidate_space": "TRAIN-derived MedDRA code aliases; closed-code diagnostic",
+    "selected_history_weight": 1.0,
+    "validation_selected_auto_threshold": 0.5602768985649521,
+    "baseline_accuracy_at_1": 0.57,
+    "baseline_accuracy_at_3": 0.68,
+    "baseline_accuracy_at_5": 0.718,
+    "candidate_recall_at_5": 0.718,
+    "gold_seen_in_train_rate": 0.954,
+    "seen_code_accuracy_at_1": 0.5974842767295597,
+    "unseen_code_accuracy_at_1": 0.0,
+    "route_counts": {
+      "TOP_K_HUMAN_CHOICE": 305,
+      "AUTO_CANDIDATE": 195
+    },
+    "oracle_top5_human_choice_upper_bound": 0.718,
+    "oracle_warning": "This is only the upper bound if a human always selects the gold code whenever it appears in Top-K; it is NOT observed human-assisted accuracy."
+  },
+  "deepseek": {
+    "execution_mode": "deepseek_requested",
+    "n_paired_subset_cases": 24,
+    "n_deepseek_real_cases": 24,
+    "n_valid_deepseek_responses": 19,
+    "deepseek_model": "deepseek-v4-pro",
+    "deepseek_api_success_rate": 0.7916666666666666,
+    "paired_baseline_accuracy_at_1": 0.4166666666666667,
+    "deepseek_reranked_accuracy_at_1_accepted_only": 0.631578947368421,
+    "pipeline_accuracy_at_1_with_deterministic_fallback": 0.5416666666666666,
+    "deepseek_accuracy_delta_accepted_only": 0.15789473684210525,
+    "fixed_candidate_recall_at_5": 0.7083333333333334,
+    "oracle_top5_human_choice_upper_bound": 0.7083333333333334,
+    "all_displayed_options_have_real_phrase_evidence": true,
+    "rationale_validation_rule": "Every accepted DeepSeek candidate rationale must cite at least one exact allowed real-data phrase and preserve the fixed code set. When DeepSeek is unavailable, every option still carries deterministic grounded evidence/rationale and is explicitly labelled as such."
+  },
+  "evidence_boundary": "Real phrases and human reference codes come from the public MedNorm-derived data. Candidate terminology is TRAIN-derived unless an authorised full MedDRA resource is supplied in a separate experiment.",
+  "reportability_boundary": "This run is a real-data closed-code evaluation, not a full licensed-MedDRA open-set benchmark."
+}
