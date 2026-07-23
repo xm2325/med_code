@@ -1,23 +1,39 @@
 name: CodiEsp ICD knowledge A-B 50
 
 on:
-  push:
-    paths:
-      - 'scripts/run_codiesp_icd_kb_ab.py'
-      - 'scripts/aggregate_codiesp_icd_kb_ab.py'
-      - '.github/workflows/codiesp-icd-kb-ab-50.yml'
-  pull_request:
-    paths:
-      - 'scripts/run_codiesp_icd_kb_ab.py'
-      - 'scripts/aggregate_codiesp_icd_kb_ab.py'
-      - '.github/workflows/codiesp-icd-kb-ab-50.yml'
   workflow_dispatch:
+    inputs:
+      confirm_paid_run:
+        description: 'I confirm this run may call the paid DeepSeek API for the paired 50-case Direct vs ICD-RAG experiment.'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: codiesp-icd-kb-ab-50-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  preflight:
+    if: ${{ inputs.confirm_paid_run == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require configured DeepSeek API key
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo 'DEEPSEEK_API_KEY is not configured. No paid LLM requests were started.' >&2
+            exit 1
+          fi
+          echo 'Paid-run confirmation received and API key is configured.'
+
   run-shards:
+    needs: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -64,8 +80,8 @@ jobs:
           retention-days: 90
 
   aggregate:
-    if: always()
-    needs: run-shards
+    if: ${{ always() && needs.preflight.result == 'success' }}
+    needs: [preflight, run-shards]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
