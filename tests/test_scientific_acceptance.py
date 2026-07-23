@@ -19,36 +19,68 @@ def _public_summary():
     }
 
 
-def test_current_evidence_passes_feasibility_but_not_overall_scientific_confirmation():
+def _split_summary():
+    return {
+        "benchmark_comparison_protocol": {
+            "any_subject_overlap_between_validation_and_test": True,
+        },
+        "ra_confirmatory_protocol": {
+            "audit": {"subject_disjoint": True},
+        },
+        "reporting_rule": {"do_not_mix_protocol_metrics": True},
+    }
+
+
+def test_current_evidence_passes_method_feasibility_but_remains_pending_real_data():
     result = assess_current_scientific_evidence(
         public_mipa_summary=_public_summary(),
+        split_protocol_summary=_split_summary(),
         external_llm_macro_f1=0.891,
     )
     by_id = {row["id"]: row for row in result["conclusions"]}
+    assert by_id["C0_PROTOCOL_INTEGRITY"]["status"] == "PASS"
     assert by_id["C1_MIPA_RA_PILOT_FEASIBILITY"]["status"] == "PASS"
-    assert by_id["C2_LLM_PHENOTYPING_CAPABILITY"]["status"] == "EXTERNAL_SUPPORT_ONLY"
+    assert by_id["C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY"]["status"] == "EXTERNAL_SUPPORT_ONLY"
+    assert by_id["C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY"]["gating"] is False
     assert by_id["C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE"]["status"] == "PENDING_REAL_DATA"
     assert by_id["C4_RECOVERABLE_STRUCTURED_UNDERRECORDING"]["status"] == "PENDING_REAL_DATA"
-    assert by_id["C5_RA_MULTIMORBIDITY_IMPACT"]["status"] == "PENDING_BSRBR_RA"
-    assert result["overall"]["status"] == "NOT_YET_SCIENTIFICALLY_CONFIRMED"
-    assert result["overall"]["scientifically_confirmed"] is False
+    assert by_id["C5_RA_MULTIMORBIDITY_IMPACT_ASSESSED"]["status"] == "PENDING_BSRBR_RA"
+    assert result["overall"]["status"] == "NOT_YET_SCIENTIFICALLY_DETERMINED"
+    assert result["overall"]["scientifically_determined"] is False
+    assert result["overall"]["required_method_gates_ready"] is True
 
 
 def test_external_benchmark_cannot_substitute_for_own_stage12_pass():
     result = assess_current_scientific_evidence(
         public_mipa_summary=_public_summary(),
+        split_protocol_summary=_split_summary(),
         external_llm_macro_f1=0.95,
         own_stage12_summary={"acceptance": {"final_status": "PASS_AUTOMATED_PENDING_HUMAN_EVIDENCE_AUDIT"}},
     )
     by_id = {row["id"]: row for row in result["conclusions"]}
-    assert by_id["C2_LLM_PHENOTYPING_CAPABILITY"]["status"] == "EXTERNAL_SUPPORT_ONLY"
+    assert by_id["C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY"]["status"] == "EXTERNAL_SUPPORT_ONLY"
     assert by_id["C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE"]["status"] == "PENDING_REAL_DATA"
+    assert result["overall"]["next_gate"] == "AUTHORISED_REAL_NOTE_STAGE12"
+
+
+def test_terminal_stage12_failure_is_valid_scientific_no_go_not_pending_forever():
+    result = assess_current_scientific_evidence(
+        public_mipa_summary=_public_summary(),
+        split_protocol_summary=_split_summary(),
+        external_llm_macro_f1=0.891,
+        own_stage12_summary={"acceptance": {"final_status": "FAIL_AUTOMATED_GATE"}},
+    )
+    by_id = {row["id"]: row for row in result["conclusions"]}
+    assert by_id["C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE"]["status"] == "NOT_SUPPORTED"
+    assert by_id["C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE"]["stage_complete"] is True
+    assert by_id["C4_RECOVERABLE_STRUCTURED_UNDERRECORDING"]["status"] == "BLOCKED_BY_STAGE12"
+    assert result["overall"]["status"] == "SCIENTIFIC_NO_GO_STAGE12"
+    assert result["overall"]["scientifically_determined"] is True
 
 
 def _supported_rows():
     rows = []
     for subject in range(40):
-        # Two rows per patient emulate repeated observations; structured coding misses the second half.
         structured = 1 if subject < 20 else 0
         for note in range(2):
             rows.append(
@@ -94,21 +126,19 @@ def test_confirmatory_recovery_supported_only_after_all_upstream_gates_pass():
     assert blocked["status"] == "NOT_CONFIRMATORY_ELIGIBLE"
 
 
-def test_negative_or_inconclusive_recovery_is_not_relabelled_as_success():
+def test_negative_recovery_is_scientifically_terminal_not_relabelled_positive():
     rows = []
     for subject in range(40):
         structured = 1 if subject < 20 else 0
-        # Text fails to recover structured misses.
-        text = structured
         rows.append(
             {
                 "subject_id": f"S{subject}",
                 "gold": 1,
-                "text": text,
+                "text": structured,
                 "structured": structured,
             }
         )
-    result = assess_confirmatory_recovery(
+    recovery = assess_confirmatory_recovery(
         rows=rows,
         stage12_final_status="PASS",
         structured_scope_validated=True,
@@ -116,5 +146,34 @@ def test_negative_or_inconclusive_recovery_is_not_relabelled_as_success():
         n_bootstrap=500,
         seed=11,
     )
-    assert result["status"] == "INCONCLUSIVE_OR_UNSUPPORTED_RECOVERY"
-    assert result["interpretation"]["negative_result_is_scientifically_valid"] is True
+    assert recovery["status"] == "INCONCLUSIVE_OR_UNSUPPORTED_RECOVERY"
+    assert recovery["interpretation"]["negative_result_is_scientifically_valid"] is True
+
+    matrix = assess_current_scientific_evidence(
+        public_mipa_summary=_public_summary(),
+        split_protocol_summary=_split_summary(),
+        external_llm_macro_f1=0.891,
+        own_stage12_summary={"acceptance": {"final_status": "PASS"}},
+        own_recovery_summary=recovery,
+    )
+    by_id = {row["id"]: row for row in matrix["conclusions"]}
+    assert by_id["C4_RECOVERABLE_STRUCTURED_UNDERRECORDING"]["status"] == "NOT_SUPPORTED"
+    assert by_id["C4_RECOVERABLE_STRUCTURED_UNDERRECORDING"]["stage_complete"] is True
+    assert matrix["overall"]["status"] == "SCIENTIFIC_CONCLUSION_DETERMINED_NO_RECOVERY_SUPPORT"
+    assert matrix["overall"]["scientifically_determined"] is True
+
+
+def test_bsrbr_null_effect_can_complete_program_after_supported_recovery():
+    recovery = {"status": "SUPPORTED_RECOVERABLE_UNDERRECORDING"}
+    result = assess_current_scientific_evidence(
+        public_mipa_summary=_public_summary(),
+        split_protocol_summary=_split_summary(),
+        external_llm_macro_f1=0.891,
+        own_stage12_summary={"acceptance": {"final_status": "PASS"}},
+        own_recovery_summary=recovery,
+        bsrbr_impact_summary={"analysis_complete": True, "effect_conclusion": "null_or_small_effect"},
+    )
+    by_id = {row["id"]: row for row in result["conclusions"]}
+    assert by_id["C5_RA_MULTIMORBIDITY_IMPACT_ASSESSED"]["status"] == "PASS_ASSESSED"
+    assert result["overall"]["status"] == "SCIENTIFIC_PROGRAM_COMPLETE"
+    assert result["overall"]["scientifically_determined"] is True
