@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-"""Batch-accelerated entry point for the v0.2 candidate-generation benchmark.
+"""Accelerated entry point for the v0.2 candidate-generation benchmark.
 
 The benchmark design, split, model-selection rules, metrics, and output contract remain in
-``run_candidate_generation_v02.py``. This wrapper replaces only its row-at-a-time prediction
-helper so models that implement batch prediction (notably AliasAwareHybridCoder) reuse sparse
-matrix transforms and similarity calculations across records.
+``run_candidate_generation_v02.py``. This wrapper changes execution only:
+
+1. predictions are made in batches so sparse query transforms/similarity matrices are reused;
+2. the six validation weight configurations share one fitted alias/history retrieval state,
+   because those weights affect score fusion but not the fitted vectorizers/matrices.
+
+No TEST labels or TEST metrics are used to select configuration.
 """
 from __future__ import annotations
 
@@ -19,6 +23,23 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 from scripts import run_candidate_generation_v02 as benchmark
+
+
+class CachedFitAliasCoder(benchmark.AliasAwareHybridCoder):
+    """Reuse immutable fitted retrieval state within this one benchmark process."""
+
+    _fit_cache: dict[tuple[int, int], dict] = {}
+
+    def fit(self, history: pd.DataFrame, terminology: pd.DataFrame):
+        key = (id(history), id(terminology))
+        cached = self._fit_cache.get(key)
+        if cached is None:
+            super().fit(history, terminology)
+            cached = {name: value for name, value in self.__dict__.items() if name != "config"}
+            self._fit_cache[key] = cached
+        else:
+            self.__dict__.update(cached)
+        return self
 
 
 def batch_predict_rows(coder, frame: pd.DataFrame) -> tuple[pd.DataFrame, list[list[dict]]]:
@@ -44,6 +65,7 @@ def batch_predict_rows(coder, frame: pd.DataFrame) -> tuple[pd.DataFrame, list[l
     return pd.DataFrame(rows), candidate_lists
 
 
+benchmark.AliasAwareHybridCoder = CachedFitAliasCoder
 benchmark.predict_rows = batch_predict_rows
 
 if __name__ == "__main__":
