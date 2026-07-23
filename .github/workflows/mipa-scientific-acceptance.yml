@@ -7,6 +7,7 @@ on:
       - 'scripts/run_scientific_acceptance.py'
       - 'tests/test_scientific_acceptance.py'
       - 'results/mipa_public_pilot/**'
+      - 'results/mipa_split_protocol_audit/**'
       - '.github/workflows/mipa-scientific-acceptance.yml'
       - 'pyproject.toml'
       - 'src/cohortcoder/__init__.py'
@@ -16,6 +17,7 @@ on:
       - 'scripts/run_scientific_acceptance.py'
       - 'tests/test_scientific_acceptance.py'
       - 'results/mipa_public_pilot/**'
+      - 'results/mipa_split_protocol_audit/**'
       - '.github/workflows/mipa-scientific-acceptance.yml'
       - 'pyproject.toml'
       - 'src/cohortcoder/__init__.py'
@@ -44,6 +46,7 @@ jobs:
         run: |
           python scripts/run_scientific_acceptance.py \
             --public-mipa-summary results/mipa_public_pilot/summary.json \
+            --split-protocol-summary results/mipa_split_protocol_audit/summary.json \
             --output /tmp/scientific_acceptance/summary.json \
             --external-llm-macro-f1 0.891
       - name: Verify evidence is not overclaimed
@@ -53,13 +56,17 @@ jobs:
           from pathlib import Path
           p = json.loads(Path('/tmp/scientific_acceptance/summary.json').read_text())
           by_id = {row['id']: row for row in p['conclusions']}
+          assert by_id['C0_PROTOCOL_INTEGRITY']['status'] == 'PASS'
           assert by_id['C1_MIPA_RA_PILOT_FEASIBILITY']['status'] == 'PASS'
-          assert by_id['C2_LLM_PHENOTYPING_CAPABILITY']['status'] == 'EXTERNAL_SUPPORT_ONLY'
+          assert by_id['C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY']['status'] == 'EXTERNAL_SUPPORT_ONLY'
+          assert by_id['C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY']['gating'] is False
           assert by_id['C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE']['status'] == 'PENDING_REAL_DATA'
           assert by_id['C4_RECOVERABLE_STRUCTURED_UNDERRECORDING']['status'] == 'PENDING_REAL_DATA'
-          assert by_id['C5_RA_MULTIMORBIDITY_IMPACT']['status'] == 'PENDING_BSRBR_RA'
-          assert p['overall']['status'] == 'NOT_YET_SCIENTIFICALLY_CONFIRMED'
-          assert p['overall']['scientifically_confirmed'] is False
+          assert by_id['C5_RA_MULTIMORBIDITY_IMPACT_ASSESSED']['status'] == 'PENDING_BSRBR_RA'
+          assert p['overall']['status'] == 'NOT_YET_SCIENTIFICALLY_DETERMINED'
+          assert p['overall']['scientifically_determined'] is False
+          assert p['overall']['required_method_gates_ready'] is True
+          assert p['overall']['next_gate'] == 'AUTHORISED_REAL_NOTE_STAGE12'
           PY
       - name: Upload scientific acceptance matrix
         uses: actions/upload-artifact@v4
