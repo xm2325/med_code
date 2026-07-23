@@ -1,0 +1,8 @@
+phenotype,n_validation_rows,n_test_rows,n_validation_subjects,n_test_subjects,n_overlapping_subjects,fraction_validation_subjects_overlapping_test,fraction_test_subjects_overlapping_validation,validation_rows_from_overlapping_subjects,test_rows_from_overlapping_subjects,hadm_overlap,subject_disjoint
+hypertension,555,833,463,659,111,0.23974082073434125,0.16843702579666162,184,220,0,False
+depression,556,832,462,653,104,0.22510822510822512,0.15926493108728942,173,221,0,False
+diabetes_type_2,555,833,465,653,107,0.23010752688172043,0.1638591117917305,179,226,0,False
+hfpef,555,833,468,652,109,0.2329059829059829,0.16717791411042945,179,224,0,False
+vte_past,555,833,467,647,103,0.22055674518201285,0.15919629057187018,171,221,0,False
+obesity,555,833,472,640,101,0.21398305084745764,0.1578125,158,226,0,False
+rheumatoid_arthritis,556,832,476,648,113,0.23739495798319327,0.1743827160493827,184,226,0,False
