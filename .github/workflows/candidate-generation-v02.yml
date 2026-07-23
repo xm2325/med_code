@@ -1,7 +1,15 @@
-# PR validation for the first v0.2 candidate-generation milestone.
+# Validation for the first v0.2 candidate-generation milestone.
 name: v0.2 candidate generation real evaluation
 
 on:
+  push:
+    branches: [agent/v0.2-candidate-generation]
+    paths:
+      - '.github/workflows/candidate-generation-v02.yml'
+      - 'scripts/run_candidate_generation_v02.py'
+      - 'src/cohortcoder/candidate_generation.py'
+      - 'src/cohortcoder/mednorm.py'
+      - 'tests/test_candidate_generation_v02.py'
   pull_request:
     branches: [main]
     paths:
