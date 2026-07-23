@@ -43,7 +43,11 @@ def candidate_uncertainty(candidates: list[dict[str, Any]], *, temperature: floa
 class ReviewRoutingPolicy:
     auto_threshold: float = 0.85
     topk_choice_threshold: float = 0.45
-    max_entropy_for_auto: float = 0.55
+    # Raw retrieval scores are not calibrated logits. With temperature=1, even a
+    # clearly separated pair of bounded similarity scores can have high normalised
+    # entropy. Therefore entropy is diagnostic by default rather than an implicit
+    # veto. Deployments may set a lower explicit value after validation/calibration.
+    max_entropy_for_auto: float = 1.0
     min_margin_for_auto: float = 0.08
     top_k: int = 5
 
@@ -57,7 +61,9 @@ class ReviewRoutingPolicy:
     ) -> str:
         """Route to AUTO, TOP_K_HUMAN_CHOICE, or FULL_EXPERT_REVIEW.
 
-        Explanation/OOD checks may only make routing more conservative.
+        Explanation/OOD checks may only make routing more conservative. Entropy is
+        only restrictive when ``max_entropy_for_auto`` is explicitly set below 1.0
+        and validated for the score/temperature regime in use.
         """
         if ood_flag or str(explanation_gate or "").upper() == "FAIL":
             return "FULL_EXPERT_REVIEW"
