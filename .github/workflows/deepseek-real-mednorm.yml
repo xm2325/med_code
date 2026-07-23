@@ -10,10 +10,6 @@ on:
       - 'scripts/run_deepseek_mednorm_real.py'
       - 'scripts/publish_v011_results.py'
       - 'src/cohortcoder/deepseek_real_eval.py'
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/deepseek-real-mednorm.yml'
   workflow_dispatch:
 
 permissions:
@@ -113,7 +109,7 @@ jobs:
               'release': '0.1.1',
               'workflow_run_id': os.environ.get('RUN_ID'),
               'workflow_run_attempt': os.environ.get('RUN_ATTEMPT'),
-              'repository_visibility_path': 'public-main-or-same-repo-pr',
+              'repository_visibility_path': 'public-main-push',
               'deepseek_actions_secret_available': secret,
               'full_evaluation_outcome': full,
               'baseline_only_evaluation_outcome': baseline,
