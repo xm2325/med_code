@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import csv
+import json
+import subprocess
+import sys
 from pathlib import Path
 
 from cohortcoder.mipa_phenotyping import (
@@ -142,3 +145,37 @@ def test_classification_error_fails_automated_gate(tmp_path: Path) -> None:
     assert summary["acceptance"]["automated_gate_pass"] is False
     assert summary["acceptance"]["final_status"] == "FAIL_AUTOMATED_GATE"
     assert any("classification_error" in str(row["error_type"]) for row in errors)
+
+
+def test_cli_executes_end_to_end_and_requires_final_pass(tmp_path: Path) -> None:
+    labels, notes, predictions, audit = _fixture(tmp_path, with_audit=True)
+    output_dir = tmp_path / "out"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "run_mipa_local_phenotyping.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--labels",
+            str(labels),
+            "--notes",
+            str(notes),
+            "--predictions",
+            str(predictions),
+            "--evidence-audit",
+            str(audit),
+            "--output-dir",
+            str(output_dir),
+            "--common-positive-min",
+            "1",
+            "--require-final-pass",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    summary = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["acceptance"]["final_status"] == "PASS"
+    assert (output_dir / "phenotype_metrics.csv").exists()
+    assert (output_dir / "error_cases.csv").exists()
+    assert (output_dir / "subject_split_manifest.csv").exists()
