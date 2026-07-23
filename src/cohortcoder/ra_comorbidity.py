@@ -50,10 +50,18 @@ def binary_metrics(y_true: pd.Series, y_pred: pd.Series) -> dict[str, float | in
         f1 = None
     else:
         f1 = 2.0 * precision * recall / (precision + recall)
-    return {"tp": tp, "tn": tn, "fp": fp, "fn": fn, "precision": precision, "recall": recall, "f1": f1}
+    return {
+        "tp": tp,
+        "tn": tn,
+        "fp": fp,
+        "fn": fn,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+    }
 
 
-def validate_discordance_table(df: pd.DataFrame) -> None:
+def validate_discordance_table(df: pd.DataFrame, *, require_evidence: bool = False) -> None:
     missing = REQUIRED_DISCORDANCE_COLUMNS - set(df.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
@@ -61,6 +69,17 @@ def validate_discordance_table(df: pd.DataFrame) -> None:
         invalid = ~df[column].isin([0, 1])
         if invalid.any():
             raise ValueError(f"{column} must contain only binary 0/1 values")
+    if "split" in df.columns:
+        memberships = df.groupby("subject_id")["split"].nunique()
+        if (memberships > 1).any():
+            raise ValueError("patient leakage: subject occurs in multiple splits")
+    if require_evidence:
+        if "evidence" not in df.columns:
+            raise ValueError("evidence column is required for reportable text-positive evaluation")
+        positive = df["text"] == 1
+        missing_evidence = df.loc[positive, "evidence"].fillna("").astype(str).str.strip().eq("")
+        if missing_evidence.any():
+            raise ValueError("every text-positive proposal requires non-empty source evidence")
 
 
 def hidden_comorbidity_summary(df: pd.DataFrame) -> HiddenComorbiditySummary:
@@ -90,6 +109,7 @@ def evaluate_discordance(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, object]] = []
     groups: list[tuple[str, pd.DataFrame]] = [("__OVERALL__", df)]
     groups.extend((str(name), group) for name, group in df.groupby("phenotype", sort=True))
+
     for phenotype, group in groups:
         code_metrics = binary_metrics(group["gold"], group["code"])
         text_metrics = binary_metrics(group["gold"], group["text"])
@@ -107,8 +127,15 @@ def evaluate_discordance(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             "text_f1": text_metrics["f1"],
             "code_or_text_recall": union_metrics["recall"],
         })
+
     patterns = (
-        df.assign(pattern=("G" + df["gold"].astype(str) + "_C" + df["code"].astype(str) + "_T" + df["text"].astype(str)))
+        df.assign(
+            pattern=(
+                "G" + df["gold"].astype(str)
+                + "_C" + df["code"].astype(str)
+                + "_T" + df["text"].astype(str)
+            )
+        )
         .groupby(["phenotype", "pattern"], dropna=False)
         .size()
         .rename("n")
@@ -117,8 +144,17 @@ def evaluate_discordance(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return pd.DataFrame(rows), patterns
 
 
-def confidence_review_curve(df: pd.DataFrame, *, thresholds: Iterable[float] = np.arange(0.50, 0.951, 0.05)) -> pd.DataFrame:
-    """Evaluate a proposal-level selective policy for text-positive candidates."""
+def confidence_review_curve(
+    df: pd.DataFrame,
+    *,
+    thresholds: Iterable[float] = np.arange(0.50, 0.951, 0.05),
+) -> pd.DataFrame:
+    """Evaluate a simple selective policy for text-positive candidates.
+
+    A text-positive candidate with confidence >= threshold is auto-proposed;
+    lower-confidence positive candidates are sent to review. This is a proposal-level
+    policy and must not be described as full-note automation.
+    """
     validate_discordance_table(df)
     if "confidence" not in df.columns:
         return pd.DataFrame()
@@ -140,21 +176,28 @@ def confidence_review_curve(df: pd.DataFrame, *, thresholds: Iterable[float] = n
 
 
 def public_mipa_ra_summary(labels: pd.DataFrame) -> tuple[dict[str, object], pd.DataFrame]:
-    """Summarise public MIPA labels for an RA feasibility benchmark.
+    """Summarise the public MIPA gold-label file for a small RA feasibility benchmark.
 
-    The output de-duplicates repeated admissions at patient level. MIPA is ICD-enriched,
-    so these counts must not be interpreted as population comorbidity prevalence.
+    This function explicitly de-duplicates repeated admissions at patient level.
+    The output is descriptive of the ICD-enriched MIPA benchmark and must not be used
+    as an estimate of population comorbidity prevalence in RA.
     """
     required = {"subject_id", "rheumatoid_arthritis"}
     missing = required - set(labels.columns)
     if missing:
         raise ValueError(f"MIPA labels missing required columns: {sorted(missing)}")
-    phenotype_cols = [c for c in labels.columns if c not in set(DEFAULT_ID_COLUMNS) | {"none", "rheumatoid_arthritis"}]
+
+    phenotype_cols = [
+        c for c in labels.columns
+        if c not in set(DEFAULT_ID_COLUMNS) | {"none", "rheumatoid_arthritis"}
+    ]
     ra_admissions = labels[labels["rheumatoid_arthritis"] == 1].copy()
     patient = ra_admissions.groupby("subject_id", as_index=True)[phenotype_cols].max()
     patient["n_other_phenotypes"] = patient[phenotype_cols].sum(axis=1)
+
     counts = patient[phenotype_cols].sum().sort_values(ascending=False).rename("positive_patients").to_frame()
     counts["pct_of_unique_ra_patients_in_mipa"] = 100.0 * counts["positive_patients"] / len(patient)
+
     summary: dict[str, object] = {
         "mipa_admissions": int(len(labels)),
         "ra_positive_admissions": int(len(ra_admissions)),
