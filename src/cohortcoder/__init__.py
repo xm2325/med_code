@@ -18,6 +18,7 @@ from .llm import DeepSeekRationaleClient, ExternalLLMPolicyError, validate_llm_r
 from .llm_rerank import DeepSeekCandidateReranker, validate_rerank_payload
 from .mednorm import OFFICIAL_MEDNORM, assign_cross_dataset_split, build_train_derived_terminology, fetch_hf_mirror_dataframe, fetch_hf_mirror_rows, mednorm_data_card, prepare_mednorm_single_meddra
 from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
+from .mipa_local_inference import InferenceConfig, build_prompt_payload, generate_local_predictions, parse_model_response
 from .mipa_phenotyping import AcceptanceThresholds, DEFAULT_PHENOTYPES, evaluate_mipa_predictions, write_evaluation_outputs
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
