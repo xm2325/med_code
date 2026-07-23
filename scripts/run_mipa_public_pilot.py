@@ -7,6 +7,7 @@ import io
 import json
 from collections import Counter
 from pathlib import Path
+from statistics import mean, median
 from typing import Iterable
 from urllib.request import Request, urlopen
 
@@ -142,20 +143,29 @@ def main() -> None:
         key=lambda item: (-int(item["positive_among_ra_notes"]), str(item["phenotype"]))
     )
 
-    ra_cooccurrence_burden = Counter()
+    ra_other_counts: list[int] = []
+    ra_cooccurrence_distribution = Counter()
     for row in ra_rows:
         n_other = sum(
             _is_positive(row.get(phenotype))
             for phenotype in CLINICAL_PHENOTYPES
             if phenotype != "rheumatoid_arthritis"
         )
-        ra_cooccurrence_burden[n_other] += 1
+        ra_other_counts.append(n_other)
+        ra_cooccurrence_distribution[n_other] += 1
+
+    def at_least(k: int) -> dict[str, float | int | None]:
+        count = sum(value >= k for value in ra_other_counts)
+        return {
+            "n": count,
+            "fraction": (count / len(ra_other_counts)) if ra_other_counts else None,
+        }
 
     ra_dataset_sources = Counter(str(row.get("dataset_name", "")) for row in ra_rows)
     none_positive_notes = sum(_is_positive(row.get(SENTINEL_LABEL)) for row in rows)
 
     summary = {
-        "schema_version": "mipa-public-pilot-v0.3.1",
+        "schema_version": "mipa-public-pilot-v0.3.2",
         "study": "MIPA public-label feasibility audit for RA comorbidity phenotyping",
         "source": {
             "labels_url": args.labels_url if not args.labels_path else None,
@@ -178,7 +188,15 @@ def main() -> None:
             "subject_id_audit": _repetition_summary(ra_subject_ids),
             "candidate_source_counts": dict(sorted(ra_dataset_sources.items())),
             "cooccurring_phenotype_count_distribution": {
-                str(key): value for key, value in sorted(ra_cooccurrence_burden.items())
+                str(key): value for key, value in sorted(ra_cooccurrence_distribution.items())
+            },
+            "cooccurrence_summary": {
+                "at_least_1_other_phenotype": at_least(1),
+                "at_least_2_other_phenotypes": at_least(2),
+                "at_least_3_other_phenotypes": at_least(3),
+                "mean_other_phenotypes_per_ra_note": mean(ra_other_counts) if ra_other_counts else None,
+                "median_other_phenotypes_per_ra_note": median(ra_other_counts) if ra_other_counts else None,
+                "max_other_phenotypes_per_ra_note": max(ra_other_counts) if ra_other_counts else None,
             },
         },
         "interpretation": {
@@ -187,8 +205,8 @@ def main() -> None:
             "deepseek_mipa_note_evaluation_executed": False,
             "why_not": (
                 "MIPA expert labels are public, but the underlying MIMIC-IV discharge summaries require "
-                "credentialed PhysioNet access. A real DeepSeek note-level experiment must use an authorised "
-                "local copy of golden_notes.csv and must not infer or reconstruct notes from labels."
+                "credentialed PhysioNet access. This public pilot intentionally does not infer, reconstruct, "
+                "or transmit restricted discharge summaries."
             ),
             "ra_comorbidity_fractions_are_prevalence_estimates": False,
             "sampling_warning": (
