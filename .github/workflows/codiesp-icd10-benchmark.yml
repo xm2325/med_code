@@ -33,6 +33,7 @@ jobs:
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
+          mkdir -p /tmp/codiesp_icd10
           python scripts/run_codiesp_icd10_benchmark.py \
             --output-dir /tmp/codiesp_icd10 \
             --deepseek-n 50
@@ -48,6 +49,7 @@ jobs:
           assert 0 <= p['tfidf_retrieval_baseline']['micro_f1'] <= 1
           PY
       - name: Upload outputs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: codiesp-icd10-benchmark
