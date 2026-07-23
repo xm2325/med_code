@@ -1,0 +1,125 @@
+{
+  "release": "0.2.0-candidate-generation",
+  "dataset": {
+    "name": "MedNorm: A Corpus and Embeddings for Cross-terminology Medical Concept Normalisation",
+    "doi": "10.17632/b9x7xxb9sz.1",
+    "official_url": "https://data.mendeley.com/datasets/b9x7xxb9sz/1",
+    "licence": "CC BY-NC 3.0",
+    "authors": "Maksim Belousov; William G. Dixon; Goran Nenadic",
+    "n_reported_rows": 27979,
+    "task_use": "medical concept normalisation benchmark",
+    "licence_authority": "official Mendeley Data record",
+    "mirror_note": "A third-party mirror may be used only as a transport convenience; it does not override the official licence."
+  },
+  "evaluation_design": {
+    "n_total_real_records": 27979,
+    "n_train_full": 18025,
+    "n_val_full": 3157,
+    "n_test_full": 6797,
+    "n_train_model_sample": 3000,
+    "n_validation_sample": 200,
+    "n_test_sample": 500,
+    "sampling_seed": 20260723,
+    "test_source": "CADEC",
+    "candidate_space": "TRAIN-derived MedDRA code aliases; closed-code diagnostic",
+    "selection_rule": "VALIDATION Recall@5, then Recall@20, then Accuracy@1; TEST never used for model selection"
+  },
+  "selected_baseline": {
+    "history_weight": 1.0
+  },
+  "selected_v2": {
+    "history_weight": 0.25,
+    "word_weight": 0.15
+  },
+  "baseline_v0_1_1_family": {
+    "n": 500,
+    "accuracy_at_1": 0.57,
+    "recall_at_5": 0.718,
+    "recall_at_20": 0.754,
+    "recall_at_50": 0.766,
+    "mrr_at_50": 0.6318581170861659,
+    "candidate_generation_failures_at_5": 141,
+    "candidate_generation_failures_at_20": 123,
+    "candidate_generation_failures_at_50": 117,
+    "seen_code": {
+      "n": 477,
+      "accuracy_at_1": 0.5974842767295597,
+      "recall_at_5": 0.7526205450733753,
+      "recall_at_20": 0.790356394129979,
+      "recall_at_50": 0.8029350104821803
+    },
+    "unseen_code": {
+      "n": 23,
+      "accuracy_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_20": 0.0,
+      "recall_at_50": 0.0
+    },
+    "exact_gold_alias_seen_in_train": {
+      "n": 205,
+      "accuracy_at_1": 0.9073170731707317,
+      "recall_at_5": 0.9317073170731708,
+      "recall_at_20": 0.9317073170731708,
+      "recall_at_50": 0.9317073170731708
+    },
+    "novel_gold_wording": {
+      "n": 295,
+      "accuracy_at_1": 0.33559322033898303,
+      "recall_at_5": 0.5694915254237288,
+      "recall_at_20": 0.6305084745762712,
+      "recall_at_50": 0.6508474576271186
+    }
+  },
+  "v0_2_alias_aware_hybrid": {
+    "n": 500,
+    "accuracy_at_1": 0.67,
+    "recall_at_5": 0.844,
+    "recall_at_20": 0.886,
+    "recall_at_50": 0.9,
+    "mrr_at_50": 0.7472435827315622,
+    "candidate_generation_failures_at_5": 78,
+    "candidate_generation_failures_at_20": 57,
+    "candidate_generation_failures_at_50": 50,
+    "seen_code": {
+      "n": 477,
+      "accuracy_at_1": 0.7023060796645703,
+      "recall_at_5": 0.8846960167714885,
+      "recall_at_20": 0.9287211740041929,
+      "recall_at_50": 0.9433962264150944
+    },
+    "unseen_code": {
+      "n": 23,
+      "accuracy_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_20": 0.0,
+      "recall_at_50": 0.0
+    },
+    "exact_gold_alias_seen_in_train": {
+      "n": 205,
+      "accuracy_at_1": 0.9951219512195122,
+      "recall_at_5": 1.0,
+      "recall_at_20": 1.0,
+      "recall_at_50": 1.0
+    },
+    "novel_gold_wording": {
+      "n": 295,
+      "accuracy_at_1": 0.4440677966101695,
+      "recall_at_5": 0.735593220338983,
+      "recall_at_20": 0.8067796610169492,
+      "recall_at_50": 0.8305084745762712
+    }
+  },
+  "delta_v0_2_minus_baseline": {
+    "accuracy_at_1_delta": 0.10000000000000009,
+    "recall_at_5_delta": 0.126,
+    "recall_at_20_delta": 0.132,
+    "recall_at_50_delta": 0.134,
+    "mrr_at_50_delta": 0.11538546564539631
+  },
+  "interpretation_boundary": [
+    "This benchmark isolates candidate generation on public real data; it does not claim clinical deployment readiness.",
+    "The candidate dictionary is TRAIN-derived, so unseen TEST codes remain structurally unavailable.",
+    "Recall@K measures whether the reference code is present in the candidate menu; it is not human-assisted accuracy.",
+    "All configuration selection is performed on VALIDATION only before the held-out CADEC-derived TEST sample is scored."
+  ]
+}
