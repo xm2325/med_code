@@ -66,9 +66,33 @@ persistent expert review
               ↓
 versioned feedback ledger
               ↓
+future-release learning memory
+              ↓
 replayable audit trail
 ```
 
-A code is never considered explainable merely because an LLM wrote a plausible paragraph. For each candidate MedDRA/ICD code, MedCode keeps source evidence, terminology support, historical provenance, rationale, and faithfulness/context checks separate. Missing evidence is shown as missing; it must not be invented.
+The original software release contract requires audited real-data adapters, held-out evaluation and a Results Contract, frozen model/policy artifacts, uncertainty-aware routing, Top-K human choice, a separate evidence/rationale object for every displayed candidate, persistent expert review, versioned feedback that cannot rewrite frozen TEST results, and replayable audit bundles/decision traces. Historical release documentation remains under `release/` and `docs/`.
 
-The coding release contract and historical documentation remain under `release/` and `docs/`.
+## Core evidence rule
+
+A code or phenotype is never considered explainable merely because an LLM wrote a plausible paragraph. MedCode keeps separate:
+
+1. **Source evidence** — exact verbatim text spans and offsets when available.
+2. **Terminology support** — preferred terms, synonyms, definitions, hierarchy, and knowledge source when supplied.
+3. **Historical provenance** — similar TRAIN historical expert-coded examples where applicable.
+4. **Rationale** — why supplied facts support a candidate.
+5. **Faithfulness/context checks** — whether evidence supports the prediction and whether negation, uncertainty, family history, or temporality require review.
+
+Missing evidence is shown as missing; it must not be invented.
+
+## Uncertain coding cases
+
+The coding workflow supports:
+
+```text
+AUTO_CANDIDATE
+TOP_K_HUMAN_CHOICE
+FULL_EXPERT_REVIEW
+```
+
+For `TOP_K_HUMAN_CHOICE`, every displayed option has its own evidence/rationale package, not only the model's first choice.
