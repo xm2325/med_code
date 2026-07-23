@@ -20,6 +20,7 @@ from .mednorm import OFFICIAL_MEDNORM, assign_cross_dataset_split, build_train_d
 from .mimic_audit import audit_mimic_records, write_mimic_audit_artifacts
 from .mipa_local_inference import InferenceConfig, build_prompt_payload, generate_local_predictions, parse_model_response
 from .mipa_phenotyping import AcceptanceThresholds, DEFAULT_PHENOTYPES, evaluate_mipa_predictions, write_evaluation_outputs
+from .mipa_strict_acceptance import EvidenceAuditCoveragePolicy, evaluate_mipa_predictions_strict
 from .multilabel import MultiLabelHistoricalCoder, ranking_metrics, threshold_metrics
 from .rationale_metrics import evaluate_rationale_overlap, validate_rationale_offsets
 from .registry import register_experiment, stable_json_hash, write_data_card, write_model_card
