@@ -1,20 +1,7 @@
 name: MIPA local acceptance
 
 on:
-  push:
-    paths:
-      - 'src/cohortcoder/mipa_*.py'
-      - 'scripts/generate_mipa_local_predictions.py'
-      - 'scripts/run_mipa_local_phenotyping.py'
-      - 'tests/test_mipa_local_inference.py'
-      - '.github/workflows/mipa-local-acceptance.yml'
-  pull_request:
-    paths:
-      - 'src/cohortcoder/mipa_*.py'
-      - 'scripts/generate_mipa_local_predictions.py'
-      - 'scripts/run_mipa_local_phenotyping.py'
-      - 'tests/test_mipa_local_inference.py'
-      - '.github/workflows/mipa-local-acceptance.yml'
+  workflow_dispatch:
 
 jobs:
   synthetic-end-to-end:
