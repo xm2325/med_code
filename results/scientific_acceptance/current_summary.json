@@ -1,0 +1,70 @@
+{
+  "conclusions": [
+    {
+      "allowed_language": "Suitable proof-of-concept benchmark for RA comorbidity phenotyping; not an RA prevalence cohort.",
+      "basis": {
+        "fraction_ra_notes_with_at_least_2_other_phenotypes": 0.7378048780487805,
+        "n_ra_positive_notes": 164,
+        "n_ra_unique_subjects": 99
+      },
+      "claim": "MIPA contains enough RA-positive benchmark observations and co-occurring labelled phenotypes for a controlled RA comorbidity NLP pilot.",
+      "id": "C1_MIPA_RA_PILOT_FEASIBILITY",
+      "status": "PASS"
+    },
+    {
+      "allowed_language": "Published benchmark evidence supports feasibility; this is not performance evidence for the MedCode pipeline.",
+      "basis": {
+        "published_external_macro_f1": 0.891
+      },
+      "claim": "High-performing LLM phenotyping is feasible on MIPA under published benchmark settings.",
+      "id": "C2_LLM_PHENOTYPING_CAPABILITY",
+      "status": "EXTERNAL_SUPPORT_ONLY"
+    },
+    {
+      "allowed_language": "Do not report MedCode clinical performance until an authorised real-note run reaches final PASS.",
+      "basis": {
+        "own_stage12_final_status": null
+      },
+      "claim": "The MedCode evidence-grounded local pipeline meets the pre-specified Stage 1/2 performance and evidence gates on authorised MIPA notes.",
+      "id": "C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE",
+      "status": "PENDING_REAL_DATA"
+    },
+    {
+      "allowed_language": "Do not call text+/code- observations under-recording until Stage 1/2, structured-scope, and coverage gates pass.",
+      "basis": {
+        "own_discordance_status": null
+      },
+      "claim": "Validated free-text phenotyping recovers clinician-supported comorbidities absent from the matched structured phenotype definition.",
+      "id": "C4_RECOVERABLE_STRUCTURED_UNDERRECORDING",
+      "status": "PENDING_REAL_DATA"
+    },
+    {
+      "allowed_language": "Requires representative/longitudinal RA data; MIPA benchmark co-occurrence is not population burden.",
+      "basis": {},
+      "claim": "Text-enhanced ascertainment materially changes patient-level RA multimorbidity estimates, clusters, trajectories, or outcomes.",
+      "id": "C5_RA_MULTIMORBIDITY_IMPACT",
+      "status": "PENDING_BSRBR_RA"
+    }
+  ],
+  "external_evidence": {
+    "doi": "10.64898/2026.04.16.26350890",
+    "interpretation": "External benchmark feasibility only; not MedCode performance.",
+    "reported_deepseek_r1_macro_f1": 0.891,
+    "source": "Yamga E, Murphy S, Despres P. A Systematic Exploration of LLM Behavior for EHR Phenotyping. medRxiv. 2026."
+  },
+  "overall": {
+    "reason": "Engineering or external benchmark success cannot substitute for an authorised MedCode real-note run, confirmatory Gold×Text×Structured analysis, and BSRBR-RA transfer where required.",
+    "scientifically_confirmed": false,
+    "status": "NOT_YET_SCIENTIFICALLY_CONFIRMED"
+  },
+  "schema_version": "scientific-acceptance-v0.3.1",
+  "thresholds": {
+    "external_llm_macro_f1": 0.85,
+    "min_bootstrap_replicates": 500,
+    "min_code_missed_gold": 20,
+    "min_fraction_ra_with_two_other_phenotypes": 0.7,
+    "min_ra_positive_notes": 100,
+    "min_ra_unique_subjects": 75,
+    "min_text_positive_code_absent_ppv": 0.85
+  }
+}
