@@ -7,20 +7,18 @@
     "gold_seen_in_train": true,
     "route": "TOP_K_HUMAN_CHOICE",
     "baseline_top1": "10055798",
-    "deepseek_top1": null,
-    "pipeline_top1_with_fallback": "10055798",
+    "deepseek_top1": "10000081",
+    "pipeline_top1_with_fallback": "10000081",
     "deepseek_call_attempted": true,
-    "deepseek_call_accepted": false,
-    "deepseek_validation_errors": [
-      "non_verbatim_or_unapproved_evidence"
-    ],
-    "overall_uncertainty": "",
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase describes menstrual cramps without vaginal bleeding. The best match is 'Abdominal Cramps' as it captures the cramping symptom, though it lacks menstrual specificity. 'Night cramps' is a type of cramp but not specific to menstruation. 'bleeding' is explicitly negated in the phrase. 'Vaginal Hemorrhage' is the opposite of the stated absence of bleeding. 'Sleeplessness' is unrelated.",
     "candidate_options": [
       {
         "code": "10055798",
         "term": "bleeding",
         "baseline_rank": 1,
-        "deepseek_rank": null,
+        "deepseek_rank": 3,
         "model_score": 0.43190444603859035,
         "real_evidence_quotes": [
           "menstrual cramps without vaginal bleeding"
@@ -64,16 +62,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10055798 — bleeding. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The phrase explicitly states 'without vaginal bleeding', negating the presence of bleeding. The code 'bleeding' directly contradicts this negation, making it a mismatch. The evidence 'menstrual cramps without vaginal bleeding' clearly indicates absence of bleeding.",
+        "deepseek_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "display_rationale": "The phrase explicitly states 'without vaginal bleeding', negating the presence of bleeding. The code 'bleeding' directly contradicts this negation, making it a mismatch. The evidence 'menstrual cramps without vaginal bleeding' clearly indicates absence of bleeding.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10028334",
         "term": "Night cramps",
         "baseline_rank": 2,
-        "deepseek_rank": null,
+        "deepseek_rank": 2,
         "model_score": 0.42822350138229737,
         "real_evidence_quotes": [
           "menstrual cramps without vaginal bleeding"
@@ -122,16 +122,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The phrase mentions 'cramps', which aligns with 'Night cramps' as a type of cramp. However, 'Night cramps' specifies nocturnal occurrence and is not specific to menstruation, making it a weaker match. The evidence 'menstrual cramps without vaginal bleeding' includes the word 'cramps'.",
+        "deepseek_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "display_rationale": "The phrase mentions 'cramps', which aligns with 'Night cramps' as a type of cramp. However, 'Night cramps' specifies nocturnal occurrence and is not specific to menstruation, making it a weaker match. The evidence 'menstrual cramps without vaginal bleeding' includes the word 'cramps'.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10022437",
         "term": "Sleeplessness",
         "baseline_rank": 3,
-        "deepseek_rank": null,
+        "deepseek_rank": 5,
         "model_score": 0.3840530929664336,
         "real_evidence_quotes": [
           "menstrual cramps without vaginal bleeding"
@@ -172,16 +174,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10022437 — Sleeplessness. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The phrase 'menstrual cramps without vaginal bleeding' does not mention sleep or sleeplessness. 'Sleeplessness' is unrelated to the described symptoms. The evidence provides no support for this code.",
+        "deepseek_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "display_rationale": "The phrase 'menstrual cramps without vaginal bleeding' does not mention sleep or sleeplessness. 'Sleeplessness' is unrelated to the described symptoms. The evidence provides no support for this code.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10000081",
         "term": "Abdominal Cramps",
         "baseline_rank": 4,
-        "deepseek_rank": null,
+        "deepseek_rank": 1,
         "model_score": 0.3650594481536728,
         "real_evidence_quotes": [
           "menstrual cramps without vaginal bleeding"
@@ -222,16 +226,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10000081 — Abdominal Cramps. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The phrase 'menstrual cramps without vaginal bleeding' indicates abdominal cramping associated with menstruation. 'Abdominal Cramps' directly matches the symptom of cramps, though it does not specify menstrual origin. The evidence 'menstrual cramps without vaginal bleeding' supports that cramps are present.",
+        "deepseek_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "display_rationale": "The phrase 'menstrual cramps without vaginal bleeding' indicates abdominal cramping associated with menstruation. 'Abdominal Cramps' directly matches the symptom of cramps, though it does not specify menstrual origin. The evidence 'menstrual cramps without vaginal bleeding' supports that cramps are present.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10046910",
         "term": "Vaginal Hemorrhage",
         "baseline_rank": 5,
-        "deepseek_rank": null,
+        "deepseek_rank": 4,
         "model_score": 0.3110837370267721,
         "real_evidence_quotes": [
           "menstrual cramps without vaginal bleeding"
@@ -265,10 +271,12 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “menstrual cramps without vaginal bleeding” Terminology mapping: 10046910 — Vaginal Hemorrhage.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The phrase specifies 'without vaginal bleeding', while 'Vaginal Hemorrhage' denotes heavy vaginal bleeding, which is the opposite of the stated condition. This is a clear mismatch. The evidence 'menstrual cramps without vaginal bleeding' explicitly excludes vaginal bleeding.",
+        "deepseek_evidence_quotes": [
+          "menstrual cramps without vaginal bleeding"
+        ],
+        "display_rationale": "The phrase specifies 'without vaginal bleeding', while 'Vaginal Hemorrhage' denotes heavy vaginal bleeding, which is the opposite of the stated condition. This is a clear mismatch. The evidence 'menstrual cramps without vaginal bleeding' explicitly excludes vaginal bleeding.",
+        "rationale_source": "deepseek_validated"
       }
     ]
   },
@@ -285,7 +293,7 @@
     "deepseek_call_attempted": true,
     "deepseek_call_accepted": true,
     "deepseek_validation_errors": [],
-    "overall_uncertainty": "The phrase explicitly states location-specific pain ('arm and shoulder'), so codes with matching body-area synonyms are strongly preferred. However, some relevant codes may not capture the combined mention of both arm and shoulder, and generic pain codes match only the pain aspect without location.",
+    "overall_uncertainty": "The phrase 'pain in my arm and shoulder' most directly matches 'Musculoskeletal Pain' due to its synonyms including 'shoulders and arms pain'. 'Pain in limb' is also relevant but less specific. 'Acute onset pain' is too generic. 'Coxalgia' and 'Withdrawal Symptoms' are mismatches.",
     "candidate_options": [
       {
         "code": "10028391",
@@ -338,11 +346,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "Directly matches via synonyms that explicitly combine shoulder and arm pain, such as 'shoulders and arms pain' and 'Shoulder Pain', making it the most specific and relevant code.",
+        "deepseek_rationale": "Strong match: The phrase 'pain in my arm and shoulder' aligns with the synonym 'shoulders and arms pain' in the terminology support, indicating musculoskeletal pain in the shoulder and arm region.",
         "deepseek_evidence_quotes": [
           "pain in my arm and shoulder"
         ],
-        "display_rationale": "Directly matches via synonyms that explicitly combine shoulder and arm pain, such as 'shoulders and arms pain' and 'Shoulder Pain', making it the most specific and relevant code.",
+        "display_rationale": "Strong match: The phrase 'pain in my arm and shoulder' aligns with the synonym 'shoulders and arms pain' in the terminology support, indicating musculoskeletal pain in the shoulder and arm region.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -385,11 +393,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Captures the pain symptom generally, but the phrase does not mention onset or chronicity, and the code's specificity to 'acute onset' is not supported. The match is only at the broad 'pain' level, making it less targeted.",
+        "deepseek_rationale": "Weak match: The phrase describes pain, but 'Acute onset pain' is a general pain term without specifying location or acuteness. The evidence does not indicate acute onset, so this code is too broad.",
         "deepseek_evidence_quotes": [
           "pain in my arm and shoulder"
         ],
-        "display_rationale": "Captures the pain symptom generally, but the phrase does not mention onset or chronicity, and the code's specificity to 'acute onset' is not supported. The match is only at the broad 'pain' level, making it less targeted.",
+        "display_rationale": "Weak match: The phrase describes pain, but 'Acute onset pain' is a general pain term without specifying location or acuteness. The evidence does not indicate acute onset, so this code is too broad.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -430,11 +438,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Completely unrelated; withdrawal symptoms are not mentioned or implied in the phrase 'pain in my arm and shoulder', and no evidence supports this context.",
+        "deepseek_rationale": "Mismatch: 'Withdrawal Symptoms' relates to substance withdrawal, with synonyms like 'withdrawal symptoms' and 'drug withdrawal syndrome'. The phrase does not mention any withdrawal context, making this code irrelevant.",
         "deepseek_evidence_quotes": [
           "pain in my arm and shoulder"
         ],
-        "display_rationale": "Completely unrelated; withdrawal symptoms are not mentioned or implied in the phrase 'pain in my arm and shoulder', and no evidence supports this context.",
+        "display_rationale": "Mismatch: 'Withdrawal Symptoms' relates to substance withdrawal, with synonyms like 'withdrawal symptoms' and 'drug withdrawal syndrome'. The phrase does not mention any withdrawal context, making this code irrelevant.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -475,11 +483,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Relevant because 'Pain in limb' includes synonyms like 'Arm Pain' and 'pains down arms', which partially match the arm component. However, 'shoulder' is not explicitly listed, and the phrase mentions both arm and shoulder, so it is less precise than codes that include shoulder.",
+        "deepseek_rationale": "Partial match: The phrase mentions arm pain, which is a limb, and the terminology includes 'Arm Pain' and 'pains down arms'. However, it does not explicitly cover shoulder pain, making it less specific than 'Musculoskeletal Pain'.",
         "deepseek_evidence_quotes": [
           "pain in my arm and shoulder"
         ],
-        "display_rationale": "Relevant because 'Pain in limb' includes synonyms like 'Arm Pain' and 'pains down arms', which partially match the arm component. However, 'shoulder' is not explicitly listed, and the phrase mentions both arm and shoulder, so it is less precise than codes that include shoulder.",
+        "display_rationale": "Partial match: The phrase mentions arm pain, which is a limb, and the terminology includes 'Arm Pain' and 'pains down arms'. However, it does not explicitly cover shoulder pain, making it less specific than 'Musculoskeletal Pain'.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -520,11 +528,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Coxalgia primarily refers to hip pain, not arm or shoulder. Although synonyms include 'Arthralgia' (joint pain), the code is anatomically mismatched, and the phrase does not indicate joint-specific pain.",
+        "deepseek_rationale": "Mismatch: 'Coxalgia' refers to hip pain, as seen in synonyms like 'hip pain' and 'hip ache'. The phrase specifies arm and shoulder pain, not hip, so this code is incorrect.",
         "deepseek_evidence_quotes": [
           "pain in my arm and shoulder"
         ],
-        "display_rationale": "Coxalgia primarily refers to hip pain, not arm or shoulder. Although synonyms include 'Arthralgia' (joint pain), the code is anatomically mismatched, and the phrase does not indicate joint-specific pain.",
+        "display_rationale": "Mismatch: 'Coxalgia' refers to hip pain, as seen in synonyms like 'hip pain' and 'hip ache'. The phrase specifies arm and shoulder pain, not hip, so this code is incorrect.",
         "rationale_source": "deepseek_validated"
       }
     ]
@@ -537,20 +545,18 @@
     "gold_seen_in_train": true,
     "route": "TOP_K_HUMAN_CHOICE",
     "baseline_top1": "10033371",
-    "deepseek_top1": null,
+    "deepseek_top1": "10033371",
     "pipeline_top1_with_fallback": "10033371",
     "deepseek_call_attempted": true,
-    "deepseek_call_accepted": false,
-    "deepseek_validation_errors": [
-      "api_or_parse_error:JSONDecodeError"
-    ],
-    "overall_uncertainty": "",
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The phrase 'Muscle aches' is ambiguous; it could refer to general pain, fatigue, cramps, or other muscle conditions. The top candidate 'Acute onset pain' is broad but captures the pain aspect, while others are less direct matches.",
     "candidate_options": [
       {
         "code": "10033371",
         "term": "Acute onset pain",
         "baseline_rank": 1,
-        "deepseek_rank": null,
+        "deepseek_rank": 1,
         "model_score": 0.6363685982294316,
         "real_evidence_quotes": [
           "Muscle aches"
@@ -600,16 +606,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10033371 — Acute onset pain. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The term 'Acute onset pain' includes synonyms like 'aches' and 'pain', which directly match the 'aches' in 'Muscle aches'. The evidence 'Muscle aches' supports this as a general pain code.",
+        "deepseek_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "display_rationale": "The term 'Acute onset pain' includes synonyms like 'aches' and 'pain', which directly match the 'aches' in 'Muscle aches'. The evidence 'Muscle aches' supports this as a general pain code.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10049565",
         "term": "Muscle Fatigue",
         "baseline_rank": 2,
-        "deepseek_rank": null,
+        "deepseek_rank": 2,
         "model_score": 0.5313302839623322,
         "real_evidence_quotes": [
           "Muscle aches"
@@ -650,16 +658,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10049565 — Muscle Fatigue. 1 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "'Muscle Fatigue' is related to muscle discomfort but does not explicitly denote pain or aching. The evidence 'Muscle aches' suggests pain rather than fatigue, making this a weaker match.",
+        "deepseek_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "display_rationale": "'Muscle Fatigue' is related to muscle discomfort but does not explicitly denote pain or aching. The evidence 'Muscle aches' suggests pain rather than fatigue, making this a weaker match.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10028334",
         "term": "Night cramps",
         "baseline_rank": 3,
-        "deepseek_rank": null,
+        "deepseek_rank": 3,
         "model_score": 0.5206707061812553,
         "real_evidence_quotes": [
           "Muscle aches"
@@ -706,16 +716,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028334 — Night cramps. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "'Night cramps' involves muscle spasms, which can be painful but are distinct from a general ache. The evidence 'Muscle aches' does not specify cramping, so this is a partial match at best.",
+        "deepseek_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "display_rationale": "'Night cramps' involves muscle spasms, which can be painful but are distinct from a general ache. The evidence 'Muscle aches' does not specify cramping, so this is a partial match at best.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10028289",
         "term": "Muscular Atrophy",
         "baseline_rank": 4,
-        "deepseek_rank": null,
+        "deepseek_rank": 4,
         "model_score": 0.49673280082424165,
         "real_evidence_quotes": [
           "Muscle aches"
@@ -749,16 +761,18 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028289 — Muscular Atrophy.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "'Muscular Atrophy' refers to muscle wasting, not pain. The evidence 'Muscle aches' indicates pain, not atrophy, so this code is a poor match.",
+        "deepseek_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "display_rationale": "'Muscular Atrophy' refers to muscle wasting, not pain. The evidence 'Muscle aches' indicates pain, not atrophy, so this code is a poor match.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10028309",
         "term": "Muscle hemorrhage",
         "baseline_rank": 5,
-        "deepseek_rank": null,
+        "deepseek_rank": 5,
         "model_score": 0.4864450158176051,
         "real_evidence_quotes": [
           "Muscle aches"
@@ -792,10 +806,12 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Muscle aches” Terminology mapping: 10028309 — Muscle hemorrhage.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "'Muscle hemorrhage' is bleeding into muscle, which is a specific injury, not a general ache. The evidence 'Muscle aches' does not suggest hemorrhage, making this an unlikely match.",
+        "deepseek_evidence_quotes": [
+          "Muscle aches"
+        ],
+        "display_rationale": "'Muscle hemorrhage' is bleeding into muscle, which is a specific injury, not a general ache. The evidence 'Muscle aches' does not suggest hemorrhage, making this an unlikely match.",
+        "rationale_source": "deepseek_validated"
       }
     ]
   },
@@ -812,7 +828,7 @@
     "deepseek_call_attempted": true,
     "deepseek_call_accepted": true,
     "deepseek_validation_errors": [],
-    "overall_uncertainty": "The phrase 'Naseua' is likely a typographical error for 'nausea,' but there is minor ambiguity due to possible alternate interpretations. Confidence is high for nausea.",
+    "overall_uncertainty": "The benchmark phrase 'Naseua' is likely a misspelling of 'Nausea', but could also be a misspelling of 'Nasal' or related terms. The top candidate 'Nausea' (10028813) is the closest match, but the retrieval scores suggest some ambiguity with nasal-related codes.",
     "candidate_options": [
       {
         "code": "10028735",
@@ -859,11 +875,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "The phrase \"Naseua\" does not denote nasal congestion; it contains the substring \"nas\" but is a misspelling of nausea, not related to stuffy nose. The evidence \"Naseua\" has no clinical association with nasal congestion.",
+        "deepseek_rationale": "The phrase 'Naseua' could be a misspelling of 'Nasal', but the code 'Nasal congestion (finding)' does not directly match the intended meaning. The allowed_source_evidence 'Naseua' is not a known synonym for nasal congestion, and the retrieval score is low, indicating a weak match.",
         "deepseek_evidence_quotes": [
           "Naseua"
         ],
-        "display_rationale": "The phrase \"Naseua\" does not denote nasal congestion; it contains the substring \"nas\" but is a misspelling of nausea, not related to stuffy nose. The evidence \"Naseua\" has no clinical association with nasal congestion.",
+        "display_rationale": "The phrase 'Naseua' could be a misspelling of 'Nasal', but the code 'Nasal congestion (finding)' does not directly match the intended meaning. The allowed_source_evidence 'Naseua' is not a known synonym for nasal congestion, and the retrieval score is low, indicating a weak match.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -917,11 +933,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "\"Naseua\" does not correspond to common cold or nasopharyngitis; the phrase is a misspelling of nausea, not a cold. The evidence \"Naseua\" lacks any link to cold symptoms.",
+        "deepseek_rationale": "The phrase 'Naseua' might be a misspelling of 'Nasopharyngitis', but the code 'Common Cold' is a broader term. The allowed_source_evidence 'Naseua' does not closely match any synonym for this code, and the retrieval score is low, suggesting a poor match.",
         "deepseek_evidence_quotes": [
           "Naseua"
         ],
-        "display_rationale": "\"Naseua\" does not correspond to common cold or nasopharyngitis; the phrase is a misspelling of nausea, not a cold. The evidence \"Naseua\" lacks any link to cold symptoms.",
+        "display_rationale": "The phrase 'Naseua' might be a misspelling of 'Nasopharyngitis', but the code 'Common Cold' is a broader term. The allowed_source_evidence 'Naseua' does not closely match any synonym for this code, and the retrieval score is low, suggesting a poor match.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -962,11 +978,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "\"Naseua\" does not refer to nasal septum perforation; the phrase is unrelated to nasal injuries. The evidence \"Naseua\" provides no support.",
+        "deepseek_rationale": "The phrase 'Naseua' does not relate to 'Perforation of nasal septum'. The allowed_source_evidence 'Naseua' has no connection to this code, and the retrieval score is low, indicating a mismatch.",
         "deepseek_evidence_quotes": [
           "Naseua"
         ],
-        "display_rationale": "\"Naseua\" does not refer to nasal septum perforation; the phrase is unrelated to nasal injuries. The evidence \"Naseua\" provides no support.",
+        "display_rationale": "The phrase 'Naseua' does not relate to 'Perforation of nasal septum'. The allowed_source_evidence 'Naseua' has no connection to this code, and the retrieval score is low, indicating a mismatch.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1007,11 +1023,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "The phrase \"Naseua\" is a common misspelling of \"nausea,\" as evidenced by the synonym \"nuasea\" in the terminology. The direct match to the term \"Nausea\" makes this the most appropriate code.",
+        "deepseek_rationale": "The benchmark phrase 'Naseua' is a common misspelling of 'Nausea', which is explicitly listed as a synonym for this code: 'nuasea' is a close variant. The allowed_source_evidence contains 'Naseua', which matches the misspelling pattern.",
         "deepseek_evidence_quotes": [
           "Naseua"
         ],
-        "display_rationale": "The phrase \"Naseua\" is a common misspelling of \"nausea,\" as evidenced by the synonym \"nuasea\" in the terminology. The direct match to the term \"Nausea\" makes this the most appropriate code.",
+        "display_rationale": "The benchmark phrase 'Naseua' is a common misspelling of 'Nausea', which is explicitly listed as a synonym for this code: 'nuasea' is a close variant. The allowed_source_evidence contains 'Naseua', which matches the misspelling pattern.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1052,11 +1068,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "\"Naseua\" does not indicate pseudotumor cerebri; there is no similarity in phrasing or clinical presentation. The evidence \"Naseua\" is insufficient to justify this code.",
+        "deepseek_rationale": "The phrase 'Naseua' has no relation to 'Pseudotumor Cerebri'. The allowed_source_evidence 'Naseua' does not match any synonym for this code, and the retrieval score is very low, indicating a clear mismatch.",
         "deepseek_evidence_quotes": [
           "Naseua"
         ],
-        "display_rationale": "\"Naseua\" does not indicate pseudotumor cerebri; there is no similarity in phrasing or clinical presentation. The evidence \"Naseua\" is insufficient to justify this code.",
+        "display_rationale": "The phrase 'Naseua' has no relation to 'Pseudotumor Cerebri'. The allowed_source_evidence 'Naseua' does not match any synonym for this code, and the retrieval score is very low, indicating a clear mismatch.",
         "rationale_source": "deepseek_validated"
       }
     ]
@@ -1074,7 +1090,7 @@
     "deepseek_call_attempted": true,
     "deepseek_call_accepted": true,
     "deepseek_validation_errors": [],
-    "overall_uncertainty": "The phrase 'pain' is highly ambiguous as it could refer to general pain or any specific pain location. Without additional context, the most general pain code is ranked first.",
+    "overall_uncertainty": "The benchmark phrase 'pain' is very general and could map to any pain-related code. The top candidate 'Acute onset pain' is the most direct match, but the phrase alone does not specify acuity, location, or type, so all candidates are plausible but less specific.",
     "candidate_options": [
       {
         "code": "10033371",
@@ -1129,11 +1145,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "Direct match: term 'Acute onset pain' contains 'pain' and synonyms include 'pain', aligning with the sole evidence token.",
+        "deepseek_rationale": "The term 'Acute onset pain' directly contains the word 'pain', and the allowed_source_evidence includes 'pain' as an exact match. This is the most general and direct mapping for the benchmark phrase.",
         "deepseek_evidence_quotes": [
           "pain"
         ],
-        "display_rationale": "Direct match: term 'Acute onset pain' contains 'pain' and synonyms include 'pain', aligning with the sole evidence token.",
+        "display_rationale": "The term 'Acute onset pain' directly contains the word 'pain', and the allowed_source_evidence includes 'pain' as an exact match. This is the most general and direct mapping for the benchmark phrase.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1174,11 +1190,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Mismatch: 'Headache' specifies a head location, whereas the evidence only supports general 'pain' without anatomical qualifier.",
+        "deepseek_rationale": "The term 'Headache' is a specific type of pain, but the benchmark phrase 'pain' does not specify location. The allowed_source_evidence only contains 'pain', which is a broader concept. This code is a plausible but less specific match.",
         "deepseek_evidence_quotes": [
           "pain"
         ],
-        "display_rationale": "Mismatch: 'Headache' specifies a head location, whereas the evidence only supports general 'pain' without anatomical qualifier.",
+        "display_rationale": "The term 'Headache' is a specific type of pain, but the benchmark phrase 'pain' does not specify location. The allowed_source_evidence only contains 'pain', which is a broader concept. This code is a plausible but less specific match.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1219,11 +1235,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Mismatch: 'Sore eye' is specific to ocular pain; the evidence 'pain' provides no anatomical detail.",
+        "deepseek_rationale": "The term 'Sore eye' refers to pain in the eye, but the benchmark phrase 'pain' does not indicate location. The allowed_source_evidence 'pain' is a general term, making this code a possible but overly specific match.",
         "deepseek_evidence_quotes": [
           "pain"
         ],
-        "display_rationale": "Mismatch: 'Sore eye' is specific to ocular pain; the evidence 'pain' provides no anatomical detail.",
+        "display_rationale": "The term 'Sore eye' refers to pain in the eye, but the benchmark phrase 'pain' does not indicate location. The allowed_source_evidence 'pain' is a general term, making this code a possible but overly specific match.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1264,11 +1280,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Mismatch: 'Pain in limb' indicates extremity pain; the evidence is simply 'pain' with no limb mention.",
+        "deepseek_rationale": "The term 'Pain in limb' specifies pain in a limb, but the benchmark phrase 'pain' lacks location details. The allowed_source_evidence 'pain' is a broader concept, so this code is a plausible but less direct match.",
         "deepseek_evidence_quotes": [
           "pain"
         ],
-        "display_rationale": "Mismatch: 'Pain in limb' indicates extremity pain; the evidence is simply 'pain' with no limb mention.",
+        "display_rationale": "The term 'Pain in limb' specifies pain in a limb, but the benchmark phrase 'pain' lacks location details. The allowed_source_evidence 'pain' is a broader concept, so this code is a plausible but less direct match.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1309,11 +1325,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Mismatch: 'Back Pain' localizes to the back, while the evidence 'pain' lacks anatomical specificity.",
+        "deepseek_rationale": "The term 'Back Pain' indicates pain in the back, but the benchmark phrase 'pain' does not specify location. The allowed_source_evidence 'pain' is a general term, making this code a possible but overly specific match.",
         "deepseek_evidence_quotes": [
           "pain"
         ],
-        "display_rationale": "Mismatch: 'Back Pain' localizes to the back, while the evidence 'pain' lacks anatomical specificity.",
+        "display_rationale": "The term 'Back Pain' indicates pain in the back, but the benchmark phrase 'pain' does not specify location. The allowed_source_evidence 'pain' is a general term, making this code a possible but overly specific match.",
         "rationale_source": "deepseek_validated"
       }
     ]
@@ -1326,20 +1342,18 @@
     "gold_seen_in_train": true,
     "route": "AUTO_CANDIDATE",
     "baseline_top1": "10012378",
-    "deepseek_top1": null,
+    "deepseek_top1": "10012378",
     "pipeline_top1_with_fallback": "10012378",
     "deepseek_call_attempted": true,
-    "deepseek_call_accepted": false,
-    "deepseek_validation_errors": [
-      "api_or_parse_error:JSONDecodeError"
-    ],
-    "overall_uncertainty": "",
+    "deepseek_call_accepted": true,
+    "deepseek_validation_errors": [],
+    "overall_uncertainty": "The benchmark phrase 'Depression' is ambiguous; it could refer to a symptom (sad mood), a diagnosis (major depressive disorder), or a broader category. The top-ranked code 10012378 (Sad mood) is a direct match to the phrase in the evidence, but it may not capture the clinical diagnosis. Code 10057840 (Major Depressive Disorder) is a specific diagnosis but is not an exact match. The remaining codes are less specific or refer to related conditions.",
     "candidate_options": [
       {
         "code": "10012378",
         "term": "Sad mood",
         "baseline_rank": 1,
-        "deepseek_rank": null,
+        "deepseek_rank": 1,
         "model_score": 1.0000000000000002,
         "real_evidence_quotes": [
           "Depression"
@@ -1389,16 +1403,18 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10012378 — Sad mood. 2 similar TRAIN historical expert-coded example(s) support this code as provenance.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "The term 'Sad mood' is directly supported by the allowed_source_evidence containing the exact string 'Depression', which is a synonym for this code. This is the closest lexical match to the benchmark phrase.",
+        "deepseek_evidence_quotes": [
+          "Depression"
+        ],
+        "display_rationale": "The term 'Sad mood' is directly supported by the allowed_source_evidence containing the exact string 'Depression', which is a synonym for this code. This is the closest lexical match to the benchmark phrase.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10057840",
         "term": "Major Depressive Disorder",
         "baseline_rank": 2,
-        "deepseek_rank": null,
+        "deepseek_rank": 2,
         "model_score": 0.7236131466969193,
         "real_evidence_quotes": [
           "Depression"
@@ -1432,16 +1448,18 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10057840 — Major Depressive Disorder.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "Major Depressive Disorder is a specific clinical diagnosis that encompasses depression, but the benchmark phrase 'Depression' is broader and does not explicitly indicate a disorder. The evidence includes 'Depression' as a synonym, but the term 'Major Depressive Disorder' is more specific.",
+        "deepseek_evidence_quotes": [
+          "Depression"
+        ],
+        "display_rationale": "Major Depressive Disorder is a specific clinical diagnosis that encompasses depression, but the benchmark phrase 'Depression' is broader and does not explicitly indicate a disorder. The evidence includes 'Depression' as a synonym, but the term 'Major Depressive Disorder' is more specific.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10004939",
         "term": "Bipolar I disorder",
         "baseline_rank": 3,
-        "deepseek_rank": null,
+        "deepseek_rank": 5,
         "model_score": 0.6993200185945164,
         "real_evidence_quotes": [
           "Depression"
@@ -1475,16 +1493,18 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10004939 — Bipolar I disorder.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "Bipolar I disorder includes depressive episodes, but it is a distinct condition from unipolar depression. The evidence includes 'Depression, Bipolar' as a synonym, but the benchmark phrase 'Depression' alone does not imply bipolarity. This is a weaker match.",
+        "deepseek_evidence_quotes": [
+          "Depression"
+        ],
+        "display_rationale": "Bipolar I disorder includes depressive episodes, but it is a distinct condition from unipolar depression. The evidence includes 'Depression, Bipolar' as a synonym, but the benchmark phrase 'Depression' alone does not imply bipolarity. This is a weaker match.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10054089",
         "term": "Depressive Symptoms",
         "baseline_rank": 4,
-        "deepseek_rank": null,
+        "deepseek_rank": 3,
         "model_score": 0.6908628030190177,
         "real_evidence_quotes": [
           "Depression"
@@ -1518,16 +1538,18 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10054089 — Depressive Symptoms.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "Depressive Symptoms refers to the manifestations of depression, which is related but not identical to the benchmark phrase 'Depression'. The evidence includes 'depression symptoms' as a synonym, indicating a partial match.",
+        "deepseek_evidence_quotes": [
+          "Depression"
+        ],
+        "display_rationale": "Depressive Symptoms refers to the manifestations of depression, which is related but not identical to the benchmark phrase 'Depression'. The evidence includes 'depression symptoms' as a synonym, indicating a partial match.",
+        "rationale_source": "deepseek_validated"
       },
       {
         "code": "10012374",
         "term": "Depressed mood",
         "baseline_rank": 5,
-        "deepseek_rank": null,
+        "deepseek_rank": 4,
         "model_score": 0.46498157109095756,
         "real_evidence_quotes": [
           "Depression"
@@ -1561,10 +1583,12 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": null,
-        "deepseek_evidence_quotes": [],
-        "display_rationale": "Source evidence: “Depression” Terminology mapping: 10012374 — Depressed mood.",
-        "rationale_source": "deterministic_grounded"
+        "deepseek_rationale": "Depressed mood is a symptom of depression, but the benchmark phrase 'Depression' can refer to a broader condition. The evidence includes 'depressed mood' and 'depressive disorder', but the match is less direct than 'Sad mood'.",
+        "deepseek_evidence_quotes": [
+          "Depression"
+        ],
+        "display_rationale": "Depressed mood is a symptom of depression, but the benchmark phrase 'Depression' can refer to a broader condition. The evidence includes 'depressed mood' and 'depressive disorder', but the match is less direct than 'Sad mood'.",
+        "rationale_source": "deepseek_validated"
       }
     ]
   },
@@ -1581,7 +1605,7 @@
     "deepseek_call_attempted": true,
     "deepseek_call_accepted": true,
     "deepseek_validation_errors": [],
-    "overall_uncertainty": "The benchmark phrase 'chest discomfort' is ambiguous; the exact term is preferred, but clinically related codes could be relevant depending on context.",
+    "overall_uncertainty": "The benchmark phrase 'chest discomfort' is an exact match for code 10008469, making it the most appropriate. Other candidates are less specific or unrelated.",
     "candidate_options": [
       {
         "code": "10053155",
@@ -1628,11 +1652,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "Although 'chest discomfort' can be reported with gastric irritation, the code 'Gastric irritation' primarily denotes stomach upset, not a chest symptom.",
+        "deepseek_rationale": "The term 'Gastric irritation' includes 'epigastric discomfort' as a synonym, which is a form of discomfort but located in the epigastric region, not specifically the chest; the benchmark phrase 'chest discomfort' is broader and not necessarily gastrointestinal.",
         "deepseek_evidence_quotes": [
           "chest discomfort"
         ],
-        "display_rationale": "Although 'chest discomfort' can be reported with gastric irritation, the code 'Gastric irritation' primarily denotes stomach upset, not a chest symptom.",
+        "display_rationale": "The term 'Gastric irritation' includes 'epigastric discomfort' as a synonym, which is a form of discomfort but located in the epigastric region, not specifically the chest; the benchmark phrase 'chest discomfort' is broader and not necessarily gastrointestinal.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1686,11 +1710,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "'Retrosternal pain' is a specific type of chest discomfort, directly linked to the symptom 'chest discomfort'.",
+        "deepseek_rationale": "The term 'Retrosternal pain' is a type of chest pain, which is related to 'chest discomfort' but not identical; the benchmark phrase emphasizes discomfort rather than pain, and the allowed source evidence only contains 'chest discomfort', not 'chest pain'.",
         "deepseek_evidence_quotes": [
           "chest discomfort"
         ],
-        "display_rationale": "'Retrosternal pain' is a specific type of chest discomfort, directly linked to the symptom 'chest discomfort'.",
+        "display_rationale": "The term 'Retrosternal pain' is a type of chest pain, which is related to 'chest discomfort' but not identical; the benchmark phrase emphasizes discomfort rather than pain, and the allowed source evidence only contains 'chest discomfort', not 'chest pain'.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1738,11 +1762,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "While 'chest infections' can cause 'chest discomfort', the code represents an infectious condition rather than the symptom itself.",
+        "deepseek_rationale": "The term 'chest infections' refers to an infectious condition, which is distinct from the symptom 'chest discomfort'; the allowed source evidence only contains 'chest discomfort', not 'chest infection'.",
         "deepseek_evidence_quotes": [
           "chest discomfort"
         ],
-        "display_rationale": "While 'chest infections' can cause 'chest discomfort', the code represents an infectious condition rather than the symptom itself.",
+        "display_rationale": "The term 'chest infections' refers to an infectious condition, which is distinct from the symptom 'chest discomfort'; the allowed source evidence only contains 'chest discomfort', not 'chest infection'.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1786,11 +1810,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "The term 'Chest discomfort' is an exact lexical match for the benchmark phrase, with synonyms including 'chest discomfort'.",
+        "deepseek_rationale": "The term 'Chest discomfort' is an exact lexical match to the benchmark phrase 'chest discomfort', and the terminology support includes 'chest discomfort' as a synonym, confirming direct alignment.",
         "deepseek_evidence_quotes": [
           "chest discomfort"
         ],
-        "display_rationale": "The term 'Chest discomfort' is an exact lexical match for the benchmark phrase, with synonyms including 'chest discomfort'.",
+        "display_rationale": "The term 'Chest discomfort' is an exact lexical match to the benchmark phrase 'chest discomfort', and the terminology support includes 'chest discomfort' as a synonym, confirming direct alignment.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1831,11 +1855,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "'Hair discoloration' is unrelated to 'chest discomfort' and is an implausible mapping.",
+        "deepseek_rationale": "The term 'Hair discoloration' is completely unrelated to 'chest discomfort'; there is no semantic or clinical connection, and the allowed source evidence does not support this mapping.",
         "deepseek_evidence_quotes": [
           "chest discomfort"
         ],
-        "display_rationale": "'Hair discoloration' is unrelated to 'chest discomfort' and is an implausible mapping.",
+        "display_rationale": "The term 'Hair discoloration' is completely unrelated to 'chest discomfort'; there is no semantic or clinical connection, and the allowed source evidence does not support this mapping.",
         "rationale_source": "deepseek_validated"
       }
     ]
@@ -1853,7 +1877,7 @@
     "deepseek_call_attempted": true,
     "deepseek_call_accepted": true,
     "deepseek_validation_errors": [],
-    "overall_uncertainty": "The phrase 'extremly bad pains in arms' clearly indicates limb pain, but 'Pain in limb' does not capture severity. 'Musculoskeletal Pain' is broader. Remainder are mismatches.",
+    "overall_uncertainty": "The phrase 'extremly bad pains in arms' clearly indicates limb pain, but the misspelling 'extremly' and plural 'pains' may cause slight ambiguity. The top candidate 'Pain in limb' is a direct match, while 'Musculoskeletal Pain' is broader but still relevant. The remaining candidates are less specific or unrelated.",
     "candidate_options": [
       {
         "code": "10033425",
@@ -1906,11 +1930,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "Directly matches: 'pains in arms' indicates pain in a limb; 'Pain in limb' precisely captures the anatomical location.",
+        "deepseek_rationale": "The phrase 'extremly bad pains in arms' directly matches the concept of pain in the arms, which is a type of limb pain. The terminology support includes 'arms pain' as a synonym, and the historical support shows a match with 'arms pain'.",
         "deepseek_evidence_quotes": [
           "extremly bad pains in arms"
         ],
-        "display_rationale": "Directly matches: 'pains in arms' indicates pain in a limb; 'Pain in limb' precisely captures the anatomical location.",
+        "display_rationale": "The phrase 'extremly bad pains in arms' directly matches the concept of pain in the arms, which is a type of limb pain. The terminology support includes 'arms pain' as a synonym, and the historical support shows a match with 'arms pain'.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -1958,11 +1982,11 @@
           ],
           "grounded": true
         },
-        "deepseek_rationale": "Partially matches: arm pain may be musculoskeletal, but term includes shoulder pain not mentioned; less specific than 'Pain in limb'.",
+        "deepseek_rationale": "The phrase mentions 'pains in arms', which could be part of musculoskeletal pain. The terminology support includes 'shoulders and arms pain' as a synonym, indicating some relevance, but 'Musculoskeletal Pain' is broader and less specific than 'Pain in limb'.",
         "deepseek_evidence_quotes": [
           "extremly bad pains in arms"
         ],
-        "display_rationale": "Partially matches: arm pain may be musculoskeletal, but term includes shoulder pain not mentioned; less specific than 'Pain in limb'.",
+        "display_rationale": "The phrase mentions 'pains in arms', which could be part of musculoskeletal pain. The terminology support includes 'shoulders and arms pain' as a synonym, indicating some relevance, but 'Musculoskeletal Pain' is broader and less specific than 'Pain in limb'.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -2006,11 +2030,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "Mismatch: phrase specifies arms, but 'Acute onset pain' lacks anatomical reference; severity alone insufficient without site.",
+        "deepseek_rationale": "The phrase describes 'extremly bad pains', which aligns with the general concept of pain, but 'Acute onset pain' emphasizes sudden onset, which is not specified in the phrase. The terminology support includes 'pain' and 'worst pain', but the code is less specific to the location (arms).",
         "deepseek_evidence_quotes": [
           "extremly bad pains in arms"
         ],
-        "display_rationale": "Mismatch: phrase specifies arms, but 'Acute onset pain' lacks anatomical reference; severity alone insufficient without site.",
+        "display_rationale": "The phrase describes 'extremly bad pains', which aligns with the general concept of pain, but 'Acute onset pain' emphasizes sudden onset, which is not specified in the phrase. The terminology support includes 'pain' and 'worst pain', but the code is less specific to the location (arms).",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -2051,11 +2075,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "No match: 'Abdominal pain upper' refers to stomach pain, unrelated to 'pains in arms'.",
+        "deepseek_rationale": "The phrase specifies 'pains in arms', which is not related to the abdomen. 'Abdominal pain upper' is a mismatch because the location is clearly the arms, not the stomach or upper abdomen.",
         "deepseek_evidence_quotes": [
           "extremly bad pains in arms"
         ],
-        "display_rationale": "No match: 'Abdominal pain upper' refers to stomach pain, unrelated to 'pains in arms'.",
+        "display_rationale": "The phrase specifies 'pains in arms', which is not related to the abdomen. 'Abdominal pain upper' is a mismatch because the location is clearly the arms, not the stomach or upper abdomen.",
         "rationale_source": "deepseek_validated"
       },
       {
@@ -2096,11 +2120,11 @@
           "historical_support": [],
           "grounded": true
         },
-        "deepseek_rationale": "No match: 'Irritable Mood' is a mood disorder, not a pain condition; phrase clearly describes physical pain.",
+        "deepseek_rationale": "The phrase describes physical pain in the arms, not a mood state. 'Irritable Mood' is unrelated to pain and is a mismatch, as there is no indication of irritability or mood disturbance.",
         "deepseek_evidence_quotes": [
           "extremly bad pains in arms"
         ],
-        "display_rationale": "No match: 'Irritable Mood' is a mood disorder, not a pain condition; phrase clearly describes physical pain.",
+        "display_rationale": "The phrase describes physical pain in the arms, not a mood state. 'Irritable Mood' is unrelated to pain and is a mismatch, as there is no indication of irritability or mood disturbance.",
         "rationale_source": "deepseek_validated"
       }
     ]
