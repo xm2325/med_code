@@ -1,0 +1,10 @@
+{
+  "release": "0.1.1",
+  "workflow_run_id": "29985796232",
+  "workflow_run_attempt": "1",
+  "repository_visibility_path": "public-main-push",
+  "deepseek_actions_secret_available": false,
+  "evaluation_outcome": "skipped",
+  "deepseek_real_execution_completed": false,
+  "blocking_reason": "DEEPSEEK_API_KEY is not available as a repository Actions secret to the public-main workflow."
+}
