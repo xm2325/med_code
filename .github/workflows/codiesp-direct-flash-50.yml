@@ -1,0 +1,45 @@
+name: CodiEsp direct Flash 50
+on:
+  push:
+    paths:
+      - 'scripts/run_codiesp_direct_flash_50.py'
+      - '.github/workflows/codiesp-direct-flash-50.yml'
+  pull_request:
+    paths:
+      - 'scripts/run_codiesp_direct_flash_50.py'
+      - '.github/workflows/codiesp-direct-flash-50.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  direct-flash-50:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pandas
+      - name: Run direct V4-Flash thinking on fixed 50
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          mkdir -p /tmp/codiesp_flash50
+          python scripts/run_codiesp_direct_flash_50.py --output-dir /tmp/codiesp_flash50 --n 50 --workers 10
+      - name: Verify
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/codiesp_flash50/summary.json').read_text())
+          assert p['metrics']['n_documents']==50
+          assert p['metrics']['n_failed_requests']==0
+          assert p['metrics']['predicted_codes']>0
+          PY
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-direct-flash-50
+          path: /tmp/codiesp_flash50/
