@@ -17,6 +17,17 @@ def test_uncertainty_margin_and_routing():
     assert policy.route(confidence=0.2, uncertainty=u) == "FULL_EXPERT_REVIEW"
     assert policy.route(confidence=0.99, uncertainty=u, explanation_gate="FAIL") == "FULL_EXPERT_REVIEW"
 
+    # Entropy remains available as an optional conservative deployment gate, but
+    # it must be explicitly calibrated/configured rather than silently blocking
+    # AUTO for bounded retrieval scores by default.
+    strict_entropy_policy = ReviewRoutingPolicy(
+        auto_threshold=0.8,
+        topk_choice_threshold=0.4,
+        min_margin_for_auto=0.1,
+        max_entropy_for_auto=0.5,
+    )
+    assert strict_entropy_policy.route(confidence=0.9, uncertainty=u) == "TOP_K_HUMAN_CHOICE"
+
 
 def test_every_displayed_candidate_has_separate_grounded_rationale_object():
     terminology = pd.DataFrame([
