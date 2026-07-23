@@ -15,7 +15,7 @@ DEFAULT_LABELS_URL = (
     "data/filters/golden_labels.csv"
 )
 
-PHENOTYPES = [
+CLINICAL_PHENOTYPES = [
     "alcohol_abuse",
     "c_diff_complication",
     "c_diff_past",
@@ -28,12 +28,13 @@ PHENOTYPES = [
     "hypertension",
     "sle",
     "metastatic_cancer",
-    "none",
     "obesity",
     "rheumatoid_arthritis",
     "vte_complication",
     "vte_past",
 ]
+SENTINEL_LABEL = "none"
+LABEL_COLUMNS = [*CLINICAL_PHENOTYPES, SENTINEL_LABEL]
 
 
 def _download_text(url: str) -> str:
@@ -53,7 +54,7 @@ def _load_rows(labels_path: str | None, labels_url: str) -> list[dict[str, str]]
     rows = list(csv.DictReader(io.StringIO(text)))
     if not rows:
         raise RuntimeError("MIPA golden-label file is empty")
-    missing = [column for column in ["note_id", "subject_id", *PHENOTYPES] if column not in rows[0]]
+    missing = [column for column in ["note_id", "subject_id", *LABEL_COLUMNS] if column not in rows[0]]
     if missing:
         raise RuntimeError(f"MIPA golden-label schema missing columns: {missing}")
     return rows
@@ -112,7 +113,7 @@ def main() -> None:
         raise RuntimeError(f"Duplicate note_id values found: {duplicate_note_ids[:5]}")
 
     phenotype_counts = []
-    for phenotype in PHENOTYPES:
+    for phenotype in CLINICAL_PHENOTYPES:
         count = sum(_is_positive(row.get(phenotype)) for row in rows)
         phenotype_counts.append(
             {
@@ -126,8 +127,8 @@ def main() -> None:
     ra_subject_ids = [str(row["subject_id"]) for row in ra_rows]
 
     ra_comorbidity_counts = []
-    for phenotype in PHENOTYPES:
-        if phenotype in {"rheumatoid_arthritis", "none"}:
+    for phenotype in CLINICAL_PHENOTYPES:
+        if phenotype == "rheumatoid_arthritis":
             continue
         count = sum(_is_positive(row.get(phenotype)) for row in ra_rows)
         ra_comorbidity_counts.append(
@@ -145,14 +146,16 @@ def main() -> None:
     for row in ra_rows:
         n_other = sum(
             _is_positive(row.get(phenotype))
-            for phenotype in PHENOTYPES
-            if phenotype not in {"rheumatoid_arthritis", "none"}
+            for phenotype in CLINICAL_PHENOTYPES
+            if phenotype != "rheumatoid_arthritis"
         )
         ra_cooccurrence_burden[n_other] += 1
 
     ra_dataset_sources = Counter(str(row.get("dataset_name", "")) for row in ra_rows)
+    none_positive_notes = sum(_is_positive(row.get(SENTINEL_LABEL)) for row in rows)
 
     summary = {
+        "schema_version": "mipa-public-pilot-v0.3.1",
         "study": "MIPA public-label feasibility audit for RA comorbidity phenotyping",
         "source": {
             "labels_url": args.labels_url if not args.labels_path else None,
@@ -162,8 +165,11 @@ def main() -> None:
         },
         "benchmark": {
             "n_discharge_summary_labels": len(rows),
-            "n_phenotype_columns": len(PHENOTYPES),
-            "phenotypes": PHENOTYPES,
+            "n_clinical_phenotypes": len(CLINICAL_PHENOTYPES),
+            "clinical_phenotypes": CLINICAL_PHENOTYPES,
+            "sentinel_label": SENTINEL_LABEL,
+            "n_label_columns_including_none": len(LABEL_COLUMNS),
+            "none_positive_notes": none_positive_notes,
             "note_id_audit": _repetition_summary(note_ids),
             "subject_id_audit": _repetition_summary(subject_ids),
         },
@@ -188,6 +194,10 @@ def main() -> None:
             "sampling_warning": (
                 "MIPA is a phenotype benchmark assembled from phenotype-targeted candidate notes; RA-subset "
                 "co-occurrence fractions describe this benchmark sample only and must not be reported as RA prevalence."
+            ),
+            "split_warning": (
+                "Repeated subject_id values are present. Any train/validation/test split for note-level phenotyping "
+                "should be subject-disjoint to avoid patient-level leakage."
             ),
         },
     }
