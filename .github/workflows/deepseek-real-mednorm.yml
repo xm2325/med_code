@@ -1,5 +1,5 @@
 # Public-repository execution path for the v0.1.1 real-data evaluation.
-# Re-triggered after DEEPSEEK_API_KEY was configured as a repository Actions secret.
+# Optimized production rerun after Actions secret and DeepSeek API validation.
 name: v0.1.1 real MedNorm DeepSeek evaluation
 
 on:
@@ -10,6 +10,7 @@ on:
       - 'scripts/run_deepseek_mednorm_real.py'
       - 'scripts/publish_v011_results.py'
       - 'src/cohortcoder/deepseek_real_eval.py'
+      - 'src/cohortcoder/mednorm.py'
   workflow_dispatch:
 
 permissions:
@@ -59,6 +60,7 @@ jobs:
             --validation-limit 200 \
             --baseline-limit 500 \
             --deepseek-limit 24 \
+            --deepseek-workers 6 \
             --top-k 5 \
             --target-auto-accuracy 0.95 \
             --model deepseek-v4-pro
