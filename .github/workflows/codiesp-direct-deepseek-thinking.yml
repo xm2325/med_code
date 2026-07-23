@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'scripts/run_codiesp_direct_deepseek_thinking.py'
+      - 'scripts/run_codiesp_direct_deepseek_thinking_v2.py'
       - '.github/workflows/codiesp-direct-deepseek-thinking.yml'
   pull_request:
     paths:
       - 'scripts/run_codiesp_direct_deepseek_thinking.py'
+      - 'scripts/run_codiesp_direct_deepseek_thinking_v2.py'
       - '.github/workflows/codiesp-direct-deepseek-thinking.yml'
   workflow_dispatch:
 
@@ -30,7 +32,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           mkdir -p /tmp/codiesp_direct_thinking
-          python scripts/run_codiesp_direct_deepseek_thinking.py \
+          python scripts/run_codiesp_direct_deepseek_thinking_v2.py \
             --output-dir /tmp/codiesp_direct_thinking \
             --dev-selection-n 40 \
             --test-n 250
@@ -42,6 +44,9 @@ jobs:
           p=json.loads(Path('/tmp/codiesp_direct_thinking/summary.json').read_text())
           assert p['no_retrieval_or_candidate_list'] is True
           assert p['test']['n_documents'] == 250
+          assert p['test']['metrics']['n_failed_requests'] == 0
+          assert all(x['n_failed_requests'] == 0 for x in p['dev_prompt_selection']['results'].values())
+          assert p['test']['metrics']['predicted_codes'] > 0
           assert 0 <= p['test']['metrics']['micro_f1'] <= 1
           PY
       - name: Upload
