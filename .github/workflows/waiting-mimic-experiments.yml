@@ -1,0 +1,61 @@
+name: Waiting MIMIC experiments
+
+on:
+  push:
+    paths:
+      - 'scripts/run_waiting_mimic_experiments.py'
+      - '.github/workflows/waiting-mimic-experiments.yml'
+      - 'src/cohortcoder/scientific_acceptance.py'
+  pull_request:
+    paths:
+      - 'scripts/run_waiting_mimic_experiments.py'
+      - '.github/workflows/waiting-mimic-experiments.yml'
+      - 'src/cohortcoder/scientific_acceptance.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  waiting-mimic-experiments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run NHSE RA, Synthea C4, and CodiEsp coding experiments
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          python scripts/run_waiting_mimic_experiments.py \
+            --output-dir /tmp/waiting_mimic_experiments \
+            --nhse-max-llm-notes 97 \
+            --codiesp-deepseek-n 50
+      - name: Verify experiment contracts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/waiting_mimic_experiments/summary.json').read_text())
+          assert p['nhse_ra_experiment']['n_ra_related_notes'] > 0
+          assert p['synthea_known_missingness_c4']['n_patients'] > 1000
+          assert p['codiesp_clinical_text_to_icd10']['n_train_texts_with_diagnosis_gold'] >= 400
+          assert p['codiesp_clinical_text_to_icd10']['n_test_texts_with_diagnosis_gold'] >= 200
+          assert p['scientific_boundaries']['nhse_can_replace_authorised_mipa_c3'] is False
+          assert p['scientific_boundaries']['synthea_can_estimate_real_underrecording_prevalence'] is False
+          assert p['scientific_boundaries']['codiesp_can_provide_real_gold_icd10_coding_metrics'] is True
+          PY
+      - name: Upload experiment outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waiting-mimic-experiments
+          path: /tmp/waiting_mimic_experiments/
