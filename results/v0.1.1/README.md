@@ -1,20 +1,47 @@
 # v0.1.1 real MedNorm + DeepSeek result status
 
-The evaluation implementation is present, but **no real DeepSeek accuracy is reported in this directory yet**.
+The real-data evaluation has now completed successfully on public MedNorm-derived data with CADEC as the held-out TEST source.
 
-The dedicated GitHub Actions run was attempted and retried. In both attempts the `real-evaluation` job terminated before any workflow step was recorded (`steps = null`, `logs_url = null`). Therefore the job did not provide evidence that checkout, dependency installation, MedNorm download, secret access, or a DeepSeek API request occurred.
+Authoritative optimized run: `29987846810`  
+Result commit: `f0c4ddd504e722675266dcee12ac0762e35b76ed`
 
-It would be misleading to fill this directory with invented metrics.
+## Core observed results
 
-When the runner executes successfully, `.github/workflows/deepseek-real-mednorm.yml` will produce and publish:
+| Metric | Observed result |
+|---|---:|
+| Real TEST sample | 500 cases |
+| Baseline Accuracy@1 | 57.0% |
+| Baseline Accuracy@3 | 68.0% |
+| Candidate Recall@5 | 71.8% |
+| AUTO_CANDIDATE | 195 / 500 (39.0%) |
+| AUTO_CANDIDATE Accuracy@1 | 95.38% |
+| TOP_K_HUMAN_CHOICE | 305 / 500 (61.0%) |
+| TOP_K_HUMAN_CHOICE Recall@5 | 55.08% |
+| Fixed DeepSeek paired subset | 24 cases |
+| Paired baseline Accuracy@1 | 41.67% |
+| DeepSeek reranked Accuracy@1 | 54.17% |
+| Paired change | +12.5 percentage points |
+| Valid DeepSeek responses | 24 / 24 (100%) |
+| Fixed candidate Recall@5 on paired subset | 70.83% |
 
-- deterministic real MedNorm/CADEC-derived baseline Accuracy@1/@3/@5;
-- paired baseline vs DeepSeek reranked Accuracy@1 on a fixed-seed real-data subset;
-- fixed candidate Recall@5;
-- seen/unseen-code statistics;
-- validation-selected AUTO / TOP_K_HUMAN_CHOICE / FULL_EXPERT_REVIEW routing;
-- an explicitly labelled oracle Top-K human-choice upper bound;
-- real case examples where **every candidate option** has the original phrase as verbatim evidence and a validated candidate-specific rationale;
-- complete per-case artifacts as an Actions artifact.
+The paired 24-case comparison changed 3 previously incorrect top-1 predictions to correct predictions and did not reverse any baseline-correct case in that fixed subset. This is a small paired experiment and should not be treated as definitive evidence of model superiority without a larger repeated evaluation.
 
-The evaluation is a TRAIN-derived closed-code diagnostic unless an authorised full MedDRA terminology resource is supplied separately. It must not be described as a full open-set MedDRA benchmark.
+## Explainability contract
+
+Every displayed candidate option carries:
+
+- the real benchmark phrase as verbatim source evidence;
+- candidate code and terminology support;
+- historical TRAIN provenance when available;
+- a candidate-specific rationale;
+- a clear rationale source (`deepseek_validated` or deterministic grounded fallback).
+
+DeepSeek must preserve the fixed candidate code set. Invalid or ungrounded LLM output is rejected rather than silently accepted.
+
+## Important interpretation boundaries
+
+This is a **real-data closed-code diagnostic** using TRAIN-derived MedDRA code aliases. It is not a full licensed-MedDRA open-set benchmark. In the 500-case TEST sample, 4.6% of gold codes were unseen in TRAIN and their Accuracy@1 was 0% because those codes were structurally unavailable in the closed candidate space.
+
+`Recall@5` is an oracle Top-K human-choice upper bound only under the assumption that a human always selects the gold code whenever it appears. It is **not observed human-assisted accuracy**.
+
+See `real_deepseek_results.json`, `RESULTS.md`, `example_cases.json`, and `release/v0.1.1.json` for the machine-readable results and example rationale packages.
