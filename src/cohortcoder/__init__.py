@@ -28,8 +28,9 @@ from .release import V010_REQUIRED_CAPABILITIES, build_release_manifest, validat
 from .release_gate import evaluate_release_readiness
 from .results import ResultsContract, build_results_contract, contract_from_benchmark_metadata, write_results_contract
 from .review_service import ReviewQueue
+from .scientific_acceptance import ScientificThresholds, assess_confirmatory_recovery, assess_current_scientific_evidence, subject_cluster_bootstrap
 from .selective_policy import SelectivePolicySelection, apply_frozen_threshold, one_sided_binomial_lower_bound, select_threshold_by_accuracy_lower_bound
 from .uncertainty import ReviewRoutingPolicy, candidate_uncertainty, simple_ood_flag
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __all__ = [name for name in globals() if not name.startswith("_")]
