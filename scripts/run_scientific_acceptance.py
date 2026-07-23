@@ -22,6 +22,7 @@ def main() -> None:
         )
     )
     parser.add_argument("--public-mipa-summary", required=True)
+    parser.add_argument("--split-protocol-summary")
     parser.add_argument("--output", required=True)
     parser.add_argument(
         "--external-llm-macro-f1",
@@ -29,25 +30,33 @@ def main() -> None:
         default=0.891,
         help=(
             "Published fixed-configuration MIPA cross-model macro-F1 used only as external feasibility evidence; "
-            "default 0.891 is the reported DeepSeek-R1 overall macro-F1, not a MedCode result."
+            "default 0.891 is the reported DeepSeek-R1 overall macro-F1, not a MedCode result or direct comparator."
         ),
     )
     parser.add_argument("--own-stage12-summary")
     parser.add_argument("--own-discordance-summary")
+    parser.add_argument("--own-recovery-summary")
+    parser.add_argument("--bsrbr-impact-summary")
     args = parser.parse_args()
 
     public_summary = json.loads(Path(args.public_mipa_summary).read_text(encoding="utf-8"))
     result = assess_current_scientific_evidence(
         public_mipa_summary=public_summary,
         external_llm_macro_f1=args.external_llm_macro_f1,
+        split_protocol_summary=_load_optional(args.split_protocol_summary),
         own_stage12_summary=_load_optional(args.own_stage12_summary),
         own_discordance_summary=_load_optional(args.own_discordance_summary),
+        own_recovery_summary=_load_optional(args.own_recovery_summary),
+        bsrbr_impact_summary=_load_optional(args.bsrbr_impact_summary),
     )
     result["external_evidence"] = {
         "source": "Yamga E, Murphy S, Despres P. A Systematic Exploration of LLM Behavior for EHR Phenotyping. medRxiv. 2026.",
         "doi": "10.64898/2026.04.16.26350890",
         "reported_deepseek_r1_macro_f1": args.external_llm_macro_f1,
-        "interpretation": "External benchmark feasibility only; not MedCode performance.",
+        "interpretation": (
+            "External feasibility context only. The published study evaluated its own MIPA protocol/cohort; "
+            "this value must not be presented as MedCode performance or directly compared with a subject-disjoint result unless protocols match."
+        ),
     }
 
     output = Path(args.output)
