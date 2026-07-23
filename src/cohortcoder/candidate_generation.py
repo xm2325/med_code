@@ -24,7 +24,6 @@ def _split_aliases(row: pd.Series) -> list[str]:
         values.append(term)
     synonyms = str(row.get("synonyms", "") or "")
     values.extend(part.strip() for part in synonyms.split("|") if part.strip())
-    # Preserve order while removing case-insensitive duplicates.
     seen: set[str] = set()
     unique: list[str] = []
     for value in values:
@@ -51,15 +50,13 @@ class CandidateGenerationConfig:
 
 
 class AliasAwareHybridCoder:
-    """Candidate generator that retrieves terminology aliases before aggregating to codes.
+    """TRAIN-only alias-level candidate generator with auditable score components.
 
-    v0.1.1 stored many TRAIN-derived aliases in ``synonyms`` but the baseline terminology
-    vectorizer indexed only one ``term`` string per code. This model indexes every alias as
-    its own retrieval unit, combines character and word TF-IDF similarity at alias level,
-    then takes the best alias score for each code before blending historical coding memory.
-
-    The model remains deterministic, TRAIN-only for candidate construction, and auditable:
-    each candidate records the matched alias plus char/word/history component scores.
+    Each terminology alias is indexed separately. Character and word TF-IDF scores are
+    fused at alias level, the best matching alias is retained per code, and that score is
+    blended with historical expert-coding retrieval. Batch prediction reuses sparse query
+    transforms and similarity matrices so the exact same scoring rule scales to real-data
+    validation and held-out evaluation.
     """
 
     def __init__(
@@ -102,16 +99,23 @@ class AliasAwareHybridCoder:
 
         self.history = history.reset_index(drop=True).copy()
         self.terminology = terminology.drop_duplicates("code").reset_index(drop=True).copy()
+        self.codes = self.terminology["code"].astype(str).tolist()
 
         aliases: list[str] = []
         alias_codes: list[str] = []
+        alias_indices_by_code: dict[str, list[int]] = defaultdict(list)
         for _, row in self.terminology.iterrows():
             code = str(row["code"])
             for alias in _split_aliases(row):
+                alias_idx = len(aliases)
                 aliases.append(_nonempty(alias))
                 alias_codes.append(code)
+                alias_indices_by_code[code].append(alias_idx)
         self.aliases = aliases
         self.alias_codes = np.asarray(alias_codes, dtype=object)
+        self.alias_indices_by_code = {
+            code: np.asarray(indices, dtype=int) for code, indices in alias_indices_by_code.items()
+        }
 
         self.alias_char_vectorizer = TfidfVectorizer(
             analyzer="char_wb", ngram_range=(2, 5), min_df=1, sublinear_tf=True
@@ -134,6 +138,13 @@ class AliasAwareHybridCoder:
             analyzer="char_wb", ngram_range=(2, 5), min_df=1, sublinear_tf=True
         )
         self.history_matrix = self.history_vectorizer.fit_transform(history_texts)
+
+        history_indices_by_code: dict[str, list[int]] = defaultdict(list)
+        for idx, code in enumerate(self.history["gold_code"].astype(str)):
+            history_indices_by_code[code].append(idx)
+        self.history_indices_by_code = {
+            code: np.asarray(indices, dtype=int) for code, indices in history_indices_by_code.items()
+        }
         return self
 
     def _alias_scores(self, text: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -160,24 +171,24 @@ class AliasAwareHybridCoder:
         word_scores: np.ndarray,
     ) -> dict[str, dict]:
         best: dict[str, dict] = {}
-        for idx, score in enumerate(fused):
-            code = str(self.alias_codes[idx])
-            current = best.get(code)
-            if current is None or float(score) > float(current["terminology_score"]):
-                best[code] = {
-                    "terminology_score": float(score),
-                    "char_score": float(char_scores[idx]),
-                    "word_score": float(word_scores[idx]),
-                    "matched_alias": str(self.aliases[idx]),
-                }
+        for code, indices in self.alias_indices_by_code.items():
+            local = fused[indices]
+            local_pos = int(np.argmax(local))
+            idx = int(indices[local_pos])
+            best[code] = {
+                "terminology_score": float(fused[idx]),
+                "char_score": float(char_scores[idx]),
+                "word_score": float(word_scores[idx]),
+                "matched_alias": str(self.aliases[idx]),
+            }
         return best
 
     def _history_by_code(self, scores: np.ndarray) -> dict[str, float]:
-        result: dict[str, float] = defaultdict(float)
-        for idx, score in enumerate(scores):
-            code = str(self.history.iloc[idx]["gold_code"])
-            result[code] = max(float(result[code]), float(score))
-        return dict(result)
+        return {
+            code: float(np.max(scores[indices]))
+            for code, indices in self.history_indices_by_code.items()
+            if len(indices)
+        }
 
     def score_code(self, text: str, code: str) -> float:
         fused, char_scores, word_scores = self._alias_scores(text)
@@ -187,10 +198,14 @@ class AliasAwareHybridCoder:
         hist = float(history_by_code.get(str(code), 0.0))
         return float((1 - self.history_weight) * term + self.history_weight * hist)
 
-    def predict_one(self, text: str) -> Prediction:
-        fused, char_scores, word_scores = self._alias_scores(text)
+    def _build_prediction(
+        self,
+        fused: np.ndarray,
+        char_scores: np.ndarray,
+        word_scores: np.ndarray,
+        hist_scores: np.ndarray,
+    ) -> Prediction:
         alias_by_code = self._best_alias_by_code(fused, char_scores, word_scores)
-        hist_scores = self._history_scores(text)
         history_by_code = self._history_by_code(hist_scores)
 
         rows: list[dict] = []
@@ -242,5 +257,31 @@ class AliasAwareHybridCoder:
             historical_cases,
         )
 
-    def predict(self, texts: Iterable[str]) -> list[Prediction]:
-        return [self.predict_one(str(text)) for text in texts]
+    def predict_one(self, text: str) -> Prediction:
+        return self.predict([str(text)], batch_size=1)[0]
+
+    def predict(self, texts: Iterable[str], *, batch_size: int = 32) -> list[Prediction]:
+        query_texts = [_nonempty(text) for text in texts]
+        if not query_texts:
+            return []
+        size = max(1, int(batch_size))
+        predictions: list[Prediction] = []
+        for start in range(0, len(query_texts), size):
+            chunk = query_texts[start : start + size]
+            char_matrix = cosine_similarity(
+                self.alias_char_vectorizer.transform(chunk), self.alias_char_matrix
+            )
+            word_matrix = cosine_similarity(
+                self.alias_word_vectorizer.transform(chunk), self.alias_word_matrix
+            )
+            fused_matrix = (1 - self.word_weight) * char_matrix + self.word_weight * word_matrix
+            hist_matrix = cosine_similarity(
+                self.history_vectorizer.transform(chunk), self.history_matrix
+            )
+            for i in range(len(chunk)):
+                predictions.append(
+                    self._build_prediction(
+                        fused_matrix[i], char_matrix[i], word_matrix[i], hist_matrix[i]
+                    )
+                )
+        return predictions
