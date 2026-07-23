@@ -1,8 +1,9 @@
 """Scientific conclusion gates for RA comorbidity recovery studies.
 
-This module separates what can be concluded from public feasibility evidence, external published
-benchmarks, and the project's own confirmatory data. It also provides subject-cluster bootstrap
-intervals so repeated notes from the same patient are not treated as independent observations.
+This module separates public feasibility evidence, external published benchmarks, the project's
+own clinical validation, confirmatory recovery, and downstream RA impact. It also provides
+subject-cluster bootstrap intervals so repeated notes from the same patient are not treated as
+independent observations.
 """
 from __future__ import annotations
 
@@ -84,7 +85,7 @@ def subject_cluster_bootstrap(
     n_bootstrap: int = 2000,
     seed: int = 20260723,
 ) -> dict[str, object]:
-    """Bootstrap patients, retaining all their note/phenotype rows within each sampled cluster."""
+    """Bootstrap patients, retaining all note/phenotype rows within each sampled subject cluster."""
     if n_bootstrap < 1:
         raise ValueError("n_bootstrap must be >= 1")
     by_subject: dict[str, list[Mapping[str, object]]] = defaultdict(list)
@@ -103,9 +104,8 @@ def subject_cluster_bootstrap(
     ppvs: list[float] = []
     for _ in range(n_bootstrap):
         sampled_rows: list[Mapping[str, object]] = []
-        for _subject in range(len(subjects)):
-            selected = rng.choice(subjects)
-            sampled_rows.extend(by_subject[selected])
+        for _ in range(len(subjects)):
+            sampled_rows.extend(by_subject[rng.choice(subjects)])
         metrics = _metrics(sampled_rows)
         delta = metrics["combined_minus_structured_sensitivity"]
         recovery = metrics["recoverable_code_missed_fraction"]
@@ -135,15 +135,48 @@ def subject_cluster_bootstrap(
     }
 
 
+def _stage12_state(summary: Mapping[str, object] | None) -> tuple[str | None, str, bool]:
+    if summary is None:
+        return None, "PENDING_REAL_DATA", False
+    raw = str(dict(summary.get("acceptance", {})).get("final_status", "UNKNOWN"))
+    if raw == "PASS":
+        return raw, "PASS", True
+    if raw.startswith("FAIL"):
+        return raw, "NOT_SUPPORTED", True
+    return raw, "PENDING_REAL_DATA", False
+
+
+def _recovery_state(summary: Mapping[str, object] | None, stage12_status: str) -> tuple[str | None, str, bool]:
+    if summary is None:
+        if stage12_status == "NOT_SUPPORTED":
+            return None, "BLOCKED_BY_STAGE12", False
+        return None, "PENDING_REAL_DATA", False
+    raw = str(summary.get("status", "UNKNOWN"))
+    if raw == "SUPPORTED_RECOVERABLE_UNDERRECORDING":
+        return raw, "PASS", True
+    if raw in {"INCONCLUSIVE_OR_UNSUPPORTED_RECOVERY", "INSUFFICIENT_RECOVERY_OPPORTUNITIES"}:
+        return raw, "NOT_SUPPORTED", True
+    if raw == "NOT_CONFIRMATORY_ELIGIBLE":
+        return raw, "BLOCKED_BY_UPSTREAM_GATES", False
+    return raw, "PENDING_REAL_DATA", False
+
+
 def assess_current_scientific_evidence(
     *,
     public_mipa_summary: Mapping[str, object],
     external_llm_macro_f1: float | None,
+    split_protocol_summary: Mapping[str, object] | None = None,
     own_stage12_summary: Mapping[str, object] | None = None,
     own_discordance_summary: Mapping[str, object] | None = None,
+    own_recovery_summary: Mapping[str, object] | None = None,
+    bsrbr_impact_summary: Mapping[str, object] | None = None,
     thresholds: ScientificThresholds = ScientificThresholds(),
 ) -> dict[str, object]:
-    """Build a conservative conclusion matrix from the evidence currently available."""
+    """Build a conservative, claim-specific scientific conclusion matrix.
+
+    A research stage can be scientifically complete with a negative/null result. External literature
+    is context only and never acts as a required gate for MedCode's own scientific conclusions.
+    """
     ra_subset = dict(public_mipa_summary.get("ra_subset", {}))
     ra_subject_audit = dict(ra_subset.get("subject_id_audit", {}))
     cooccurrence = dict(ra_subset.get("cooccurrence_summary", {}))
@@ -158,30 +191,61 @@ def assess_current_scientific_evidence(
         and fraction_two >= thresholds.min_fraction_ra_with_two_other_phenotypes
     )
 
+    protocol_pass = False
+    protocol_basis: dict[str, object] = {}
+    if split_protocol_summary is not None:
+        benchmark_protocol = dict(split_protocol_summary.get("benchmark_comparison_protocol", {}))
+        ra_protocol = dict(split_protocol_summary.get("ra_confirmatory_protocol", {}))
+        ra_protocol_audit = dict(ra_protocol.get("audit", {}))
+        reporting_rule = dict(split_protocol_summary.get("reporting_rule", {}))
+        protocol_pass = (
+            benchmark_protocol.get("any_subject_overlap_between_validation_and_test") is True
+            and ra_protocol_audit.get("subject_disjoint") is True
+            and reporting_rule.get("do_not_mix_protocol_metrics") is True
+        )
+        protocol_basis = {
+            "official_admission_split_has_patient_overlap": benchmark_protocol.get("any_subject_overlap_between_validation_and_test"),
+            "ra_confirmatory_subject_disjoint": ra_protocol_audit.get("subject_disjoint"),
+            "protocol_metrics_must_not_be_mixed": reporting_rule.get("do_not_mix_protocol_metrics"),
+        }
+
     external_support = (
         external_llm_macro_f1 is not None
         and float(external_llm_macro_f1) >= thresholds.external_llm_macro_f1
     )
 
-    own_stage12_status = None
-    if own_stage12_summary is not None:
-        own_stage12_status = str(
-            dict(own_stage12_summary.get("acceptance", {})).get("final_status", "UNKNOWN")
-        )
-    own_model_pass = own_stage12_status == "PASS"
+    own_stage12_raw, own_stage12_status, stage12_terminal = _stage12_state(own_stage12_summary)
+    recovery_raw, recovery_status, recovery_terminal = _recovery_state(own_recovery_summary, own_stage12_status)
 
     discordance_status = None
     if own_discordance_summary is not None:
         discordance_status = str(
             dict(own_discordance_summary.get("interpretation", {})).get("status", "UNKNOWN")
         )
-    underrecording_confirmatory = discordance_status == "CONFIRMATORY_ELIGIBLE"
+
+    bsrbr_complete = False
+    bsrbr_effect = None
+    if bsrbr_impact_summary is not None:
+        bsrbr_complete = bool(bsrbr_impact_summary.get("analysis_complete", False))
+        bsrbr_effect = bsrbr_impact_summary.get("effect_conclusion")
+    bsrbr_status = "PASS_ASSESSED" if bsrbr_complete else "PENDING_BSRBR_RA"
 
     conclusions = [
+        {
+            "id": "C0_PROTOCOL_INTEGRITY",
+            "claim": "Benchmark-comparison and patient-level confirmatory evaluation protocols are explicitly separated and audited for subject leakage.",
+            "status": "PASS" if protocol_pass else "PENDING_METHOD_AUDIT",
+            "stage_complete": protocol_pass,
+            "gating": True,
+            "basis": protocol_basis,
+            "allowed_language": "Report official/protocol-matched benchmark results separately from subject-disjoint confirmatory RA results.",
+        },
         {
             "id": "C1_MIPA_RA_PILOT_FEASIBILITY",
             "claim": "MIPA contains enough RA-positive benchmark observations and co-occurring labelled phenotypes for a controlled RA comorbidity NLP pilot.",
             "status": "PASS" if feasibility_pass else "NOT_SUPPORTED",
+            "stage_complete": True,
+            "gating": True,
             "basis": {
                 "n_ra_positive_notes": n_ra_notes,
                 "n_ra_unique_subjects": n_ra_subjects,
@@ -190,46 +254,88 @@ def assess_current_scientific_evidence(
             "allowed_language": "Suitable proof-of-concept benchmark for RA comorbidity phenotyping; not an RA prevalence cohort.",
         },
         {
-            "id": "C2_LLM_PHENOTYPING_CAPABILITY",
-            "claim": "High-performing LLM phenotyping is feasible on MIPA under published benchmark settings.",
+            "id": "C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY",
+            "claim": "High-performing LLM phenotyping is feasible on MIPA under published study settings.",
             "status": "EXTERNAL_SUPPORT_ONLY" if external_support else "NOT_SUPPORTED",
+            "stage_complete": True,
+            "gating": False,
             "basis": {"published_external_macro_f1": external_llm_macro_f1},
-            "allowed_language": "Published benchmark evidence supports feasibility; this is not performance evidence for the MedCode pipeline.",
+            "allowed_language": "Published evidence supports feasibility only; do not use it as MedCode performance or as a direct comparator unless the evaluation protocol is matched.",
         },
         {
             "id": "C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE",
             "claim": "The MedCode evidence-grounded local pipeline meets the pre-specified Stage 1/2 performance and evidence gates on authorised MIPA notes.",
-            "status": "PASS" if own_model_pass else "PENDING_REAL_DATA",
-            "basis": {"own_stage12_final_status": own_stage12_status},
-            "allowed_language": "Do not report MedCode clinical performance until an authorised real-note run reaches final PASS.",
+            "status": own_stage12_status,
+            "stage_complete": stage12_terminal,
+            "gating": True,
+            "basis": {"own_stage12_final_status": own_stage12_raw},
+            "allowed_language": "Report MedCode clinical performance only after an authorised real-note run reaches a terminal Stage 1/2 result.",
         },
         {
             "id": "C4_RECOVERABLE_STRUCTURED_UNDERRECORDING",
             "claim": "Validated free-text phenotyping recovers clinician-supported comorbidities absent from the matched structured phenotype definition.",
-            "status": "PASS" if underrecording_confirmatory else "PENDING_REAL_DATA",
-            "basis": {"own_discordance_status": discordance_status},
-            "allowed_language": "Do not call text+/code- observations under-recording until Stage 1/2, structured-scope, and coverage gates pass.",
+            "status": recovery_status,
+            "stage_complete": recovery_terminal,
+            "gating": True,
+            "basis": {
+                "discordance_eligibility_status": discordance_status,
+                "confirmatory_recovery_status": recovery_raw,
+            },
+            "allowed_language": "A supported, null, or negative result is scientifically valid; only SUPPORTED_RECOVERABLE_UNDERRECORDING supports the directional recovery claim.",
         },
         {
-            "id": "C5_RA_MULTIMORBIDITY_IMPACT",
-            "claim": "Text-enhanced ascertainment materially changes patient-level RA multimorbidity estimates, clusters, trajectories, or outcomes.",
-            "status": "PENDING_BSRBR_RA",
-            "basis": {},
-            "allowed_language": "Requires representative/longitudinal RA data; MIPA benchmark co-occurrence is not population burden.",
+            "id": "C5_RA_MULTIMORBIDITY_IMPACT_ASSESSED",
+            "claim": "The effect of text-enhanced ascertainment on patient-level RA multimorbidity estimates, clusters, trajectories, or outcomes has been evaluated in appropriate longitudinal/representative RA data.",
+            "status": bsrbr_status,
+            "stage_complete": bsrbr_complete,
+            "gating": True,
+            "basis": {"effect_conclusion": bsrbr_effect},
+            "allowed_language": "A material change, a small change, or a null effect are all valid outcomes once the prespecified BSRBR-RA analysis is complete.",
         },
     ]
 
-    fully_confirmed = all(item["status"] == "PASS" for item in conclusions)
+    # Decision path: a valid negative result is not a software/scientific-process failure.
+    if own_stage12_status == "NOT_SUPPORTED":
+        overall_status = "SCIENTIFIC_NO_GO_STAGE12"
+        scientifically_determined = True
+        next_gate = "STOP_OR_REDESIGN_PHENOTYPING_METHOD"
+    elif recovery_terminal and recovery_status == "NOT_SUPPORTED":
+        overall_status = "SCIENTIFIC_CONCLUSION_DETERMINED_NO_RECOVERY_SUPPORT"
+        scientifically_determined = True
+        next_gate = "DO_NOT_CLAIM_RECOVERABLE_UNDERRECORDING"
+    elif own_stage12_status == "PASS" and recovery_status == "PASS" and bsrbr_complete:
+        overall_status = "SCIENTIFIC_PROGRAM_COMPLETE"
+        scientifically_determined = True
+        next_gate = "REPORT_PRESPECIFIED_RESULTS"
+    elif own_stage12_status == "PASS" and recovery_status == "PASS":
+        overall_status = "GO_BSRBR_RA"
+        scientifically_determined = False
+        next_gate = "BSRBR_RA_IMPACT_ANALYSIS"
+    elif own_stage12_status == "PASS":
+        overall_status = "GO_STAGE3_CONFIRMATORY_RECOVERY"
+        scientifically_determined = False
+        next_gate = "GOLD_TEXT_STRUCTURED_CONFIRMATORY_ANALYSIS"
+    else:
+        overall_status = "NOT_YET_SCIENTIFICALLY_DETERMINED"
+        scientifically_determined = False
+        next_gate = "AUTHORISED_REAL_NOTE_STAGE12"
+
+    required_method_gates_ready = protocol_pass and feasibility_pass
     return {
-        "schema_version": "scientific-acceptance-v0.3.1",
+        "schema_version": "scientific-acceptance-v0.3.2",
         "thresholds": thresholds.__dict__,
         "conclusions": conclusions,
         "overall": {
-            "scientifically_confirmed": fully_confirmed,
-            "status": "SCIENTIFIC_PASS" if fully_confirmed else "NOT_YET_SCIENTIFICALLY_CONFIRMED",
+            "scientifically_determined": scientifically_determined,
+            "status": overall_status,
+            "next_gate": next_gate,
+            "required_method_gates_ready": required_method_gates_ready,
+            "all_directional_claims_supported": (
+                own_stage12_status == "PASS" and recovery_status == "PASS"
+            ),
             "reason": (
-                "Engineering or external benchmark success cannot substitute for an authorised MedCode real-note run, "
-                "confirmatory Gold×Text×Structured analysis, and BSRBR-RA transfer where required."
+                "External benchmark success is non-gating. A terminal negative/null empirical result is scientifically valid. "
+                "Positive MedCode claims require the project's own authorised data and prespecified confirmatory gates."
             ),
         },
     }
@@ -272,7 +378,7 @@ def assess_confirmatory_recovery(
         status = "INCONCLUSIVE_OR_UNSUPPORTED_RECOVERY"
 
     return {
-        "schema_version": "confirmatory-recovery-v0.3.1",
+        "schema_version": "confirmatory-recovery-v0.3.2",
         "point_estimates": point,
         "subject_cluster_bootstrap": bootstrap,
         "gates": {
