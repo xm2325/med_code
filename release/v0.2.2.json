@@ -1,0 +1,101 @@
+{
+  "release": "0.2.2",
+  "status": "RESEARCH_MILESTONE_COMPLETE",
+  "software_version": "0.2.2",
+  "feature_summary": [
+    "alias-aware TRAIN-only candidate generation over preferred terms and synonyms",
+    "character plus word TF-IDF terminology retrieval fused with historical expert-coding memory",
+    "auditable matched-alias and score-component provenance for each candidate",
+    "fixed-candidate DeepSeek V4-Pro reranking with one grounded rationale per displayed option",
+    "three-way AUTO_CANDIDATE / TOP_K_HUMAN_CHOICE / FULL_EXPERT_REVIEW workflow",
+    "disjoint target-domain policy calibration with conservative one-sided accuracy lower-bound selection",
+    "persistent review, feedback, and replayable audit infrastructure inherited from v0.1"
+  ],
+  "authoritative_runs": {
+    "v0_1_1_real_mednorm_deepseek": 29987846810,
+    "v0_2_candidate_generation": 29991428658,
+    "v0_2_end_to_end_deepseek": 29991880549,
+    "v0_2_1_disjoint_policy_diagnostic": 29992618418,
+    "v0_2_2_target_domain_policy_confirmation": 29993208006
+  },
+  "evaluation_boundary": {
+    "dataset": "MedNorm with CADEC-derived target records",
+    "total_reported_records": 27979,
+    "candidate_space": "TRAIN-derived MedDRA code aliases; closed-code diagnostic",
+    "full_licensed_meddra_open_set": false,
+    "unseen_test_codes_structurally_available": false,
+    "bsrbr_validated": false
+  },
+  "candidate_generation_real_result": {
+    "fixed_test_n": 500,
+    "sampling_seed": 20260723,
+    "baseline_v0_1_1_family": {
+      "accuracy_at_1": 0.57,
+      "recall_at_5": 0.718,
+      "recall_at_20": 0.754,
+      "recall_at_50": 0.766,
+      "top5_candidate_failures": 141
+    },
+    "v0_2_alias_aware_hybrid": {
+      "selected_history_weight": 0.25,
+      "selected_word_weight": 0.15,
+      "accuracy_at_1": 0.67,
+      "recall_at_5": 0.844,
+      "recall_at_20": 0.886,
+      "recall_at_50": 0.9,
+      "top5_candidate_failures": 78
+    },
+    "delta": {
+      "accuracy_at_1": 0.10,
+      "recall_at_5": 0.126,
+      "recall_at_20": 0.132,
+      "recall_at_50": 0.134
+    }
+  },
+  "deepseek_end_to_end_real_result": {
+    "paired_subset_n": 50,
+    "model": "deepseek-v4-pro",
+    "valid_responses": 49,
+    "valid_response_rate": 0.98,
+    "retrieval_accuracy_at_1": 0.56,
+    "pipeline_accuracy_at_1_with_fallback": 0.62,
+    "absolute_delta": 0.06,
+    "fixed_candidate_recall_at_5": 0.78,
+    "cases_corrected_by_deepseek": 5,
+    "cases_harmed_by_deepseek": 2,
+    "net_corrected_minus_harmed": 3,
+    "claim_boundary": "The fixed-seed 50-case paired subset is supportive evidence only; it is too small for a definitive superiority claim."
+  },
+  "selective_policy_confirmation": {
+    "operational_target_accuracy": 0.95,
+    "prior_diagnostic_cadec_records_excluded": 500,
+    "fresh_target_domain_policy_calibration_n": 1000,
+    "fresh_confirmatory_test_n": 1000,
+    "partition_overlap_n": 0,
+    "selection_rule": "Maximum policy-calibration coverage subject to a one-sided binomial lower accuracy bound >= 0.95; threshold frozen before confirmatory labels are scored.",
+    "selected_threshold": 0.5165572803781319,
+    "calibration_auto_coverage": 0.482,
+    "calibration_empirical_accuracy": 0.966804979253112,
+    "calibration_one_sided_lower_bound": 0.9500176111997285,
+    "confirmatory_auto_coverage": 0.485,
+    "confirmatory_auto_accuracy_at_1": 0.9690721649484536,
+    "release_gate_pass": true
+  },
+  "superseded_policy_diagnostics": [
+    "The earlier v0.2 end-to-end diagnostic reused a small non-target validation subset for threshold selection and produced 65.2% AUTO coverage but only 84.0% held-out AUTO Accuracy@1; it must not be used as the release policy.",
+    "The v0.2.1 disjoint but cross-source calibration improved methodology, yet its prespecified 95% policy achieved only 91.1% on CADEC TEST; this demonstrated source mismatch and also must not be used as the release policy."
+  ],
+  "explanation_contract": {
+    "every_displayed_candidate_has_rationale": true,
+    "every_displayed_candidate_has_real_phrase_evidence": true,
+    "accepted_deepseek_output_preserves_fixed_candidate_set": true,
+    "invalid_llm_output_falls_back_to_deterministic_grounded_rationale": true
+  },
+  "deployment_boundaries": [
+    "AUTO_CANDIDATE remains a provisional coding route, not a clinical-safety claim.",
+    "Public CADEC confirmation does not establish BSRBR performance.",
+    "BSRBR transfer requires temporal and participant-level leakage controls, terminology-version audit, and local expert-coded calibration/confirmation.",
+    "Restricted or governed clinical text must not be sent to an external LLM without explicit governance approval.",
+    "A licensed full-MedDRA open-set evaluation remains separate from the TRAIN-derived closed-code public benchmark."
+  ]
+}
