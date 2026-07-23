@@ -1,0 +1,75 @@
+name: v0.2 candidate generation real evaluation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/candidate-generation-v02.yml'
+      - 'scripts/run_candidate_generation_v02.py'
+      - 'src/cohortcoder/candidate_generation.py'
+      - 'src/cohortcoder/mednorm.py'
+      - 'tests/test_candidate_generation_v02.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-generation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Focused candidate-generation tests
+        run: pytest -q tests/test_candidate_generation_v02.py
+      - name: Run fixed real MedNorm / CADEC-held-out comparison
+        run: |
+          python scripts/run_candidate_generation_v02.py \
+            --output-dir /tmp/medcode-v02-candidates \
+            --train-limit 3000 \
+            --validation-limit 200 \
+            --test-limit 500 \
+            --top-k 50
+      - name: Write metric summary
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path('/tmp/medcode-v02-candidates/candidate_generation_results.json')
+          data = json.loads(p.read_text())
+          b = data['baseline_v0_1_1_family']
+          v = data['v0_2_alias_aware_hybrid']
+          d = data['delta_v0_2_minus_baseline']
+          lines = [
+              '# v0.2 candidate generation — real held-out result',
+              '',
+              '| Metric | v0.1.1 family | v0.2 | delta |',
+              '|---|---:|---:|---:|',
+          ]
+          for key, label in [
+              ('accuracy_at_1', 'Accuracy@1'),
+              ('recall_at_5', 'Recall@5'),
+              ('recall_at_20', 'Recall@20'),
+              ('recall_at_50', 'Recall@50'),
+              ('mrr_at_50', 'MRR@50'),
+          ]:
+              delta_key = key + '_delta' if key != 'mrr_at_50' else 'mrr_at_50_delta'
+              if key == 'accuracy_at_1': delta_key = 'accuracy_at_1_delta'
+              lines.append(f"| {label} | {b[key]:.3f} | {v[key]:.3f} | {d[delta_key]:+.3f} |")
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as handle:
+              handle.write('\n'.join(lines) + '\n')
+          PY
+      - name: Upload complete v0.2 evaluation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: medcode-v0.2-candidate-generation
+          path: /tmp/medcode-v02-candidates
+          retention-days: 30
