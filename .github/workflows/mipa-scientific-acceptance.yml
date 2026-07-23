@@ -1,0 +1,68 @@
+name: MIPA scientific acceptance
+
+on:
+  push:
+    paths:
+      - 'src/cohortcoder/scientific_acceptance.py'
+      - 'scripts/run_scientific_acceptance.py'
+      - 'tests/test_scientific_acceptance.py'
+      - 'results/mipa_public_pilot/**'
+      - '.github/workflows/mipa-scientific-acceptance.yml'
+      - 'pyproject.toml'
+      - 'src/cohortcoder/__init__.py'
+  pull_request:
+    paths:
+      - 'src/cohortcoder/scientific_acceptance.py'
+      - 'scripts/run_scientific_acceptance.py'
+      - 'tests/test_scientific_acceptance.py'
+      - 'results/mipa_public_pilot/**'
+      - '.github/workflows/mipa-scientific-acceptance.yml'
+      - 'pyproject.toml'
+      - 'src/cohortcoder/__init__.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scientific-conclusion-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run scientific acceptance unit tests
+        run: pytest -q tests/test_scientific_acceptance.py
+      - name: Build current scientific conclusion matrix
+        run: |
+          python scripts/run_scientific_acceptance.py \
+            --public-mipa-summary results/mipa_public_pilot/summary.json \
+            --output /tmp/scientific_acceptance/summary.json \
+            --external-llm-macro-f1 0.891
+      - name: Verify evidence is not overclaimed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/scientific_acceptance/summary.json').read_text())
+          by_id = {row['id']: row for row in p['conclusions']}
+          assert by_id['C1_MIPA_RA_PILOT_FEASIBILITY']['status'] == 'PASS'
+          assert by_id['C2_LLM_PHENOTYPING_CAPABILITY']['status'] == 'EXTERNAL_SUPPORT_ONLY'
+          assert by_id['C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE']['status'] == 'PENDING_REAL_DATA'
+          assert by_id['C4_RECOVERABLE_STRUCTURED_UNDERRECORDING']['status'] == 'PENDING_REAL_DATA'
+          assert by_id['C5_RA_MULTIMORBIDITY_IMPACT']['status'] == 'PENDING_BSRBR_RA'
+          assert p['overall']['status'] == 'NOT_YET_SCIENTIFICALLY_CONFIRMED'
+          assert p['overall']['scientifically_confirmed'] is False
+          PY
+      - name: Upload scientific acceptance matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: mipa-scientific-acceptance
+          path: /tmp/scientific_acceptance/
