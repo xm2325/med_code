@@ -139,6 +139,7 @@ jobs:
             echo 'No v0.2 result/status changes to commit'
           else
             git commit -m 'Record v0.2 candidate-generation evaluation'
+            git pull --rebase origin "${GITHUB_REF_NAME}"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
       - name: Enforce successful v0.2 validation
