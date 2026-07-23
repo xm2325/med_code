@@ -1,0 +1,38 @@
+{
+  "experiment": "mipa_public_ra_comorbidity_pilot",
+  "schema_version": "0.3.2",
+  "execution_status": "SUCCESS",
+  "github_actions": {
+    "workflow_name": "MIPA public pilot",
+    "run_id": 29996358215,
+    "job_id": 89170862868,
+    "evaluated_head_sha": "64f5c5d4aaafb9e43244b857fa9ca640a3605ebf",
+    "all_job_steps_success": true,
+    "artifact_id": 8559112988,
+    "artifact_sha256": "52bfdfd51dde44e2ebffc7e520a7f19803b68bf5b05e8d9b4025523ef4399ab0"
+  },
+  "data": {
+    "upstream_repository": "open-health-data-lab/MIPA",
+    "upstream_file": "data/filters/golden_labels.csv",
+    "public_labels_only": true,
+    "restricted_discharge_summaries_used": false
+  },
+  "results": {
+    "n_labels": 1388,
+    "n_clinical_phenotypes": 16,
+    "n_unique_subjects": 1011,
+    "n_ra_positive_notes": 164,
+    "n_ra_unique_subjects": 99,
+    "ra_notes_with_at_least_1_other_phenotype": 153,
+    "ra_notes_with_at_least_2_other_phenotypes": 121,
+    "ra_notes_with_at_least_3_other_phenotypes": 80,
+    "mean_other_phenotypes_per_ra_note": 2.548780487804878,
+    "median_other_phenotypes_per_ra_note": 2.0,
+    "max_other_phenotypes_per_ra_note": 7
+  },
+  "llm_execution": {
+    "deepseek_mipa_note_evaluation_executed": false,
+    "reason": "The public repository contains expert labels but not the restricted MIMIC-IV discharge-summary text. No restricted notes were inferred, reconstructed, or sent to an external API."
+  },
+  "interpretation_boundary": "RA-subset co-occurrence fractions are properties of the phenotype-targeted MIPA benchmark sample, not population prevalence estimates for rheumatoid arthritis."
+}
