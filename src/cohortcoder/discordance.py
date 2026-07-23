@@ -40,7 +40,7 @@ def evaluate_three_way_discordance(
 ) -> tuple[dict[str, object], list[dict[str, object]], list[dict[str, object]]]:
     """Compare gold phenotype labels (G), text predictions (T), and structured status (C).
 
-    `structured_scope_validated` means the structured-code definition has been reviewed to
+    ``structured_scope_validated`` means the structured-code definition has been reviewed to
     match the phenotype target. Without it, discordance is reported but under-recording
     interpretation remains exploratory.
     """
@@ -78,10 +78,13 @@ def evaluate_three_way_discordance(
             key = (note_id, phenotype)
             text_row = text_by_key.get(key)
             structured_row = structured_by_key.get(key)
+            if text_row is not None:
+                observed_text += 1
+            if structured_row is not None:
+                observed_structured += 1
             if text_row is None or structured_row is None:
                 continue
-            observed_text += 1
-            observed_structured += 1
+
             g = _binary(label_row[phenotype])
             t = _binary(text_row["prediction"])
             c = _binary(structured_row["structured_positive"])
@@ -130,10 +133,7 @@ def evaluate_three_way_discordance(
     complete_coverage = text_coverage == 1.0 and structured_coverage == 1.0
 
     confirmatory_eligible = upstream_pass and structured_scope_validated and complete_coverage
-    if confirmatory_eligible:
-        interpretation_status = "CONFIRMATORY_ELIGIBLE"
-    else:
-        interpretation_status = "EXPLORATORY_DISCORDANCE_ONLY"
+    interpretation_status = "CONFIRMATORY_ELIGIBLE" if confirmatory_eligible else "EXPLORATORY_DISCORDANCE_ONLY"
 
     overall_gold_positive = sum(count for (g, _, _), count in totals.items() if g == 1)
     overall_structured_tp = sum(count for (g, _, c), count in totals.items() if g == 1 and c == 1)
@@ -162,9 +162,7 @@ def evaluate_three_way_discordance(
             "stage1_2_final_status": upstream_status,
             "stage1_2_pass": upstream_pass,
         },
-        "structured_definition": {
-            "scope_validated": structured_scope_validated,
-        },
+        "structured_definition": {"scope_validated": structured_scope_validated},
         "overall": {
             "gold_positive": overall_gold_positive,
             "structured_sensitivity": _ratio(overall_structured_tp, overall_gold_positive),
