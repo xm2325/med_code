@@ -1,0 +1,139 @@
+{
+  "release": "0.2.2-target-domain-policy",
+  "dataset": {
+    "name": "MedNorm: A Corpus and Embeddings for Cross-terminology Medical Concept Normalisation",
+    "doi": "10.17632/b9x7xxb9sz.1",
+    "official_url": "https://data.mendeley.com/datasets/b9x7xxb9sz/1",
+    "licence": "CC BY-NC 3.0",
+    "authors": "Maksim Belousov; William G. Dixon; Goran Nenadic",
+    "n_reported_rows": 27979,
+    "task_use": "medical concept normalisation benchmark",
+    "licence_authority": "official Mendeley Data record",
+    "mirror_note": "A third-party mirror may be used only as a transport convenience; it does not override the official licence."
+  },
+  "evaluation_design": {
+    "n_train_full": 18025,
+    "n_cadec_full": 6797,
+    "n_train_model_sample": 3000,
+    "n_prior_diagnostic_cadec_excluded": 500,
+    "n_fresh_target_policy_calibration": 1000,
+    "n_fresh_confirmatory_test": 1000,
+    "partition_overlaps": {
+      "prior_vs_calibration": 0,
+      "prior_vs_confirmatory": 0,
+      "calibration_vs_confirmatory": 0
+    },
+    "sampling_seed": 20260723,
+    "frozen_candidate_config": {
+      "history_weight": 0.25,
+      "word_weight": 0.15
+    },
+    "prespecified_operational_target": 0.95,
+    "one_sided_alpha": 0.05,
+    "min_auto": 20
+  },
+  "prespecified_95_policy": {
+    "target_domain_calibration_selection": {
+      "threshold": 0.5165572803781319,
+      "n_auto": 482,
+      "coverage": 0.482,
+      "empirical_accuracy": 0.966804979253112,
+      "one_sided_lower_bound": 0.9500176111997285,
+      "target_accuracy": 0.95,
+      "alpha": 0.05,
+      "min_auto": 20
+    },
+    "fresh_confirmatory_test": {
+      "threshold": 0.5165572803781319,
+      "n_auto": 485,
+      "coverage": 0.485,
+      "accuracy_at_1": 0.9690721649484536,
+      "target_met": true
+    },
+    "release_gate_pass": true
+  },
+  "policy_stress": {
+    "0.90": {
+      "selection": {
+        "threshold": 0.4624035008352189,
+        "n_auto": 566,
+        "coverage": 0.566,
+        "empirical_accuracy": 0.9222614840989399,
+        "one_sided_lower_bound": 0.9011712528884382,
+        "target_accuracy": 0.9,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "confirmatory_test": {
+        "threshold": 0.4624035008352189,
+        "n_auto": 576,
+        "coverage": 0.576,
+        "accuracy_at_1": 0.9305555555555556,
+        "target_met": true
+      }
+    },
+    "0.95": {
+      "selection": {
+        "threshold": 0.5165572803781319,
+        "n_auto": 482,
+        "coverage": 0.482,
+        "empirical_accuracy": 0.966804979253112,
+        "one_sided_lower_bound": 0.9500176111997285,
+        "target_accuracy": 0.95,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "confirmatory_test": {
+        "threshold": 0.5165572803781319,
+        "n_auto": 485,
+        "coverage": 0.485,
+        "accuracy_at_1": 0.9690721649484536,
+        "target_met": true
+      }
+    },
+    "0.98": {
+      "selection": {
+        "threshold": 0.6052791796567221,
+        "n_auto": 381,
+        "coverage": 0.381,
+        "empirical_accuracy": 0.994750656167979,
+        "one_sided_lower_bound": 0.9835685176765461,
+        "target_accuracy": 0.98,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "confirmatory_test": {
+        "threshold": 0.6052791796567221,
+        "n_auto": 384,
+        "coverage": 0.384,
+        "accuracy_at_1": 0.9921875,
+        "target_met": true
+      }
+    },
+    "0.99": {
+      "selection": {
+        "threshold": null,
+        "n_auto": 0,
+        "coverage": 0.0,
+        "empirical_accuracy": null,
+        "one_sided_lower_bound": null,
+        "target_accuracy": 0.99,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "confirmatory_test": {
+        "threshold": null,
+        "n_auto": 0,
+        "coverage": 0.0,
+        "accuracy_at_1": null,
+        "target_met": false
+      }
+    }
+  },
+  "release_rule": "The 95% AUTO policy passes only if the threshold is selected without confirmatory labels on fresh target-domain calibration data using the one-sided lower-bound rule, and the locked threshold then reaches at least 95% exact-code agreement on the fresh disjoint confirmatory sample.",
+  "interpretation_boundary": [
+    "The original 500-case diagnostic TEST sample that motivated this redesign is excluded from both target-domain calibration and confirmatory evaluation.",
+    "Candidate-model parameters remain frozen from the earlier non-CADEC validation-only selection; CADEC labels affect routing calibration only, not candidate-model fitting.",
+    "A public CADEC confirmation does not substitute for BSRBR-specific temporal and participant-level validation."
+  ]
+}
