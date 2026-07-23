@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'scripts/run_codiesp_icd10_benchmark.py'
+      - 'scripts/export_codiesp_test_texts.py'
       - '.github/workflows/codiesp-icd10-benchmark.yml'
   pull_request:
     paths:
       - 'scripts/run_codiesp_icd10_benchmark.py'
+      - 'scripts/export_codiesp_test_texts.py'
       - '.github/workflows/codiesp-icd10-benchmark.yml'
   workflow_dispatch:
 
@@ -37,16 +39,24 @@ jobs:
           python scripts/run_codiesp_icd10_benchmark.py \
             --output-dir /tmp/codiesp_icd10 \
             --deepseek-n 50
+      - name: Export English test clinical texts for case-level audit
+        run: |
+          python scripts/export_codiesp_test_texts.py \
+            --output-dir /tmp/codiesp_icd10
       - name: Verify benchmark
         run: |
           python - <<'PY'
           import json
+          import pandas as pd
           from pathlib import Path
           p=json.loads(Path('/tmp/codiesp_icd10/summary.json').read_text())
           assert p['n_train'] >= 400
           assert p['n_dev'] >= 200
           assert p['n_test'] >= 200
           assert 0 <= p['tfidf_retrieval_baseline']['micro_f1'] <= 1
+          t=pd.read_csv('/tmp/codiesp_icd10/test_texts.csv')
+          assert len(t) == 250
+          assert t['clinical_text'].str.len().gt(0).all()
           PY
       - name: Upload outputs
         if: always()
