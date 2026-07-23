@@ -1,26 +1,56 @@
 {
   "release": "0.1.1",
   "feature_complete": true,
-  "real_data_source": "MedNorm / CADEC-derived public phrases",
-  "deepseek_model_configured": "deepseek-v4-pro",
-  "deepseek_real_execution_completed": false,
-  "execution_status": "BLOCKED_BEFORE_WORKFLOW_STEPS",
-  "attempted_workflow_run_id": 29966899890,
-  "rerun_attempted": true,
-  "observed_runner_state": {
-    "job": "real-evaluation",
-    "conclusion": "failure",
-    "steps": null,
-    "logs_url": null
+  "real_data_source": "MedNorm with CADEC-derived held-out TEST phrases",
+  "deepseek_model": "deepseek-v4-pro",
+  "deepseek_real_execution_completed": true,
+  "execution_status": "SUCCESS",
+  "authoritative_workflow_run_id": 29987846810,
+  "result_commit": "f0c4ddd504e722675266dcee12ac0762e35b76ed",
+  "evaluation_design": {
+    "total_real_records": 27979,
+    "train_full": 18025,
+    "validation_full": 3157,
+    "test_full": 6797,
+    "model_train_sample": 3000,
+    "validation_sample": 200,
+    "baseline_test_sample": 500,
+    "deepseek_paired_subset": 24,
+    "sampling_seed": 20260723,
+    "test_source": "CADEC",
+    "candidate_space": "TRAIN-derived MedDRA code aliases; closed-code diagnostic"
   },
-  "no_result_claim": "No DeepSeek real-data accuracy is claimed because the workflow did not execute any step and therefore did not access the repository secret or call the API.",
-  "result_contract_when_executed": [
-    "baseline Accuracy@1/@3/@5 on deterministic real TEST sample",
-    "paired baseline vs DeepSeek reranked Accuracy@1",
-    "fixed candidate Recall@5",
-    "seen/unseen code statistics",
-    "AUTO/TOP_K_HUMAN_CHOICE/FULL_EXPERT_REVIEW route counts",
-    "oracle Top-K human-choice upper bound clearly labelled as an upper bound",
-    "one validated real-evidence rationale per displayed candidate"
+  "observed_results": {
+    "baseline_accuracy_at_1": 0.57,
+    "baseline_accuracy_at_3": 0.68,
+    "baseline_recall_at_5": 0.718,
+    "gold_seen_in_train_rate": 0.954,
+    "seen_code_accuracy_at_1": 0.5974842767295597,
+    "unseen_code_accuracy_at_1": 0.0,
+    "auto_candidate_count": 195,
+    "auto_candidate_coverage": 0.39,
+    "auto_candidate_accuracy_at_1": 0.9538461538461539,
+    "auto_candidate_recall_at_5": 0.9794871794871794,
+    "top_k_human_choice_count": 305,
+    "top_k_human_choice_coverage": 0.61,
+    "top_k_human_choice_accuracy_at_1": 0.32459016393442625,
+    "top_k_human_choice_recall_at_5": 0.5508196721311476,
+    "deepseek_valid_response_rate": 1.0,
+    "paired_baseline_accuracy_at_1": 0.4166666666666667,
+    "deepseek_reranked_accuracy_at_1": 0.5416666666666666,
+    "paired_accuracy_delta": 0.125,
+    "fixed_candidate_recall_at_5": 0.7083333333333334
+  },
+  "rationale_contract": {
+    "every_displayed_candidate_has_rationale": true,
+    "every_displayed_candidate_has_real_phrase_evidence": true,
+    "deepseek_candidate_set_is_fixed": true,
+    "invalid_llm_outputs_fall_back_to_deterministic_grounded_rationale": true
+  },
+  "important_boundaries": [
+    "This is a real-data closed-code diagnostic using TRAIN-derived candidate aliases, not a full licensed-MedDRA open-set benchmark.",
+    "Recall@5 is an oracle human-choice upper bound only when interpreted as perfect selection from Top-K; observed human-assisted accuracy has not been measured.",
+    "The 24-case DeepSeek comparison is a fixed-seed paired subset and is too small to establish definitive superiority without a larger repeated evaluation.",
+    "Unseen TEST codes are structurally unavailable in the TRAIN-derived closed-code candidate space."
   ]
 }
