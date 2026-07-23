@@ -1,0 +1,46 @@
+name: MIPA public pilot
+
+on:
+  push:
+    branches:
+      - mipa-public-pilot-v03
+    paths:
+      - scripts/run_mipa_public_pilot.py
+      - .github/workflows/mipa-public-pilot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-label-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run public MIPA RA pilot audit
+        run: |
+          python scripts/run_mipa_public_pilot.py \
+            --output-dir outputs/mipa_public_pilot
+
+      - name: Show summary
+        run: |
+          cat outputs/mipa_public_pilot/summary.json
+          echo '--- phenotype counts ---'
+          cat outputs/mipa_public_pilot/phenotype_counts.csv
+          echo '--- RA comorbidity counts ---'
+          cat outputs/mipa_public_pilot/ra_comorbidity_counts.csv
+
+      - name: Upload pilot outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mipa-public-pilot
+          path: outputs/mipa_public_pilot/
+          if-no-files-found: error
