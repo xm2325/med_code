@@ -1,0 +1,114 @@
+name: v0.2.2 target-domain policy confirmation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v022-target-domain-policy.yml'
+      - 'scripts/run_v022_target_domain_policy.py'
+      - 'src/cohortcoder/selective_policy.py'
+      - 'src/cohortcoder/candidate_generation.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  target-domain-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run fresh target-domain calibration and confirmatory evaluation
+        id: evaluation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_v022_target_domain_policy.py \
+            --output-dir /tmp/medcode-v022-policy \
+            --candidate-result results/v0.2/candidate_generation_results.json \
+            --train-limit 3000 \
+            --prior-diagnostic-test-limit 500 \
+            --target-policy-calibration-limit 1000 \
+            --confirmatory-test-limit 1000 \
+            --target-auto-accuracy 0.95 \
+            --alpha 0.05 \
+            --min-auto 20 2>&1 | tee /tmp/v022-policy.log
+      - name: Upload v0.2.2 artifacts
+        if: steps.evaluation.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: medcode-v0.2.2-target-domain-policy
+          path: /tmp/medcode-v022-policy
+          retention-days: 30
+      - name: Persist result or diagnostics
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p results/v0.2/target_domain_policy
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out = Path('results/v0.2/target_domain_policy')
+          payload = {
+              'release': '0.2.2-target-domain-policy',
+              'workflow_run_id': os.environ.get('RUN_ID'),
+              'evaluation_outcome': os.environ.get('EVALUATION_OUTCOME') or 'skipped',
+          }
+          (out / 'execution_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          log = Path('/tmp/v022-policy.log')
+          if log.exists():
+              lines = log.read_text(encoding='utf-8', errors='replace').splitlines()
+              (out / 'execution.log').write_text('\n'.join(lines[-250:]) + '\n', encoding='utf-8')
+          run = Path('/tmp/medcode-v022-policy')
+          if run.exists():
+              for name in ['v022_target_domain_policy_results.json', 'target_policy_calibration_predictions.csv']:
+                  src = run / name
+                  if src.exists():
+                      (out / name).write_bytes(src.read_bytes())
+          result = run / 'v022_target_domain_policy_results.json'
+          if result.exists():
+              data = json.loads(result.read_text(encoding='utf-8'))
+              item = data['prespecified_95_policy']
+              sel = item['target_domain_calibration_selection']
+              test = item['fresh_confirmatory_test']
+              def pct(v): return 'n/a' if v is None else f'{100*v:.1f}%'
+              lines = [
+                  '# MedCode v0.2.2 target-domain policy confirmation', '',
+                  f"Calibration AUTO coverage: {pct(sel['coverage'])}",
+                  f"Calibration empirical Accuracy@1: {pct(sel['empirical_accuracy'])}",
+                  f"Calibration one-sided lower bound: {pct(sel['one_sided_lower_bound'])}",
+                  f"Fresh confirmatory AUTO coverage: {pct(test['coverage'])}",
+                  f"Fresh confirmatory Accuracy@1: {pct(test['accuracy_at_1'])}",
+                  f"95% release gate pass: {item['release_gate_pass']}", '',
+                  data['release_rule'],
+              ]
+              (out / 'RESULTS.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/v0.2/target_domain_policy
+          if git diff --cached --quiet; then
+            echo 'No v0.2.2 result/status changes'
+          else
+            git commit -m 'Record v0.2.2 target-domain policy confirmation'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Enforce successful v0.2.2 evaluation
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: test "${EVALUATION_OUTCOME}" = "success"
