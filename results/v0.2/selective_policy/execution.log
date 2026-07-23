@@ -1,0 +1,175 @@
+{
+  "release": "0.2.1-selective-policy",
+  "dataset": {
+    "name": "MedNorm: A Corpus and Embeddings for Cross-terminology Medical Concept Normalisation",
+    "doi": "10.17632/b9x7xxb9sz.1",
+    "official_url": "https://data.mendeley.com/datasets/b9x7xxb9sz/1",
+    "licence": "CC BY-NC 3.0",
+    "authors": "Maksim Belousov; William G. Dixon; Goran Nenadic",
+    "n_reported_rows": 27979,
+    "task_use": "medical concept normalisation benchmark",
+    "licence_authority": "official Mendeley Data record",
+    "mirror_note": "A third-party mirror may be used only as a transport convenience; it does not override the official licence."
+  },
+  "evaluation_design": {
+    "n_total_real_records": 27979,
+    "n_train_full": 18025,
+    "n_val_full": 3157,
+    "n_test_full": 6797,
+    "n_train_model_sample": 3000,
+    "n_model_selection_validation": 200,
+    "n_disjoint_policy_calibration": 1000,
+    "n_test_sample": 500,
+    "model_policy_overlap_n": 0,
+    "sampling_seed": 20260723,
+    "test_source": "CADEC",
+    "frozen_candidate_config": {
+      "history_weight": 0.25,
+      "word_weight": 0.15
+    },
+    "target_auto_accuracy": 0.95,
+    "one_sided_alpha": 0.05,
+    "min_auto": 20
+  },
+  "policies": {
+    "previous_reused_model_selection_validation": {
+      "selection_set": "model_selection_validation",
+      "selection": {
+        "threshold": 0.3870297828664988,
+        "n_auto": 152,
+        "coverage": 0.76,
+        "accuracy_at_1": 0.9539473684210527,
+        "total_n": 200,
+        "n_errors": 7
+      },
+      "held_out_test": {
+        "threshold": 0.3870297828664988,
+        "n_auto": 326,
+        "coverage": 0.652,
+        "accuracy_at_1": 0.8404907975460123
+      },
+      "release_eligible": false,
+      "reason": "Same small validation subset had already been used for candidate-model selection."
+    },
+    "independent_empirical_policy_calibration": {
+      "selection_set": "disjoint_policy_calibration",
+      "selection": {
+        "threshold": 0.4177787974355974,
+        "n_auto": 792,
+        "coverage": 0.792,
+        "accuracy_at_1": 0.9507575757575758,
+        "total_n": 1000,
+        "n_errors": 39
+      },
+      "held_out_test": {
+        "threshold": 0.4177787974355974,
+        "n_auto": 305,
+        "coverage": 0.61,
+        "accuracy_at_1": 0.8688524590163934
+      },
+      "release_eligible": false,
+      "reason": "Independent data, but selection uses empirical accuracy without a sampling-uncertainty margin."
+    },
+    "conservative_lower_bound_policy": {
+      "selection_set": "disjoint_policy_calibration",
+      "selection": {
+        "threshold": 0.44249086778818225,
+        "n_auto": 760,
+        "coverage": 0.76,
+        "empirical_accuracy": 0.9644736842105263,
+        "one_sided_lower_bound": 0.9513388356396763,
+        "target_accuracy": 0.95,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "held_out_test": {
+        "threshold": 0.44249086778818225,
+        "n_auto": 280,
+        "coverage": 0.56,
+        "accuracy_at_1": 0.9107142857142857
+      },
+      "release_eligible": true,
+      "reason": "Only candidate AUTO policy: independent policy-calibration data and one-sided binomial lower bound must meet the prespecified target."
+    }
+  },
+  "conservative_policy_stress": {
+    "0.90": {
+      "selection": {
+        "threshold": 0.35252129059608395,
+        "n_auto": 865,
+        "coverage": 0.865,
+        "empirical_accuracy": 0.9179190751445087,
+        "one_sided_lower_bound": 0.9009065603441787,
+        "target_accuracy": 0.9,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "held_out_test": {
+        "threshold": 0.35252129059608395,
+        "n_auto": 372,
+        "coverage": 0.744,
+        "accuracy_at_1": 0.7903225806451613
+      }
+    },
+    "0.95": {
+      "selection": {
+        "threshold": 0.44249086778818225,
+        "n_auto": 760,
+        "coverage": 0.76,
+        "empirical_accuracy": 0.9644736842105263,
+        "one_sided_lower_bound": 0.9513388356396763,
+        "target_accuracy": 0.95,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "held_out_test": {
+        "threshold": 0.44249086778818225,
+        "n_auto": 280,
+        "coverage": 0.56,
+        "accuracy_at_1": 0.9107142857142857
+      }
+    },
+    "0.98": {
+      "selection": {
+        "threshold": 0.56044700340546,
+        "n_auto": 647,
+        "coverage": 0.647,
+        "empirical_accuracy": 0.990726429675425,
+        "one_sided_lower_bound": 0.9817790135454408,
+        "target_accuracy": 0.98,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "held_out_test": {
+        "threshold": 0.56044700340546,
+        "n_auto": 207,
+        "coverage": 0.414,
+        "accuracy_at_1": 0.9855072463768116
+      }
+    },
+    "0.99": {
+      "selection": {
+        "threshold": 0.6538174381362931,
+        "n_auto": 475,
+        "coverage": 0.475,
+        "empirical_accuracy": 0.9978947368421053,
+        "one_sided_lower_bound": 0.9900521887627622,
+        "target_accuracy": 0.99,
+        "alpha": 0.05,
+        "min_auto": 20
+      },
+      "held_out_test": {
+        "threshold": 0.6538174381362931,
+        "n_auto": 142,
+        "coverage": 0.284,
+        "accuracy_at_1": 1.0
+      }
+    }
+  },
+  "release_rule": "AUTO_CANDIDATE may be enabled only when a threshold selected on the disjoint policy-calibration set has a one-sided binomial accuracy lower bound at or above the prespecified target. Otherwise AUTO coverage is zero and cases remain human-routed.",
+  "interpretation_boundary": [
+    "The held-out TEST sample is never used to select or relax an AUTO threshold.",
+    "Meeting the calibration lower-bound criterion does not guarantee the same accuracy on every future cohort or distribution.",
+    "This is a public-data closed-code diagnostic; BSRBR requires its own temporal and participant-level validation before deployment decisions."
+  ]
+}
