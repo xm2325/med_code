@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import sys
+from typing import Any
 
 import pandas as pd
 
@@ -18,20 +20,15 @@ from cohortcoder.deepseek_real_eval import DeepSeekRealCandidateEvaluator
 from cohortcoder.mednorm import (
     assign_cross_dataset_split,
     build_train_derived_terminology,
-    fetch_hf_mirror_rows,
+    fetch_hf_mirror_dataframe,
     mednorm_data_card,
     prepare_mednorm_single_meddra,
 )
 from cohortcoder.uncertainty import candidate_uncertainty, simple_ood_flag
 
-RAW_TSV = "https://huggingface.co/datasets/awacke1/MedNorm2SnomedCT2UMLS/resolve/main/mednorm_full.tsv"
-
 
 def load_real_mednorm() -> pd.DataFrame:
-    try:
-        return pd.read_csv(RAW_TSV, sep="\t", dtype=str, keep_default_na=False)
-    except Exception:
-        return fetch_hf_mirror_rows()
+    return fetch_hf_mirror_dataframe()
 
 
 def predict_rows(coder: HistoricalCoder, frame: pd.DataFrame) -> tuple[pd.DataFrame, list]:
@@ -77,6 +74,7 @@ def main() -> None:
     p.add_argument("--validation-limit", type=int, default=300)
     p.add_argument("--baseline-limit", type=int, default=800)
     p.add_argument("--deepseek-limit", type=int, default=30)
+    p.add_argument("--deepseek-workers", type=int, default=6)
     p.add_argument("--top-k", type=int, default=5)
     p.add_argument("--target-auto-accuracy", type=float, default=0.95)
     p.add_argument("--model", default="deepseek-v4-pro")
@@ -106,14 +104,14 @@ def main() -> None:
 
     selection = []
     for weight in [0.0, 0.5, 1.0]:
-        coder = HistoricalCoder(history_weight=weight, top_k=args.top_k).fit(train, terminology)
-        val_pred, _ = predict_rows(coder, val)
-        val_candidates = [json.loads(x) for x in val_pred.candidates_json]
+        candidate_coder = HistoricalCoder(history_weight=weight, top_k=args.top_k).fit(train, terminology)
+        val_candidate_pred, _ = predict_rows(candidate_coder, val)
+        val_candidate_lists = [json.loads(x) for x in val_candidate_pred.candidates_json]
         selection.append({
             "history_weight": weight,
-            "val_accuracy_at_1": float(val_pred.correct.mean()),
+            "val_accuracy_at_1": float(val_candidate_pred.correct.mean()),
             "val_accuracy_at_5": accuracy_at_k(
-                val_pred.gold_code, val_candidates, min(5, args.top_k)
+                val_candidate_pred.gold_code, val_candidate_lists, min(5, args.top_k)
             ),
         })
 
@@ -167,7 +165,7 @@ def main() -> None:
             float(baseline.loc[~baseline.gold_seen_in_train, "correct"].mean())
             if (~baseline.gold_seen_in_train).any() else None
         ),
-        "route_counts": baseline.route.value_counts().to_dict(),
+        "route_counts": {str(k): int(v) for k, v in baseline.route.value_counts().to_dict().items()},
         "oracle_top5_human_choice_upper_bound": accuracy_at_k(
             baseline.gold_code, baseline_candidates, min(5, args.top_k)
         ),
@@ -181,13 +179,7 @@ def main() -> None:
         n=min(max(args.deepseek_limit, 0), len(baseline)), random_state=args.seed + 3
     ).index.tolist()
 
-    evaluator = None
-    if not args.skip_deepseek and paired_index:
-        evaluator = DeepSeekRealCandidateEvaluator(model=args.model)
-
-    case_outputs: list[dict] = []
-    ds_rows: list[dict] = []
-
+    prepared_cases: list[dict[str, Any]] = []
     for idx in paired_index:
         row = baseline.loc[idx]
         prediction = baseline_objects[idx]
@@ -200,31 +192,54 @@ def main() -> None:
             historical_cases=prediction.historical_cases,
             top_k=args.top_k,
         )
+        prepared_cases.append({
+            "idx": idx,
+            "row": row,
+            "prediction": prediction,
+            "candidates": candidates,
+            "grounding": grounding,
+        })
 
-        result = None
-        ranked_codes = [str(x["code"]) for x in candidates]
-        llm_rationales: dict[str, dict] = {}
-        api_accepted = False
+    results_by_idx: dict[int, dict[str, Any] | None] = {int(case["idx"]): None for case in prepared_cases}
+    evaluator = None
+    if not args.skip_deepseek and prepared_cases:
+        evaluator = DeepSeekRealCandidateEvaluator(model=args.model)
 
-        if evaluator is not None:
+        def evaluate_prepared(case: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+            row = case["row"]
             result = evaluator.evaluate_case(
                 phrase=str(row.phrase),
-                candidates=candidates,
-                candidate_grounding=grounding,
+                candidates=case["candidates"],
+                candidate_grounding=case["grounding"],
                 allow_external_llm=True,
                 data_classification="public",
             )
-            api_accepted = bool(result["accepted"])
-            if api_accepted:
-                payload = result["payload"]
-                ranked_codes = [str(x) for x in payload["ranked_codes"]]
-                llm_rationales = {
-                    str(x["code"]): x for x in payload["candidate_rationales"]
-                }
+            return int(case["idx"]), result
+
+        worker_count = max(1, min(int(args.deepseek_workers), len(prepared_cases)))
+        with ThreadPoolExecutor(max_workers=worker_count) as pool:
+            for idx, result in pool.map(evaluate_prepared, prepared_cases):
+                results_by_idx[idx] = result
+
+    case_outputs: list[dict] = []
+    ds_rows: list[dict] = []
+    for case_input in prepared_cases:
+        idx = int(case_input["idx"])
+        row = case_input["row"]
+        candidates = case_input["candidates"]
+        grounding = case_input["grounding"]
+        result = results_by_idx[idx]
+
+        ranked_codes = [str(x["code"]) for x in candidates]
+        llm_rationales: dict[str, dict] = {}
+        api_accepted = bool(result and result.get("accepted"))
+        if api_accepted:
+            payload = result["payload"]
+            ranked_codes = [str(x) for x in payload["ranked_codes"]]
+            llm_rationales = {str(x["code"]): x for x in payload["candidate_rationales"]}
 
         deepseek_top1 = ranked_codes[0] if api_accepted else None
         pipeline_top1 = ranked_codes[0]
-
         option_rows = []
         for base_rank, (candidate, ground) in enumerate(zip(candidates, grounding), start=1):
             code = str(candidate["code"])
@@ -237,12 +252,8 @@ def main() -> None:
                 "model_score": float(candidate.get("score", 0.0) or 0.0),
                 "real_evidence_quotes": [str(row.phrase)],
                 "deterministic_grounding": ground,
-                "deepseek_rationale": (
-                    str(llm_rat.get("rationale", "")) if api_accepted else None
-                ),
-                "deepseek_evidence_quotes": (
-                    llm_rat.get("evidence_quotes", []) if api_accepted else []
-                ),
+                "deepseek_rationale": str(llm_rat.get("rationale", "")) if api_accepted else None,
+                "deepseek_evidence_quotes": llm_rat.get("evidence_quotes", []) if api_accepted else [],
                 "display_rationale": (
                     str(llm_rat.get("rationale", ground.get("rationale", "")))
                     if api_accepted else str(ground.get("rationale", ""))
@@ -265,17 +276,11 @@ def main() -> None:
             "pipeline_top1_with_fallback": pipeline_top1,
             "deepseek_call_attempted": bool(evaluator is not None),
             "deepseek_call_accepted": api_accepted,
-            "deepseek_validation_errors": (
-                result["validation_errors"] if result is not None else []
-            ),
-            "overall_uncertainty": (
-                (result.get("payload") or {}).get("overall_uncertainty", "")
-                if result is not None else ""
-            ),
+            "deepseek_validation_errors": result.get("validation_errors", []) if result else [],
+            "overall_uncertainty": ((result.get("payload") or {}).get("overall_uncertainty", "") if result else ""),
             "candidate_options": option_rows,
         }
         case_outputs.append(case)
-
         ds_rows.append({
             "record_id": case["record_id"],
             "gold_code": case["gold_code"],
@@ -284,13 +289,8 @@ def main() -> None:
             "deepseek_top1": case["deepseek_top1"] or "",
             "pipeline_top1_with_fallback": case["pipeline_top1_with_fallback"],
             "baseline_correct": int(case["baseline_top1"] == case["gold_code"]),
-            "deepseek_correct": (
-                int(case["deepseek_top1"] == case["gold_code"])
-                if case["deepseek_top1"] is not None else None
-            ),
-            "pipeline_correct": int(
-                case["pipeline_top1_with_fallback"] == case["gold_code"]
-            ),
+            "deepseek_correct": (int(case["deepseek_top1"] == case["gold_code"]) if case["deepseek_top1"] is not None else None),
+            "pipeline_correct": int(case["pipeline_top1_with_fallback"] == case["gold_code"]),
             "gold_in_top5": int(case["gold_code"] in [str(x["code"]) for x in candidates]),
             "deepseek_call_attempted": int(case["deepseek_call_attempted"]),
             "deepseek_call_accepted": int(case["deepseek_call_accepted"]),
@@ -298,20 +298,17 @@ def main() -> None:
 
     ds = pd.DataFrame(ds_rows)
     accepted = ds[ds.deepseek_call_accepted == 1] if len(ds) else pd.DataFrame()
-
     deepseek_metrics = {
         "execution_mode": "baseline_only" if args.skip_deepseek else "deepseek_requested",
         "n_paired_subset_cases": int(len(ds)),
         "n_deepseek_real_cases": int(ds.deepseek_call_attempted.sum()) if len(ds) else 0,
         "n_valid_deepseek_responses": int(ds.deepseek_call_accepted.sum()) if len(ds) else 0,
         "deepseek_model": args.model if not args.skip_deepseek else None,
+        "deepseek_workers": int(args.deepseek_workers) if not args.skip_deepseek else 0,
         "deepseek_api_success_rate": (
-            float(ds.deepseek_call_accepted.mean())
-            if len(ds) and ds.deepseek_call_attempted.any() else None
+            float(ds.deepseek_call_accepted.mean()) if len(ds) and ds.deepseek_call_attempted.any() else None
         ),
-        "paired_baseline_accuracy_at_1": (
-            float(ds.baseline_correct.mean()) if len(ds) else None
-        ),
+        "paired_baseline_accuracy_at_1": float(ds.baseline_correct.mean()) if len(ds) else None,
         "deepseek_reranked_accuracy_at_1_accepted_only": (
             float(accepted.deepseek_correct.mean()) if len(accepted) else None
         ),
@@ -319,15 +316,10 @@ def main() -> None:
             float(ds.pipeline_correct.mean()) if len(ds) else None
         ),
         "deepseek_accuracy_delta_accepted_only": (
-            float(accepted.deepseek_correct.mean() - accepted.baseline_correct.mean())
-            if len(accepted) else None
+            float(accepted.deepseek_correct.mean() - accepted.baseline_correct.mean()) if len(accepted) else None
         ),
-        "fixed_candidate_recall_at_5": (
-            float(ds.gold_in_top5.mean()) if len(ds) else None
-        ),
-        "oracle_top5_human_choice_upper_bound": (
-            float(ds.gold_in_top5.mean()) if len(ds) else None
-        ),
+        "fixed_candidate_recall_at_5": float(ds.gold_in_top5.mean()) if len(ds) else None,
+        "oracle_top5_human_choice_upper_bound": float(ds.gold_in_top5.mean()) if len(ds) else None,
         "all_displayed_options_have_real_phrase_evidence": True,
         "rationale_validation_rule": (
             "Every accepted DeepSeek candidate rationale must cite at least one exact allowed real-data phrase and preserve the fixed code set. "

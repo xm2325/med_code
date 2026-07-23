@@ -51,7 +51,7 @@ def validate_multi_candidate_payload(payload: Mapping[str, Any], *, allowed_code
 class DeepSeekRealCandidateEvaluator:
     """One-call-per-case fixed-candidate reranking plus grounded rationale for every option."""
 
-    def __init__(self, *, api_key: str | None = None, model: str = "deepseek-v4-pro", base_url: str = "https://api.deepseek.com/chat/completions", timeout_seconds: int = 90) -> None:
+    def __init__(self, *, api_key: str | None = None, model: str = "deepseek-v4-pro", base_url: str = "https://api.deepseek.com/chat/completions", timeout_seconds: int = 60) -> None:
         self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY", "")
         if not self.api_key:
             raise ValueError("DEEPSEEK_API_KEY is not set")
@@ -60,11 +60,27 @@ class DeepSeekRealCandidateEvaluator:
         self.timeout_seconds = int(timeout_seconds)
 
     def _request(self, messages: list[dict[str, str]]) -> dict[str, Any]:
-        body = {"model": self.model, "messages": messages, "response_format": {"type": "json_object"}, "temperature": 0, "max_tokens": 2200, "stream": False}
-        req = urllib.request.Request(self.base_url, data=json.dumps(body).encode("utf-8"), headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}, method="POST")
+        body = {
+            "model": self.model,
+            "messages": messages,
+            "response_format": {"type": "json_object"},
+            "thinking": {"type": "disabled"},
+            "temperature": 0,
+            "max_tokens": 1000,
+            "stream": False,
+        }
+        req = urllib.request.Request(
+            self.base_url,
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
         with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
             outer = json.loads(response.read().decode("utf-8"))
-        return json.loads(outer["choices"][0]["message"]["content"])
+        content = str(outer["choices"][0]["message"].get("content") or "").strip()
+        if not content:
+            raise ValueError("empty_model_content")
+        return json.loads(content)
 
     def evaluate_case(self, *, phrase: str, candidates: list[dict[str, Any]], candidate_grounding: list[dict[str, Any]], allow_external_llm: bool, data_classification: str, max_attempts: int = 2) -> dict[str, Any]:
         if not allow_external_llm:
@@ -78,19 +94,43 @@ class DeepSeekRealCandidateEvaluator:
         for candidate in candidates:
             code = str(candidate["code"])
             grounding = grounding_by_code.get(code, {})
-            candidate_payload.append({"code": code, "term": str(candidate.get("term", "")), "retrieval_score": float(candidate.get("score", 0.0) or 0.0), "allowed_source_evidence": [str(phrase)], "terminology_support": grounding.get("terminology_support", {}), "historical_support": grounding.get("historical_support", [])[:2]})
+            candidate_payload.append({
+                "code": code,
+                "term": str(candidate.get("term", "")),
+                "retrieval_score": float(candidate.get("score", 0.0) or 0.0),
+                "allowed_source_evidence": [str(phrase)],
+                "terminology_support": grounding.get("terminology_support", {}),
+                "historical_support": grounding.get("historical_support", [])[:2],
+            })
         system = (
             "You rerank a FIXED set of medical coding candidates for a PUBLIC benchmark phrase. Preserve exactly the supplied code set. "
             "Provide a separate concise rationale for EVERY candidate, including weaker alternatives. Every rationale MUST quote at least one exact string from allowed_source_evidence. "
             "A weaker candidate rationale should explain mismatch or ambiguity rather than pretending the code is correct. Do not invent clinical facts. Return JSON only."
         )
-        user = {"benchmark_phrase": str(phrase), "candidates": candidate_payload, "required_schema": {"ranked_codes": allowed_codes, "overall_uncertainty": "brief ambiguity statement", "candidate_rationales": [{"code": code, "rationale": "support or mismatch reasoning grounded in phrase", "evidence_quotes": [str(phrase)]} for code in allowed_codes]}}
+        user = {
+            "benchmark_phrase": str(phrase),
+            "candidates": candidate_payload,
+            "required_schema": {
+                "ranked_codes": allowed_codes,
+                "overall_uncertainty": "brief ambiguity statement",
+                "candidate_rationales": [
+                    {"code": code, "rationale": "support or mismatch reasoning grounded in phrase", "evidence_quotes": [str(phrase)]}
+                    for code in allowed_codes
+                ],
+            },
+        }
         last_errors: list[str] = []
         for _ in range(max(1, int(max_attempts))):
             try:
-                payload = self._request([{"role": "system", "content": system}, {"role": "user", "content": json.dumps(user, ensure_ascii=False)}])
-            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as exc:
-                last_errors = [f"api_or_parse_error:{type(exc).__name__}"]
+                payload = self._request([
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
+                ])
+            except urllib.error.HTTPError as exc:
+                last_errors = [f"api_http_error:{exc.code}"]
+                continue
+            except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as exc:
+                last_errors = [f"api_or_parse_error:{type(exc).__name__}:{str(exc)[:80]}"]
                 continue
             valid, errors = validate_multi_candidate_payload(payload, allowed_codes=allowed_codes, allowed_evidence_quotes=allowed_quotes)
             if valid:
