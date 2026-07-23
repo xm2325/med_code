@@ -88,6 +88,7 @@ jobs:
             echo 'No CI diagnostics changed'
           else
             git commit -m 'Record CI diagnostics'
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
       - name: Enforce CI success
