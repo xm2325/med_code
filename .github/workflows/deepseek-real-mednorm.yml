@@ -1,3 +1,4 @@
+# Public-repository push trigger for the v0.1.1 real-data evaluation.
 name: v0.1.1 real MedNorm DeepSeek evaluation
 
 on:
