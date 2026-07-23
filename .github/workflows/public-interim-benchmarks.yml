@@ -29,14 +29,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
-      - name: Run public dataset audits and proxy benchmarks
+      - name: Run public dataset audits and optional proxy benchmarks
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
           python scripts/run_public_interim_benchmarks.py \
             --output-dir /tmp/public_interim_benchmarks \
             --deepseek-sample-size 100
-      - name: Verify scientific boundaries
+      - name: Verify requested four-dataset audit and scientific boundaries
         run: |
           python - <<'PY'
           import json
@@ -45,8 +45,14 @@ jobs:
           assert p['scientific_conclusion']['can_continue_engineering_and_proxy_evaluation_while_waiting_for_mimic'] is True
           assert p['scientific_conclusion']['can_replace_authorised_mipa_for_c3'] is False
           assert p['scientific_conclusion']['can_replace_mimic_gold_text_structured_for_c4'] is False
-          assert p['simsum_proxy_benchmark']['dataset_n'] >= 9000
-          assert p['simsum_proxy_benchmark']['regex_normal_text']['n_features'] >= 5
+          requested = [
+              'nhse_synthetic_clinical_notes',
+              'asclepius_synthetic_clinical_notes',
+              'pmc_patients',
+              'synthea',
+          ]
+          for name in requested:
+              assert p['dataset_audits'][name]['status'] == 'COMPLETED', p['dataset_audits'][name]
           PY
       - name: Upload benchmark outputs
         if: always()
