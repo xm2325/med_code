@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from scripts import run_codiesp_direct_deepseek_thinking as base
+import run_codiesp_direct_deepseek_thinking as base
 
 
 def run_prompt(name: str, ids: list[str], texts: dict[str, str], gold: dict[str, set[str]], api_key: str, out_csv: Path):
