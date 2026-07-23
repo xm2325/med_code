@@ -1,23 +1,20 @@
-name: Waiting MIMIC experiments
+name: Waiting MIMIC experiments (manual)
 
 on:
-  push:
-    paths:
-      - 'scripts/run_waiting_mimic_experiments.py'
-      - '.github/workflows/waiting-mimic-experiments.yml'
-      - 'src/cohortcoder/scientific_acceptance.py'
-  pull_request:
-    paths:
-      - 'scripts/run_waiting_mimic_experiments.py'
-      - '.github/workflows/waiting-mimic-experiments.yml'
-      - 'src/cohortcoder/scientific_acceptance.py'
   workflow_dispatch:
+    inputs:
+      confirm_paid_run:
+        description: 'I confirm this run may call the paid DeepSeek API for NHSE/CodiEsp experiments.'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   waiting-mimic-experiments:
+    if: ${{ inputs.confirm_paid_run == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -31,6 +28,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+      - name: Require configured DeepSeek API key
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo 'DEEPSEEK_API_KEY is not configured. No paid LLM requests were started.' >&2
+            exit 1
+          fi
       - name: Run NHSE RA, Synthea C4, and CodiEsp coding experiments
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
