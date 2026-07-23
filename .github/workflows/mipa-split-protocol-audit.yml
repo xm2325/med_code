@@ -1,16 +1,6 @@
 name: MIPA split protocol audit
 
 on:
-  push:
-    paths:
-      - 'scripts/run_mipa_split_protocol_audit.py'
-      - '.github/workflows/mipa-split-protocol-audit.yml'
-      - 'src/cohortcoder/mipa_phenotyping.py'
-  pull_request:
-    paths:
-      - 'scripts/run_mipa_split_protocol_audit.py'
-      - '.github/workflows/mipa-split-protocol-audit.yml'
-      - 'src/cohortcoder/mipa_phenotyping.py'
   workflow_dispatch:
 
 permissions:
