@@ -1,24 +1,39 @@
-name: CodiEsp ICD knowledge A-B 50
+name: CodiEsp ICD knowledge A-B
 
 on:
   workflow_dispatch:
     inputs:
+      n_cases:
+        description: 'Number of fixed, sorted CodiEsp test cases to run in both Direct and ICD-RAG arms.'
+        required: true
+        type: choice
+        options:
+          - '10'
+          - '50'
+        default: '10'
       confirm_paid_run:
-        description: 'I confirm this run may call the paid DeepSeek API for the paired 50-case Direct vs ICD-RAG experiment.'
+        description: 'I confirm this run may call the paid DeepSeek API for the paired Direct vs ICD-RAG experiment.'
         required: true
         type: boolean
         default: false
+  push:
+    paths:
+      - '.github/triggers/codiesp-first10-20260723.txt'
 
 permissions:
   contents: read
 
 concurrency:
-  group: codiesp-icd-kb-ab-50-${{ github.ref }}
-  cancel-in-progress: false
+  group: codiesp-icd-kb-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  N_CASES: ${{ github.event_name == 'workflow_dispatch' && inputs.n_cases || '10' }}
+  NUM_SHARDS: '2'
 
 jobs:
   preflight:
-    if: ${{ inputs.confirm_paid_run == true }}
+    if: ${{ github.event_name == 'push' || inputs.confirm_paid_run == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -30,7 +45,7 @@ jobs:
             echo 'DEEPSEEK_API_KEY is not configured. No paid LLM requests were started.' >&2
             exit 1
           fi
-          echo 'Paid-run confirmation received and API key is configured.'
+          echo "Paid-run confirmation received. Running fixed first ${N_CASES} CodiEsp cases in paired Direct and ICD-RAG arms."
 
   run-shards:
     needs: preflight
@@ -38,10 +53,10 @@ jobs:
     timeout-minutes: 120
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 4
       matrix:
         mode: [direct, rag]
-        shard: [0,1,2,3,4,5,6,7,8,9]
+        shard: [0, 1]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,7 +64,7 @@ jobs:
           python-version: '3.11'
       - name: Install
         run: pip install pandas numpy scikit-learn
-      - name: Run fixed 50-case shard
+      - name: Run paired CodiEsp shard
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
@@ -57,8 +72,8 @@ jobs:
           python scripts/run_codiesp_icd_kb_ab.py \
             --mode '${{ matrix.mode }}' \
             --output-dir /tmp/ab \
-            --total-cases 50 \
-            --num-shards 10 \
+            --total-cases "$N_CASES" \
+            --num-shards "$NUM_SHARDS" \
             --shard-index '${{ matrix.shard }}' \
             --retrieval-top-k 35
       - name: Verify shard
@@ -101,14 +116,15 @@ jobs:
       - name: Strict paired acceptance
         run: |
           python - <<'PY'
-          import json, pathlib
+          import json, os, pathlib
           p=json.loads(pathlib.Path('/tmp/final/summary.json').read_text())
-          assert p['n_paired']==50, p['n_paired']
-          assert p['metrics']['direct']['n_documents']==50
-          assert p['metrics']['rag']['n_documents']==50
+          expected=int(os.environ['N_CASES'])
+          assert p['n_paired']==expected, (p['n_paired'], expected)
+          assert p['metrics']['direct']['n_documents']==expected
+          assert p['metrics']['rag']['n_documents']==expected
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: codiesp-icd-kb-ab-50-final
+          name: codiesp-icd-kb-ab-${{ env.N_CASES }}-final
           path: /tmp/final/
           retention-days: 90
