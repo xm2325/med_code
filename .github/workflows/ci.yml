@@ -2,7 +2,14 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+      - 'results/**'
   pull_request:
+    paths-ignore:
+      - 'results/**'
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -19,8 +26,16 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
       - name: Tests
-        run: pytest -q
+        id: tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q 2>&1 | tee /tmp/pytest.log
       - name: Package import smoke
+        id: package_smoke
+        if: steps.tests.outcome == 'success'
+        continue-on-error: true
         run: >-
           python -c "import cohortcoder; from cohortcoder.realdata import run_real_benchmark;
           from cohortcoder.advanced import AdvancedSingleLabelCoder, AdvancedModelConfig;
@@ -29,7 +44,59 @@ jobs:
           from cohortcoder.explanation_quality import apply_explanation_quality_gate;
           print(cohortcoder.__version__)"
       - name: Demo smoke
+        id: demo_smoke
+        if: steps.tests.outcome == 'success' && steps.package_smoke.outcome == 'success'
+        continue-on-error: true
+        shell: bash
         run: |
-          python scripts/run_demo.py
-          python scripts/run_explainable_demo.py --output-dir /tmp/medcode_explainable_demo
-          python scripts/run_multilabel_synthetic_demo.py
+          set -o pipefail
+          {
+            python scripts/run_demo.py
+            python scripts/run_explainable_demo.py --output-dir /tmp/medcode_explainable_demo
+            python scripts/run_multilabel_synthetic_demo.py
+          } 2>&1 | tee /tmp/demo-smoke.log
+      - name: Persist CI diagnostics
+        if: always() && github.event_name == 'push' && github.ref_name == 'main'
+        env:
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+          PACKAGE_OUTCOME: ${{ steps.package_smoke.outcome }}
+          DEMO_OUTCOME: ${{ steps.demo_smoke.outcome }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p results/ci
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out = Path('results/ci')
+          payload = {
+              'workflow_run_id': os.environ.get('RUN_ID'),
+              'tests_outcome': os.environ.get('TESTS_OUTCOME') or 'skipped',
+              'package_smoke_outcome': os.environ.get('PACKAGE_OUTCOME') or 'skipped',
+              'demo_smoke_outcome': os.environ.get('DEMO_OUTCOME') or 'skipped',
+          }
+          (out / 'latest_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          for source, target in [('/tmp/pytest.log', 'pytest.log'), ('/tmp/demo-smoke.log', 'demo-smoke.log')]:
+              path = Path(source)
+              if path.exists():
+                  lines = path.read_text(encoding='utf-8', errors='replace').splitlines()
+                  (out / target).write_text('\n'.join(lines[-250:]) + '\n', encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/ci
+          if git diff --cached --quiet; then
+            echo 'No CI diagnostics changed'
+          else
+            git commit -m 'Record CI diagnostics'
+            git push origin HEAD:main
+          fi
+      - name: Enforce CI success
+        if: always()
+        env:
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+          PACKAGE_OUTCOME: ${{ steps.package_smoke.outcome }}
+          DEMO_OUTCOME: ${{ steps.demo_smoke.outcome }}
+        run: |
+          test "${TESTS_OUTCOME}" = "success"
+          test "${PACKAGE_OUTCOME}" = "success"
+          test "${DEMO_OUTCOME}" = "success"
