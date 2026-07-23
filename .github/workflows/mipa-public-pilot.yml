@@ -7,6 +7,12 @@ on:
     paths:
       - scripts/run_mipa_public_pilot.py
       - .github/workflows/mipa-public-pilot.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/run_mipa_public_pilot.py
+      - .github/workflows/mipa-public-pilot.yml
   workflow_dispatch:
 
 permissions:
