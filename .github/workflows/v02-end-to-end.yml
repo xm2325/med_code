@@ -1,0 +1,133 @@
+name: v0.2 end-to-end real evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v02-end-to-end.yml'
+      - 'scripts/run_v02_end_to_end_real.py'
+      - 'src/cohortcoder/candidate_generation.py'
+      - 'src/cohortcoder/deepseek_real_eval.py'
+      - 'src/cohortcoder/candidate_rationales.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  end-to-end:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Verify DeepSeek Actions secret
+        id: secret_probe
+        run: |
+          test -n "$DEEPSEEK_API_KEY"
+          echo 'DeepSeek Actions secret is available'
+      - name: Run fixed v0.2 real end-to-end evaluation
+        id: evaluation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_v02_end_to_end_real.py \
+            --output-dir /tmp/medcode-v02-end-to-end \
+            --candidate-result results/v0.2/candidate_generation_results.json \
+            --train-limit 3000 \
+            --validation-limit 200 \
+            --test-limit 500 \
+            --deepseek-limit 50 \
+            --deepseek-workers 6 \
+            --top-k 5 \
+            --retrieval-top-k 50 \
+            --target-auto-accuracy 0.95 \
+            --model deepseek-v4-pro 2>&1 | tee /tmp/v02-end-to-end.log
+      - name: Upload complete artifacts
+        if: steps.evaluation.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: medcode-v0.2-end-to-end
+          path: /tmp/medcode-v02-end-to-end
+          retention-days: 30
+      - name: Persist results or diagnostics
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p results/v0.2/end_to_end
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out = Path('results/v0.2/end_to_end')
+          run = Path('/tmp/medcode-v02-end-to-end')
+          payload = {
+              'release': '0.2.0-end-to-end',
+              'workflow_run_id': os.environ.get('RUN_ID'),
+              'evaluation_outcome': os.environ.get('EVALUATION_OUTCOME') or 'skipped',
+              'deepseek_real_execution_completed': os.environ.get('EVALUATION_OUTCOME') == 'success',
+          }
+          (out / 'execution_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          log = Path('/tmp/v02-end-to-end.log')
+          if log.exists():
+              lines = log.read_text(encoding='utf-8', errors='replace').splitlines()
+              (out / 'execution.log').write_text('\n'.join(lines[-250:]) + '\n', encoding='utf-8')
+          if run.exists():
+              for name in ['v02_end_to_end_results.json', 'v02_deepseek_paired_predictions.csv', 'v02_deepseek_cases.jsonl']:
+                  src = run / name
+                  if src.exists():
+                      (out / name).write_bytes(src.read_bytes())
+          result = run / 'v02_end_to_end_results.json'
+          if result.exists():
+              data = json.loads(result.read_text(encoding='utf-8'))
+              r = data['v0_2_retrieval']
+              d = data['v0_2_deepseek']
+              def pct(v): return 'n/a' if v is None else f'{100*v:.1f}%'
+              lines = [
+                  '# MedCode v0.2 end-to-end observed result', '',
+                  '> Public MedNorm / CADEC-held-out, TRAIN-derived closed-code diagnostic.', '',
+                  '| Metric | Result |', '|---|---:|',
+                  f"| Retrieval Accuracy@1 (500 TEST) | {pct(r['accuracy_at_1'])} |",
+                  f"| Retrieval Recall@5 | {pct(r['recall_at_5'])} |",
+                  f"| Retrieval Recall@20 | {pct(r['recall_at_20'])} |",
+                  f"| Retrieval Recall@50 | {pct(r['recall_at_50'])} |",
+                  f"| DeepSeek paired subset | {d['n_paired_subset_cases']} |",
+                  f"| DeepSeek valid response rate | {pct(d['deepseek_valid_response_rate'])} |",
+                  f"| Paired retrieval Accuracy@1 | {pct(d['retrieval_accuracy_at_1'])} |",
+                  f"| Pipeline Accuracy@1 with DeepSeek/fallback | {pct(d['pipeline_accuracy_at_1_with_fallback'])} |",
+                  f"| Pipeline delta | {pct(d['pipeline_delta_vs_retrieval'])} |",
+                  f"| Fixed candidate Recall@5 | {pct(d['fixed_candidate_recall_at_5'])} |",
+                  f"| Cases corrected by DeepSeek | {d['cases_corrected_by_deepseek']} |",
+                  f"| Cases harmed by DeepSeek | {d['cases_harmed_by_deepseek']} |",
+                  '',
+                  'Every displayed candidate retains the original real phrase as evidence and a candidate-specific rationale. This is not a licensed full-MedDRA open-set evaluation.'
+              ]
+              (out / 'RESULTS.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/v0.2/end_to_end
+          if git diff --cached --quiet; then
+            echo 'No v0.2 end-to-end result/status changes'
+          else
+            git commit -m 'Record v0.2 end-to-end real evaluation'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Enforce successful end-to-end evaluation
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: test "${EVALUATION_OUTCOME}" = "success"
