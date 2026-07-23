@@ -3,7 +3,9 @@ name: v0.2 candidate generation real evaluation
 
 on:
   push:
-    branches: [agent/v0.2-candidate-generation]
+    branches:
+      - main
+      - agent/v0.2-candidate-generation
     paths:
       - '.github/workflows/candidate-generation-v02.yml'
       - 'scripts/run_candidate_generation_v02.py'
@@ -94,7 +96,7 @@ jobs:
           name: medcode-v0.2-candidate-generation
           path: /tmp/medcode-v02-candidates
           retention-days: 30
-      - name: Persist observed branch results or diagnostics
+      - name: Persist observed results or diagnostics
         if: always() && github.event_name == 'push'
         env:
           TEST_OUTCOME: ${{ steps.focused_tests.outcome }}
@@ -135,7 +137,7 @@ jobs:
             echo 'No v0.2 result/status changes to commit'
           else
             git commit -m 'Record v0.2 candidate-generation evaluation'
-            git push origin HEAD:agent/v0.2-candidate-generation
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
       - name: Enforce successful v0.2 validation
         if: always()
