@@ -11,7 +11,12 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cohortcoder.ra_comorbidity import confidence_review_curve, evaluate_discordance, public_mipa_ra_summary
+from cohortcoder.ra_comorbidity import (
+    confidence_review_curve,
+    evaluate_discordance,
+    public_mipa_ra_summary,
+    validate_discordance_table,
+)
 
 
 def main() -> None:
@@ -35,6 +40,7 @@ def main() -> None:
 
     if args.discordance_table:
         table = pd.read_csv(args.discordance_table)
+        validate_discordance_table(table, require_evidence=True)
         metrics, patterns = evaluate_discordance(table)
         metrics.to_csv(output / "ra_discordance_metrics.csv", index=False)
         patterns.to_csv(output / "ra_discordance_patterns.csv", index=False)
