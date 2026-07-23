@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/deepseek-real-smoke.yml'
       - '.github/workflows/deepseek-real-mednorm.yml'
+      - 'scripts/run_deepseek_mednorm_real.py'
+      - 'src/cohortcoder/deepseek_real_eval.py'
+      - 'src/cohortcoder/mednorm.py'
 
 permissions:
   contents: read
@@ -13,13 +16,11 @@ permissions:
 jobs:
   deepseek-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - name: Verify Actions secret
         run: |
           test -n "$DEEPSEEK_API_KEY"
@@ -36,10 +37,11 @@ jobs:
         run: |
           python scripts/run_deepseek_mednorm_real.py \
             --output-dir /tmp/medcode-v011-smoke \
-            --train-limit 1200 \
-            --validation-limit 80 \
-            --baseline-limit 80 \
+            --train-limit 1000 \
+            --validation-limit 60 \
+            --baseline-limit 60 \
             --deepseek-limit 3 \
+            --deepseek-workers 3 \
             --top-k 5 \
             --target-auto-accuracy 0.95 \
             --model deepseek-v4-pro
