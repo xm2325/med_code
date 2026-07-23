@@ -42,6 +42,8 @@ jobs:
           from cohortcoder.advanced_benchmark import run_advanced_singlelabel_benchmark;
           from cohortcoder.mimic_benchmark import run_mimic_icd10_benchmark;
           from cohortcoder.explanation_quality import apply_explanation_quality_gate;
+          from cohortcoder.mipa_local_inference import InferenceConfig, generate_local_predictions;
+          from cohortcoder.discordance import evaluate_three_way_discordance;
           print(cohortcoder.__version__)"
       - name: Demo smoke
         id: demo_smoke
