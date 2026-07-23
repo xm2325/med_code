@@ -9,6 +9,7 @@ from .candidate_generation import AliasAwareHybridCoder, CandidateGenerationConf
 from .candidate_rationales import build_candidate_rationales, build_review_packet
 from .core import HistoricalCoder, accuracy_at_k, coverage_accuracy
 from .deepseek_real_eval import DeepSeekRealCandidateEvaluator, validate_multi_candidate_payload
+from .discordance import evaluate_three_way_discordance, write_discordance_outputs
 from .explain import EvidenceSpan, build_explanation_record, explain_predictions, extract_evidence_spans, write_explanation_artifacts
 from .explanation_quality import apply_explanation_quality_gate, evaluate_explanation_quality, summarize_explanation_quality
 from .feedback import ExpertFeedback, append_feedback_jsonl, feedback_summary, feedback_to_training_memory, hash_reviewer_id, validate_feedback
