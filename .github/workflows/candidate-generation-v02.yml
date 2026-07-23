@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   candidate-generation:
@@ -82,3 +82,19 @@ jobs:
           name: medcode-v0.2-candidate-generation
           path: /tmp/medcode-v02-candidates
           retention-days: 30
+      - name: Persist observed branch results
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p results/v0.2
+          cp /tmp/medcode-v02-candidates/candidate_generation_results.json results/v0.2/
+          cp /tmp/medcode-v02-candidates/model_selection.csv results/v0.2/
+          cp /tmp/medcode-v02-candidates/candidate_failure_examples.jsonl results/v0.2/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/v0.2
+          if git diff --cached --quiet; then
+            echo 'No v0.2 result changes to commit'
+          else
+            git commit -m 'Record v0.2 candidate-generation evaluation'
+            git push origin HEAD:agent/v0.2-candidate-generation
+          fi
