@@ -1,9 +1,9 @@
-# Public-repository push trigger for the v0.1.1 real-data evaluation.
+# Public-repository execution path for the v0.1.1 real-data evaluation.
 name: v0.1.1 real MedNorm DeepSeek evaluation
 
 on:
   push:
-    branches: [v0.1.1-deepseek-real]
+    branches: [main, v0.1.1-deepseek-real]
     paths:
       - '.github/workflows/deepseek-real-mednorm.yml'
       - 'scripts/run_deepseek_mednorm_real.py'
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v0.1.1-deepseek-real
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -45,7 +45,7 @@ jobs:
           python - <<'PY'
           import os
           if not os.environ.get('DEEPSEEK_API_KEY'):
-              raise SystemExit('DEEPSEEK_API_KEY repository secret is not configured')
+              raise SystemExit('DEEPSEEK_API_KEY repository Actions secret is not configured or not available to this event')
           print('DeepSeek secret is available')
           PY
       - name: Run real public MedNorm evaluation
@@ -72,7 +72,7 @@ jobs:
           path: /tmp/medcode-v011-real
           retention-days: 30
       - name: Commit aggregate results and selected examples
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -81,5 +81,5 @@ jobs:
             echo 'No result changes to commit'
           else
             git commit -m 'Add v0.1.1 real MedNorm DeepSeek results'
-            git push origin HEAD:v0.1.1-deepseek-real
+            git push origin HEAD:${GITHUB_REF_NAME}
           fi
