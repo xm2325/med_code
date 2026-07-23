@@ -1,0 +1,102 @@
+{
+  "benchmark": {
+    "clinical_phenotypes": [
+      "alcohol_abuse",
+      "c_diff_complication",
+      "c_diff_past",
+      "dementia",
+      "depression",
+      "diabetes_type_1",
+      "diabetes_type_2",
+      "hfpef",
+      "hfref",
+      "hypertension",
+      "sle",
+      "metastatic_cancer",
+      "obesity",
+      "rheumatoid_arthritis",
+      "vte_complication",
+      "vte_past"
+    ],
+    "n_clinical_phenotypes": 16,
+    "n_discharge_summary_labels": 1388,
+    "n_label_columns_including_none": 17,
+    "none_positive_notes": 35,
+    "note_id_audit": {
+      "max_rows_per_id": 1,
+      "n_ids_with_multiple_rows": 0,
+      "n_rows": 1388,
+      "n_unique": 1388
+    },
+    "sentinel_label": "none",
+    "subject_id_audit": {
+      "max_rows_per_id": 21,
+      "n_ids_with_multiple_rows": 174,
+      "n_rows": 1388,
+      "n_unique": 1011
+    }
+  },
+  "interpretation": {
+    "deepseek_mipa_note_evaluation_executed": false,
+    "discharge_summary_text_publicly_available": false,
+    "public_labels_reproducible": true,
+    "ra_comorbidity_fractions_are_prevalence_estimates": false,
+    "sampling_warning": "MIPA is a phenotype benchmark assembled from phenotype-targeted candidate notes; RA-subset co-occurrence fractions describe this benchmark sample only and must not be reported as RA prevalence.",
+    "split_warning": "Repeated subject_id values are present. Any train/validation/test split for note-level phenotyping should be subject-disjoint to avoid patient-level leakage.",
+    "why_not": "MIPA expert labels are public, but the underlying MIMIC-IV discharge summaries require credentialed PhysioNet access. This public pilot intentionally does not infer, reconstruct, or transmit restricted discharge summaries."
+  },
+  "ra_subset": {
+    "candidate_source_counts": {
+      "phenotype_cdiff_dataset": 3,
+      "phenotype_depression_dataset": 4,
+      "phenotype_dm1_dataset": 3,
+      "phenotype_lupus_dataset": 4,
+      "phenotype_metastatic cancer_dataset": 3,
+      "phenotype_obesity_dataset": 5,
+      "phenotype_ra_dataset": 141,
+      "phenotype_roh abuse_dataset": 1
+    },
+    "cooccurrence_summary": {
+      "at_least_1_other_phenotype": {
+        "fraction": 0.9329268292682927,
+        "n": 153
+      },
+      "at_least_2_other_phenotypes": {
+        "fraction": 0.7378048780487805,
+        "n": 121
+      },
+      "at_least_3_other_phenotypes": {
+        "fraction": 0.4878048780487805,
+        "n": 80
+      },
+      "max_other_phenotypes_per_ra_note": 7,
+      "mean_other_phenotypes_per_ra_note": 2.548780487804878,
+      "median_other_phenotypes_per_ra_note": 2.0
+    },
+    "cooccurring_phenotype_count_distribution": {
+      "0": 11,
+      "1": 32,
+      "2": 41,
+      "3": 40,
+      "4": 22,
+      "5": 13,
+      "6": 4,
+      "7": 1
+    },
+    "n_ra_positive_notes": 164,
+    "subject_id_audit": {
+      "max_rows_per_id": 9,
+      "n_ids_with_multiple_rows": 26,
+      "n_rows": 164,
+      "n_unique": 99
+    }
+  },
+  "schema_version": "mipa-public-pilot-v0.3.2",
+  "source": {
+    "labels_path": null,
+    "labels_url": "https://raw.githubusercontent.com/open-health-data-lab/MIPA/main/data/filters/golden_labels.csv",
+    "upstream_file": "data/filters/golden_labels.csv",
+    "upstream_repository": "open-health-data-lab/MIPA"
+  },
+  "study": "MIPA public-label feasibility audit for RA comorbidity phenotyping"
+}
