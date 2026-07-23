@@ -1,26 +1,6 @@
 name: MIPA scientific acceptance
 
 on:
-  push:
-    paths:
-      - 'src/cohortcoder/scientific_acceptance.py'
-      - 'scripts/run_scientific_acceptance.py'
-      - 'tests/test_scientific_acceptance.py'
-      - 'results/mipa_public_pilot/**'
-      - 'results/mipa_split_protocol_audit/**'
-      - '.github/workflows/mipa-scientific-acceptance.yml'
-      - 'pyproject.toml'
-      - 'src/cohortcoder/__init__.py'
-  pull_request:
-    paths:
-      - 'src/cohortcoder/scientific_acceptance.py'
-      - 'scripts/run_scientific_acceptance.py'
-      - 'tests/test_scientific_acceptance.py'
-      - 'results/mipa_public_pilot/**'
-      - 'results/mipa_split_protocol_audit/**'
-      - '.github/workflows/mipa-scientific-acceptance.yml'
-      - 'pyproject.toml'
-      - 'src/cohortcoder/__init__.py'
   workflow_dispatch:
 
 permissions:
