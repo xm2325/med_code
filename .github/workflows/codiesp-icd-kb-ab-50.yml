@@ -1,0 +1,98 @@
+name: CodiEsp ICD knowledge A-B 50
+
+on:
+  push:
+    paths:
+      - 'scripts/run_codiesp_icd_kb_ab.py'
+      - 'scripts/aggregate_codiesp_icd_kb_ab.py'
+      - '.github/workflows/codiesp-icd-kb-ab-50.yml'
+  pull_request:
+    paths:
+      - 'scripts/run_codiesp_icd_kb_ab.py'
+      - 'scripts/aggregate_codiesp_icd_kb_ab.py'
+      - '.github/workflows/codiesp-icd-kb-ab-50.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-shards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        mode: [direct, rag]
+        shard: [0,1,2,3,4,5,6,7,8,9]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: pip install pandas numpy scikit-learn
+      - name: Run fixed 50-case shard
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          mkdir -p /tmp/ab
+          python scripts/run_codiesp_icd_kb_ab.py \
+            --mode '${{ matrix.mode }}' \
+            --output-dir /tmp/ab \
+            --total-cases 50 \
+            --num-shards 10 \
+            --shard-index '${{ matrix.shard }}' \
+            --retrieval-top-k 35
+      - name: Verify shard
+        run: |
+          python - <<'PY'
+          import json, pathlib, pandas as pd
+          p=pathlib.Path('/tmp/ab/run_manifest.json')
+          m=json.loads(p.read_text())
+          assert m['n_failures']==0
+          assert m['n_success']>0
+          x=pd.read_csv('/tmp/ab/predictions.csv')
+          assert len(x)==m['n_success']
+          assert set(x['mode'])=={m['mode']}
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-icd-kb-ab-${{ matrix.mode }}-${{ matrix.shard }}
+          path: /tmp/ab/
+          retention-days: 90
+
+  aggregate:
+    if: always()
+    needs: run-shards
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pandas
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: codiesp-icd-kb-ab-*
+          path: /tmp/shards
+      - name: Aggregate paired results
+        run: |
+          mkdir -p /tmp/final
+          python scripts/aggregate_codiesp_icd_kb_ab.py --input-dir /tmp/shards --output-dir /tmp/final
+      - name: Strict paired acceptance
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p=json.loads(pathlib.Path('/tmp/final/summary.json').read_text())
+          assert p['n_paired']==50, p['n_paired']
+          assert p['metrics']['direct']['n_documents']==50
+          assert p['metrics']['rag']['n_documents']==50
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-icd-kb-ab-50-final
+          path: /tmp/final/
+          retention-days: 90
