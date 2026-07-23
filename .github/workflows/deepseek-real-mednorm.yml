@@ -24,23 +24,35 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+
+      - name: Probe DeepSeek secret without printing it
+        id: secret_probe
+        shell: bash
+        run: |
+          if [ -n "${DEEPSEEK_API_KEY}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "DeepSeek Actions secret is available"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "DeepSeek Actions secret is NOT available to this workflow"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.secret_probe.outputs.available == 'true'
         with:
           python-version: '3.11'
           cache: pip
+
       - name: Install
+        if: steps.secret_probe.outputs.available == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-      - name: Verify secret presence without printing it
-        run: |
-          python - <<'PY'
-          import os
-          if not os.environ.get('DEEPSEEK_API_KEY'):
-              raise SystemExit('DEEPSEEK_API_KEY repository Actions secret is not configured')
-          print('DeepSeek secret is available')
-          PY
+
       - name: Run real public MedNorm evaluation
+        id: evaluation
+        if: steps.secret_probe.outputs.available == 'true'
+        continue-on-error: true
         run: |
           python scripts/run_deepseek_mednorm_real.py \
             --output-dir /tmp/medcode-v011-real \
@@ -51,26 +63,80 @@ jobs:
             --top-k 5 \
             --target-auto-accuracy 0.95 \
             --model deepseek-v4-pro
+
       - name: Build publishable summary and grounded examples
+        if: steps.evaluation.outcome == 'success'
         run: |
           python scripts/publish_v011_results.py \
             --run-dir /tmp/medcode-v011-real \
             --publish-dir results/v0.1.1 \
             --max-examples 8
+
+      - name: Write machine-readable execution status
+        if: always()
+        env:
+          SECRET_AVAILABLE: ${{ steps.secret_probe.outputs.available }}
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          mkdir -p results/v0.1.1
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          secret = os.environ.get('SECRET_AVAILABLE') == 'true'
+          outcome = os.environ.get('EVALUATION_OUTCOME') or 'skipped'
+          payload = {
+              'release': '0.1.1',
+              'workflow_run_id': os.environ.get('RUN_ID'),
+              'workflow_run_attempt': os.environ.get('RUN_ATTEMPT'),
+              'repository_visibility_path': 'public-main-push',
+              'deepseek_actions_secret_available': secret,
+              'evaluation_outcome': outcome,
+              'deepseek_real_execution_completed': bool(secret and outcome == 'success'),
+          }
+          if not secret:
+              payload['blocking_reason'] = 'DEEPSEEK_API_KEY is not available as a repository Actions secret to the public-main workflow.'
+          elif outcome != 'success':
+              payload['blocking_reason'] = 'The real-data evaluation step failed; inspect the workflow logs for the first executable error.'
+          else:
+              payload['blocking_reason'] = None
+          Path('results/v0.1.1/execution_status.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          print(json.dumps(payload, indent=2))
+          PY
+
       - name: Upload complete evaluation artifacts
+        if: steps.evaluation.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: medcode-v0.1.1-real-deepseek
           path: /tmp/medcode-v011-real
           retention-days: 30
-      - name: Commit aggregate results and selected examples
+
+      - name: Commit results or diagnostic status
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add results/v0.1.1
           if git diff --cached --quiet; then
-            echo 'No result changes to commit'
+            echo 'No result/status changes to commit'
           else
-            git commit -m 'Add v0.1.1 real MedNorm DeepSeek results'
+            git commit -m 'Record v0.1.1 real MedNorm DeepSeek execution'
             git push origin HEAD:main
+          fi
+
+      - name: Enforce successful real evaluation
+        if: always()
+        env:
+          SECRET_AVAILABLE: ${{ steps.secret_probe.outputs.available }}
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: |
+          if [ "${SECRET_AVAILABLE}" != "true" ]; then
+            echo 'DEEPSEEK_API_KEY is unavailable to GitHub Actions.'
+            exit 1
+          fi
+          if [ "${EVALUATION_OUTCOME}" != "success" ]; then
+            echo "Real evaluation outcome: ${EVALUATION_OUTCOME}"
+            exit 1
           fi
