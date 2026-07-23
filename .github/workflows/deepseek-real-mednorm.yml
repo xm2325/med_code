@@ -1,4 +1,5 @@
 # Public-repository execution path for the v0.1.1 real-data evaluation.
+# Re-triggered after DEEPSEEK_API_KEY was configured as a repository Actions secret.
 name: v0.1.1 real MedNorm DeepSeek evaluation
 
 on:
