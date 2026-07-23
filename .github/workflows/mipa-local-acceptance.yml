@@ -1,0 +1,125 @@
+name: MIPA local acceptance
+
+on:
+  push:
+    paths:
+      - 'src/cohortcoder/mipa_*.py'
+      - 'scripts/generate_mipa_local_predictions.py'
+      - 'scripts/run_mipa_local_phenotyping.py'
+      - 'tests/test_mipa_local_inference.py'
+      - '.github/workflows/mipa-local-acceptance.yml'
+  pull_request:
+    paths:
+      - 'src/cohortcoder/mipa_*.py'
+      - 'scripts/generate_mipa_local_predictions.py'
+      - 'scripts/run_mipa_local_phenotyping.py'
+      - 'tests/test_mipa_local_inference.py'
+      - '.github/workflows/mipa-local-acceptance.yml'
+
+jobs:
+  synthetic-end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Build synthetic local-only fixture
+        run: |
+          mkdir -p /tmp/mipa_acceptance
+          cat > /tmp/mipa_acceptance/notes.csv <<'CSV'
+          note_id,subject_id,hadm_id,text
+          n1,s1,h1,Hypertension documented.
+          n2,s2,h2,No target disease documented.
+          CSV
+          cat > /tmp/mipa_acceptance/labels.csv <<'CSV'
+          note_id,subject_id,hadm_id,hypertension
+          n1,s1,h1,1
+          n2,s2,h2,0
+          CSV
+          cat > /tmp/mipa_acceptance/audit.csv <<'CSV'
+          note_id,phenotype,supports_prediction,severe_context_error
+          n1,hypertension,1,0
+          CSV
+          cat > /tmp/mipa_acceptance/mock_backend.py <<'PY'
+          import json, sys
+          request = json.loads(sys.stdin.read())
+          note = request['messages'][1]['content']
+          if 'Hypertension documented.' in note:
+              response = {
+                  'prediction': 1,
+                  'evidence': 'Hypertension documented.',
+                  'assertion': 'present',
+                  'temporality': 'current',
+                  'confidence': 0.99,
+              }
+          else:
+              response = {
+                  'prediction': 0,
+                  'evidence': '',
+                  'assertion': 'absent',
+                  'temporality': 'unknown',
+                  'confidence': 0.95,
+              }
+          print(json.dumps(response))
+          PY
+      - name: Generate predictions through local command adapter
+        run: |
+          python scripts/generate_mipa_local_predictions.py \
+            --notes /tmp/mipa_acceptance/notes.csv \
+            --predictions /tmp/mipa_acceptance/predictions.jsonl \
+            --failures /tmp/mipa_acceptance/failures.jsonl \
+            --backend-command "python /tmp/mipa_acceptance/mock_backend.py" \
+            --model-id synthetic-mock-local \
+            --phenotypes hypertension \
+            --summary /tmp/mipa_acceptance/inference_summary.json \
+            --require-complete
+      - name: Verify restricted-note minimisation contract
+        run: |
+          ! grep -Fq 'No target disease documented.' /tmp/mipa_acceptance/predictions.jsonl
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary = json.loads(Path('/tmp/mipa_acceptance/inference_summary.json').read_text())
+          assert summary['complete'] is True
+          assert summary['counts']['expected_pairs'] == 2
+          assert summary['counts']['completed_pairs'] == 2
+          assert summary['counts']['failures_this_run'] == 0
+          assert summary['governance']['harness_http_calls'] is False
+          PY
+      - name: Run Stage 1/2 final acceptance gate
+        run: |
+          python scripts/run_mipa_local_phenotyping.py \
+            --labels /tmp/mipa_acceptance/labels.csv \
+            --notes /tmp/mipa_acceptance/notes.csv \
+            --predictions /tmp/mipa_acceptance/predictions.jsonl \
+            --phenotypes hypertension \
+            --output-dir /tmp/mipa_acceptance/evaluation \
+            --evidence-audit /tmp/mipa_acceptance/audit.csv \
+            --min-phenotypes-passing 1 \
+            --common-positive-min 1 \
+            --require-final-pass
+      - name: Verify final scientific gate status
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary = json.loads(Path('/tmp/mipa_acceptance/evaluation/summary.json').read_text())
+          assert summary['acceptance']['final_status'] == 'PASS'
+          assert summary['performance']['macro_f1'] == 1.0
+          assert summary['human_evidence_audit']['evidence_support_rate'] == 1.0
+          assert summary['human_evidence_audit']['severe_context_error_rate'] == 0.0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mipa-local-synthetic-acceptance
+          path: |
+            /tmp/mipa_acceptance/inference_summary.json
+            /tmp/mipa_acceptance/predictions.jsonl
+            /tmp/mipa_acceptance/evaluation
