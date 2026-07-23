@@ -77,7 +77,10 @@ class DeepSeekRealCandidateEvaluator:
         )
         with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
             outer = json.loads(response.read().decode("utf-8"))
-        return json.loads(outer["choices"][0]["message"]["content"])
+        content = str(outer["choices"][0]["message"].get("content") or "").strip()
+        if not content:
+            raise ValueError("empty_model_content")
+        return json.loads(content)
 
     def evaluate_case(self, *, phrase: str, candidates: list[dict[str, Any]], candidate_grounding: list[dict[str, Any]], allow_external_llm: bool, data_classification: str, max_attempts: int = 2) -> dict[str, Any]:
         if not allow_external_llm:
@@ -127,7 +130,7 @@ class DeepSeekRealCandidateEvaluator:
                 last_errors = [f"api_http_error:{exc.code}"]
                 continue
             except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as exc:
-                last_errors = [f"api_or_parse_error:{type(exc).__name__}"]
+                last_errors = [f"api_or_parse_error:{type(exc).__name__}:{str(exc)[:80]}"]
                 continue
             valid, errors = validate_multi_candidate_payload(payload, allowed_codes=allowed_codes, allowed_evidence_quotes=allowed_quotes)
             if valid:
