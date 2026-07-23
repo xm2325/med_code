@@ -1,0 +1,53 @@
+name: Public interim clinical benchmarks
+
+on:
+  push:
+    paths:
+      - 'scripts/run_public_interim_benchmarks.py'
+      - '.github/workflows/public-interim-benchmarks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-interim-benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run public dataset audits and proxy benchmarks
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          python scripts/run_public_interim_benchmarks.py \
+            --output-dir /tmp/public_interim_benchmarks \
+            --deepseek-sample-size 100
+      - name: Verify scientific boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/public_interim_benchmarks/summary.json').read_text())
+          assert p['scientific_conclusion']['can_continue_engineering_and_proxy_evaluation_while_waiting_for_mimic'] is True
+          assert p['scientific_conclusion']['can_replace_authorised_mipa_for_c3'] is False
+          assert p['scientific_conclusion']['can_replace_mimic_gold_text_structured_for_c4'] is False
+          assert p['simsum_proxy_benchmark']['dataset_n'] >= 9000
+          assert p['simsum_proxy_benchmark']['regex_normal_text']['n_features'] >= 5
+          completed = sum(v.get('status') == 'COMPLETED' for v in p['dataset_audits'].values())
+          assert completed >= 3, p['dataset_audits']
+          PY
+      - name: Upload benchmark outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-interim-clinical-benchmarks
+          path: /tmp/public_interim_benchmarks/
