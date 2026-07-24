@@ -1,2 +1,3 @@
 one-time trigger for CodiEsp DEV retrieval benchmark v0.2
 No LLM/API calls. No DeepSeek secret is exposed to this workflow.
+trigger_nonce: 2026-07-24-dev-v02-retry-with-persist
