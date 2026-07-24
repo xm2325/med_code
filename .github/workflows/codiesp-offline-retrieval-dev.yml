@@ -18,7 +18,7 @@ concurrency:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     env:
       DEEPSEEK_API_KEY: ""
     steps:
@@ -44,28 +44,34 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          mkdir -p results/codiesp_offline_retrieval/dev_v02
-          python scripts/run_codiesp_offline_retrieval_benchmark.py \
+          OUT=results/codiesp_offline_retrieval/dev_v03_fast
+          mkdir -p "$OUT"
+          python scripts/run_codiesp_offline_retrieval_benchmark_fast.py \
             --split dev \
-            --output-dir results/codiesp_offline_retrieval/dev_v02 \
-            2>&1 | tee results/codiesp_offline_retrieval/dev_v02/benchmark.log
+            --candidate-n 1500 \
+            --lsa-dim 64 \
+            --output-dir "$OUT" \
+            2>&1 | tee "$OUT/benchmark.log"
 
       - name: Print retrieval summary
         if: always()
         run: |
-          if [ -f results/codiesp_offline_retrieval/dev_v02/retrieval_summary.csv ]; then
-            cat results/codiesp_offline_retrieval/dev_v02/retrieval_summary.csv
+          OUT=results/codiesp_offline_retrieval/dev_v03_fast
+          if [ -f "$OUT/retrieval_summary.csv" ]; then
+            cat "$OUT/retrieval_summary.csv"
+          elif [ -f "$OUT/retrieval_summary_partial.csv" ]; then
+            cat "$OUT/retrieval_summary_partial.csv"
           fi
-          if [ -f results/codiesp_offline_retrieval/dev_v02/retrieval_manifest.json ]; then
-            cat results/codiesp_offline_retrieval/dev_v02/retrieval_manifest.json
+          if [ -f "$OUT/retrieval_manifest.json" ]; then
+            cat "$OUT/retrieval_manifest.json"
           fi
 
       - name: Upload offline retrieval results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: codiesp-offline-retrieval-dev-v02-${{ github.run_id }}
-          path: results/codiesp_offline_retrieval/dev_v02/
+          name: codiesp-offline-retrieval-dev-v03-fast-${{ github.run_id }}
+          path: results/codiesp_offline_retrieval/dev_v03_fast/
           if-no-files-found: warn
           retention-days: 30
 
@@ -73,15 +79,16 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ ! -d results/codiesp_offline_retrieval/dev_v02 ]; then
+          OUT=results/codiesp_offline_retrieval/dev_v03_fast
+          if [ ! -d "$OUT" ]; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f results/codiesp_offline_retrieval/dev_v02/
+          git add -f "$OUT/"
           if git diff --cached --quiet; then
             echo "No new benchmark outputs to commit."
             exit 0
           fi
-          git commit -m "Store CodiEsp DEV offline retrieval results [skip ci]"
+          git commit -m "Store CodiEsp DEV offline retrieval results v0.3 [skip ci]"
           git push origin HEAD:mipa-public-pilot-v03
