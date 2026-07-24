@@ -1,0 +1,120 @@
+OFFLINE RETRIEVAL BENCHMARK: no LLM/API calls will be made.
+whole_note_lexical: 25/250
+whole_note_lexical: 50/250
+whole_note_lexical: 75/250
+whole_note_lexical: 100/250
+whole_note_lexical: 125/250
+whole_note_lexical: 150/250
+whole_note_lexical: 175/250
+whole_note_lexical: 200/250
+whole_note_lexical: 225/250
+whole_note_lexical: 250/250
+{
+  "method": "whole_note_lexical",
+  "n_cases": 250,
+  "n_gold_codes": 2677,
+  "micro_recall_at_5": 0.017556966753828913,
+  "macro_recall_at_5": 0.023142610277579315,
+  "case_hit_rate_at_5": 0.16,
+  "micro_recall_at_10": 0.02577512140455734,
+  "macro_recall_at_10": 0.03498521747544967,
+  "case_hit_rate_at_10": 0.22,
+  "micro_recall_at_20": 0.040343668285394096,
+  "macro_recall_at_20": 0.04960773134502236,
+  "case_hit_rate_at_20": 0.3,
+  "micro_recall_at_35": 0.05939484497571909,
+  "macro_recall_at_35": 0.07085535461499858,
+  "case_hit_rate_at_35": 0.404
+}
+sentence_hybrid: 25/250
+sentence_hybrid: 50/250
+sentence_hybrid: 75/250
+sentence_hybrid: 100/250
+sentence_hybrid: 125/250
+sentence_hybrid: 150/250
+sentence_hybrid: 175/250
+sentence_hybrid: 200/250
+sentence_hybrid: 225/250
+sentence_hybrid: 250/250
+{
+  "method": "sentence_hybrid",
+  "n_cases": 250,
+  "n_gold_codes": 2677,
+  "micro_recall_at_5": 0.03474038102353381,
+  "macro_recall_at_5": 0.04141825047845172,
+  "case_hit_rate_at_5": 0.308,
+  "micro_recall_at_10": 0.05267090026148674,
+  "macro_recall_at_10": 0.06339592496083209,
+  "case_hit_rate_at_10": 0.408,
+  "micro_recall_at_20": 0.06761299962644751,
+  "macro_recall_at_20": 0.07698481161024505,
+  "case_hit_rate_at_20": 0.476,
+  "micro_recall_at_35": 0.09114680612626073,
+  "macro_recall_at_35": 0.10326414939191178,
+  "case_hit_rate_at_35": 0.568
+}
+fragment_hybrid_alias: 25/250
+fragment_hybrid_alias: 50/250
+fragment_hybrid_alias: 75/250
+fragment_hybrid_alias: 100/250
+fragment_hybrid_alias: 125/250
+fragment_hybrid_alias: 150/250
+fragment_hybrid_alias: 175/250
+fragment_hybrid_alias: 200/250
+fragment_hybrid_alias: 225/250
+fragment_hybrid_alias: 250/250
+{
+  "method": "fragment_hybrid_alias",
+  "n_cases": 250,
+  "n_gold_codes": 2677,
+  "micro_recall_at_5": 0.03474038102353381,
+  "macro_recall_at_5": 0.039009210856796,
+  "case_hit_rate_at_5": 0.304,
+  "micro_recall_at_10": 0.05341800522973478,
+  "macro_recall_at_10": 0.06177373641838038,
+  "case_hit_rate_at_10": 0.42,
+  "micro_recall_at_20": 0.07246918192005977,
+  "macro_recall_at_20": 0.08291047807770717,
+  "case_hit_rate_at_20": 0.504,
+  "micro_recall_at_35": 0.09189391109450878,
+  "macro_recall_at_35": 0.10711615766194663,
+  "case_hit_rate_at_35": 0.588
+}
+fragment_hybrid_alias_hierarchy: 25/250
+fragment_hybrid_alias_hierarchy: 50/250
+fragment_hybrid_alias_hierarchy: 75/250
+fragment_hybrid_alias_hierarchy: 100/250
+fragment_hybrid_alias_hierarchy: 125/250
+fragment_hybrid_alias_hierarchy: 150/250
+fragment_hybrid_alias_hierarchy: 175/250
+fragment_hybrid_alias_hierarchy: 200/250
+fragment_hybrid_alias_hierarchy: 225/250
+fragment_hybrid_alias_hierarchy: 250/250
+{
+  "method": "fragment_hybrid_alias_hierarchy",
+  "n_cases": 250,
+  "n_gold_codes": 2677,
+  "micro_recall_at_5": 0.030257751214045572,
+  "macro_recall_at_5": 0.032597933245518386,
+  "case_hit_rate_at_5": 0.28,
+  "micro_recall_at_10": 0.04781471796787449,
+  "macro_recall_at_10": 0.05530910497139599,
+  "case_hit_rate_at_10": 0.38,
+  "micro_recall_at_20": 0.06948076204706762,
+  "macro_recall_at_20": 0.07948124938586239,
+  "case_hit_rate_at_20": 0.504,
+  "micro_recall_at_35": 0.08554351886440045,
+  "macro_recall_at_35": 0.09873220629511602,
+  "case_hit_rate_at_35": 0.568
+}
+
+=== DEV RETRIEVAL SUMMARY ===
+                         method  n_cases  n_gold_codes  micro_recall_at_5  macro_recall_at_5  case_hit_rate_at_5  micro_recall_at_10  macro_recall_at_10  case_hit_rate_at_10  micro_recall_at_20  macro_recall_at_20  case_hit_rate_at_20  micro_recall_at_35  macro_recall_at_35  case_hit_rate_at_35
+          fragment_hybrid_alias      250          2677           0.034740           0.039009               0.304            0.053418            0.061774                0.420            0.072469            0.082910                0.504            0.091894            0.107116                0.588
+fragment_hybrid_alias_hierarchy      250          2677           0.030258           0.032598               0.280            0.047815            0.055309                0.380            0.069481            0.079481                0.504            0.085544            0.098732                0.568
+                sentence_hybrid      250          2677           0.034740           0.041418               0.308            0.052671            0.063396                0.408            0.067613            0.076985                0.476            0.091147            0.103264                0.568
+             whole_note_lexical      250          2677           0.017557           0.023143               0.160            0.025775            0.034985                0.220            0.040344            0.049608                0.300            0.059395            0.070855                0.404
+
+Selected method: fragment_hybrid_alias
+Outputs: results/codiesp_offline_retrieval/dev_v02
+No DeepSeek/LLM/API calls were made.

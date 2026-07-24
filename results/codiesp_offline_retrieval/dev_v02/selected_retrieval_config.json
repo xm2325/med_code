@@ -1,0 +1,4 @@
+{
+  "selected_method": "fragment_hybrid_alias",
+  "selection_rule": "DEV-only: maximise micro Recall@20, tie-break by micro Recall@35"
+}
