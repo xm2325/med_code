@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: codiesp-offline-retrieval-dev
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   benchmark:
@@ -41,10 +41,14 @@ jobs:
           echo "DEEPSEEK_API_KEY is empty; this workflow is retrieval-only."
 
       - name: Run full CodiEsp DEV retrieval benchmark
+        shell: bash
         run: |
+          set -o pipefail
+          mkdir -p results/codiesp_offline_retrieval/dev_v02
           python scripts/run_codiesp_offline_retrieval_benchmark.py \
             --split dev \
-            --output-dir results/codiesp_offline_retrieval/dev_v02
+            --output-dir results/codiesp_offline_retrieval/dev_v02 \
+            2>&1 | tee results/codiesp_offline_retrieval/dev_v02/benchmark.log
 
       - name: Print retrieval summary
         if: always()
@@ -64,3 +68,20 @@ jobs:
           path: results/codiesp_offline_retrieval/dev_v02/
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Persist benchmark outputs to branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d results/codiesp_offline_retrieval/dev_v02 ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/codiesp_offline_retrieval/dev_v02/
+          if git diff --cached --quiet; then
+            echo "No new benchmark outputs to commit."
+            exit 0
+          fi
+          git commit -m "Store CodiEsp DEV offline retrieval results [skip ci]"
+          git push origin HEAD:mipa-public-pilot-v03
