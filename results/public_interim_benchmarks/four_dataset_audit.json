@@ -1,0 +1,112 @@
+{
+  "schema_version": "public-interim-four-dataset-audit-v0.1",
+  "executed_on": "2026-07-23",
+  "method": "Deterministic public-data audit. Clinical-term counts are explicit lexical mentions or structured-condition matches, not phenotype prevalence and not model accuracy.",
+  "datasets": {
+    "nhse_synthetic_clinical_notes": {
+      "status": "COMPLETED",
+      "n_notes": 1602,
+      "n_unique_patients_in_note_table": 50,
+      "n_note_types": 26,
+      "mean_text_characters": 887.20911360799,
+      "median_text_characters": 850.5,
+      "explicit_mention_counts": {
+        "rheumatoid_arthritis": 97,
+        "hypertension": 49,
+        "depression": 0,
+        "diabetes_type_2": 14,
+        "hfpef": 0,
+        "vte_past_terms": 3,
+        "obesity": 0
+      },
+      "role": "Best of the four for longitudinal clinical-note/evidence-pipeline stress testing while waiting for MIMIC. Released Silver notes do not provide clinician phenotype gold, so these counts cannot establish C3 accuracy."
+    },
+    "asclepius_synthetic_clinical_notes": {
+      "status": "COMPLETED",
+      "sample_n": 600,
+      "sampling_offsets": [0, 5000, 20000, 50000, 100000, 150000],
+      "mean_text_characters": 1923.165,
+      "median_text_characters": 1818.5,
+      "explicit_mention_counts": {
+        "rheumatoid_arthritis": 3,
+        "hypertension": 92,
+        "depression": 18,
+        "diabetes_type_2": 12,
+        "hfpef": 0,
+        "vte_past_terms": 16,
+        "obesity": 6
+      },
+      "task_distribution": {
+        "Abbreviation Expansion": 71,
+        "Coreference Resolution": 72,
+        "Named Entity Recognition": 77,
+        "Paraphrasing": 74,
+        "Question Answering": 69,
+        "Relation Extraction": 82,
+        "Summarization": 90,
+        "Temporal Information Extraction": 65
+      },
+      "role": "Large-scale synthetic clinical-language/prompt robustness and general NLP task testing. Generated instruction-answer labels are not clinician RA-comorbidity phenotype gold."
+    },
+    "pmc_patients": {
+      "status": "COMPLETED",
+      "sample_n": 1000,
+      "sampling_offsets": [0, 18000, 36000, 54000, 72000, 90000, 108000, 126000, 144000, 160000],
+      "mean_text_characters": 2777.943,
+      "median_text_characters": 2537.5,
+      "explicit_mention_counts": {
+        "rheumatoid_arthritis": 12,
+        "hypertension": 146,
+        "depression": 36,
+        "diabetes_type_2": 17,
+        "hfpef": 1,
+        "vte_past_terms": 25,
+        "obesity": 16
+      },
+      "role": "Best of the four for real biomedical-language domain-shift and open-ended disease extraction experiments. These are case-report patient summaries rather than EHR notes and have no matched structured ICD gold for C4."
+    },
+    "synthea": {
+      "status": "COMPLETED",
+      "sample_release": "Synthea sample CSV Nov 2021",
+      "n_patients": 1163,
+      "n_condition_rows": 38094,
+      "structured_unique_patient_counts": {
+        "rheumatoid_arthritis": 4,
+        "hypertension": 292,
+        "depression": 1,
+        "diabetes_type_2": 38,
+        "hfpef": 0,
+        "vte_past_terms": 5,
+        "obesity": 463
+      },
+      "ra_patients": 4,
+      "ra_patient_comorbidity_counts": {
+        "hypertension": 1,
+        "depression": 0,
+        "diabetes_type_2": 0,
+        "hfpef": 0,
+        "vte_past_terms": 0,
+        "obesity": 3
+      },
+      "role": "Best of the four for structured-EHR/cohort/Gold-Text-Structured pipeline mechanics. The standard sample does not supply independently authored clinical free-text phenotype gold, so it cannot establish real under-recording recovery."
+    }
+  },
+  "conclusion": {
+    "can_use_while_waiting_for_mimic": true,
+    "can_replace_authorised_mipa_for_c3": false,
+    "can_replace_mimic_for_confirmatory_c4": false,
+    "recommended_order": [
+      "NHSE synthetic clinical notes for RA-note/evidence pipeline",
+      "Synthea for structured cohort and discordance mechanics",
+      "Asclepius for large-scale prompt/NLP robustness",
+      "PMC-Patients for real biomedical-language domain-shift/open-ended discovery"
+    ]
+  },
+  "provenance": {
+    "workflow_run_id": 30003242886,
+    "artifact_id": 8561896225,
+    "artifact_digest": "sha256:16dafe8f17510cabe99da9a8e4094ed5602a0f22ae3b415e1c157130731ee1fa",
+    "main_experiment_step": "SUCCESS",
+    "note": "The workflow's later failure was caused only by an optional SimSUM/Xet proxy assertion; all four requested dataset audits completed successfully."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "artifact_digest": "sha256:1997f9510ad5b232bd5f93124551f68e2a3047f4bd00183d2dd245902c17face",
+  "artifact_id": 8560809851,
+  "artifact_name": "mipa-scientific-acceptance",
+  "branch": "mipa-public-pilot-v03",
+  "head_sha": "5f67277aa0a9b95ae1a01fc1beedde860e443697",
+  "result_file": "results/scientific_acceptance/current_summary.json",
+  "workflow": "MIPA scientific acceptance",
+  "workflow_run_id": 30000599797,
+  "workflow_status": "success"
+}

@@ -1,0 +1,31 @@
+{
+  "benchmark_comparison_protocol": {
+    "any_subject_overlap_between_validation_and_test": true,
+    "implementation": "Per phenotype, positive and negative hadm_id rows are sampled separately into 40% validation using pandas sample(random_state=42); remaining rows are test.",
+    "interpretation": "Use only for protocol-matched benchmark comparison. Do not treat admission-disjointness as patient-disjointness.",
+    "name": "official_mipa_admission_level_40_60",
+    "per_phenotype": {
+      "depression": {"fraction_test_subjects_overlapping_validation": 0.15926493108728942, "fraction_validation_subjects_overlapping_test": 0.22510822510822512, "hadm_overlap": 0, "n_overlapping_subjects": 104, "n_test_rows": 832, "n_test_subjects": 653, "n_validation_rows": 556, "n_validation_subjects": 462, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 221, "validation_rows_from_overlapping_subjects": 173},
+      "diabetes_type_2": {"fraction_test_subjects_overlapping_validation": 0.1638591117917305, "fraction_validation_subjects_overlapping_test": 0.23010752688172043, "hadm_overlap": 0, "n_overlapping_subjects": 107, "n_test_rows": 833, "n_test_subjects": 653, "n_validation_rows": 555, "n_validation_subjects": 465, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 226, "validation_rows_from_overlapping_subjects": 179},
+      "hfpef": {"fraction_test_subjects_overlapping_validation": 0.16717791411042945, "fraction_validation_subjects_overlapping_test": 0.2329059829059829, "hadm_overlap": 0, "n_overlapping_subjects": 109, "n_test_rows": 833, "n_test_subjects": 652, "n_validation_rows": 555, "n_validation_subjects": 468, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 224, "validation_rows_from_overlapping_subjects": 179},
+      "hypertension": {"fraction_test_subjects_overlapping_validation": 0.16843702579666162, "fraction_validation_subjects_overlapping_test": 0.23974082073434125, "hadm_overlap": 0, "n_overlapping_subjects": 111, "n_test_rows": 833, "n_test_subjects": 659, "n_validation_rows": 555, "n_validation_subjects": 463, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 220, "validation_rows_from_overlapping_subjects": 184},
+      "obesity": {"fraction_test_subjects_overlapping_validation": 0.1578125, "fraction_validation_subjects_overlapping_test": 0.21398305084745764, "hadm_overlap": 0, "n_overlapping_subjects": 101, "n_test_rows": 833, "n_test_subjects": 640, "n_validation_rows": 555, "n_validation_subjects": 472, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 226, "validation_rows_from_overlapping_subjects": 158},
+      "rheumatoid_arthritis": {"fraction_test_subjects_overlapping_validation": 0.1743827160493827, "fraction_validation_subjects_overlapping_test": 0.23739495798319327, "hadm_overlap": 0, "n_overlapping_subjects": 113, "n_test_rows": 832, "n_test_subjects": 648, "n_validation_rows": 556, "n_validation_subjects": 476, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 226, "validation_rows_from_overlapping_subjects": 184},
+      "vte_past": {"fraction_test_subjects_overlapping_validation": 0.15919629057187018, "fraction_validation_subjects_overlapping_test": 0.22055674518201285, "hadm_overlap": 0, "n_overlapping_subjects": 103, "n_test_rows": 833, "n_test_subjects": 647, "n_validation_rows": 555, "n_validation_subjects": 467, "subject_disjoint": false, "test_rows_from_overlapping_subjects": 221, "validation_rows_from_overlapping_subjects": 171}
+    },
+    "purpose": "Reproduce/compare with MIPA admission-level validation/test protocol where applicable.",
+    "subject_grouped": false
+  },
+  "ra_confirmatory_protocol": {
+    "audit": {"rows_per_split": {"test": 41, "train": 84, "validation": 39}, "subject_disjoint": true, "subject_overlap_counts": {"test__train": 0, "test__validation": 0, "train__validation": 0}, "subjects_per_split": {"test": 27, "train": 49, "validation": 23}},
+    "interpretation": "All notes from one subject remain in one split; confirmatory uncertainty should resample subject_id clusters.",
+    "n_ra_positive_notes": 164,
+    "n_ra_unique_subjects": 99,
+    "name": "deterministic_subject_disjoint",
+    "purpose": "Primary RA scientific confirmation and leakage-resistant error analysis.",
+    "split_seed": "20260723"
+  },
+  "reporting_rule": {"do_not_mix_protocol_metrics": true, "published_external_macro_f1_directly_comparable_to_our_subject_disjoint_result": false, "reason": "A performance number is directly comparable only when model, phenotype definition, evaluation cohort, and split/evaluation protocol are matched."},
+  "schema_version": "mipa-split-protocol-audit-v0.3.1",
+  "source": {"labels": "https://raw.githubusercontent.com/open-health-data-lab/MIPA/main/data/filters/golden_labels.csv", "official_reference": "open-health-data-lab/MIPA scripts/preprocessing/cohort.py phenotype_cohort_test"}
+}

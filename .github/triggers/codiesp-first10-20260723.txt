@@ -1,0 +1,3 @@
+One-time trigger for the fixed first-10 CodiEsp paired Direct vs ICD knowledge-assisted DeepSeek V4-Pro/max pilot.
+Expected paid model requests: 20 successful case calls total (10 Direct + 10 RAG), excluding transient transport retries.
+Do not edit this marker to avoid retriggering the paid workflow.

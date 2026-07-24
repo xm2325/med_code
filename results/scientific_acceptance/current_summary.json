@@ -1,0 +1,74 @@
+{
+  "conclusions": [
+    {
+      "allowed_language": "Report official/protocol-matched benchmark results separately from subject-disjoint confirmatory RA results.",
+      "basis": {"official_admission_split_has_patient_overlap": true, "protocol_metrics_must_not_be_mixed": true, "ra_confirmatory_subject_disjoint": true},
+      "claim": "Benchmark-comparison and patient-level confirmatory evaluation protocols are explicitly separated and audited for subject leakage.",
+      "gating": true,
+      "id": "C0_PROTOCOL_INTEGRITY",
+      "stage_complete": true,
+      "status": "PASS"
+    },
+    {
+      "allowed_language": "Suitable proof-of-concept benchmark for RA comorbidity phenotyping; not an RA prevalence cohort.",
+      "basis": {"fraction_ra_notes_with_at_least_2_other_phenotypes": 0.7378048780487805, "n_ra_positive_notes": 164, "n_ra_unique_subjects": 99},
+      "claim": "MIPA contains enough RA-positive benchmark observations and co-occurring labelled phenotypes for a controlled RA comorbidity NLP pilot.",
+      "gating": true,
+      "id": "C1_MIPA_RA_PILOT_FEASIBILITY",
+      "stage_complete": true,
+      "status": "PASS"
+    },
+    {
+      "allowed_language": "Published evidence supports feasibility only; do not use it as MedCode performance or as a direct comparator unless the evaluation protocol is matched.",
+      "basis": {"published_external_macro_f1": 0.891},
+      "claim": "High-performing LLM phenotyping is feasible on MIPA under published study settings.",
+      "gating": false,
+      "id": "C2_EXTERNAL_LLM_PHENOTYPING_FEASIBILITY",
+      "stage_complete": true,
+      "status": "EXTERNAL_SUPPORT_ONLY"
+    },
+    {
+      "allowed_language": "Report MedCode clinical performance only after an authorised real-note run reaches a terminal Stage 1/2 result.",
+      "basis": {"own_stage12_final_status": null},
+      "claim": "The MedCode evidence-grounded local pipeline meets the pre-specified Stage 1/2 performance and evidence gates on authorised MIPA notes.",
+      "gating": true,
+      "id": "C3_OWN_EVIDENCE_GROUNDED_MODEL_PERFORMANCE",
+      "stage_complete": false,
+      "status": "PENDING_REAL_DATA"
+    },
+    {
+      "allowed_language": "A supported, null, or negative result is scientifically valid; only SUPPORTED_RECOVERABLE_UNDERRECORDING supports the directional recovery claim.",
+      "basis": {"confirmatory_recovery_status": null, "discordance_eligibility_status": null},
+      "claim": "Validated free-text phenotyping recovers clinician-supported comorbidities absent from the matched structured phenotype definition.",
+      "gating": true,
+      "id": "C4_RECOVERABLE_STRUCTURED_UNDERRECORDING",
+      "stage_complete": false,
+      "status": "PENDING_REAL_DATA"
+    },
+    {
+      "allowed_language": "A material change, a small change, or a null effect are all valid outcomes once the prespecified BSRBR-RA analysis is complete.",
+      "basis": {"effect_conclusion": null},
+      "claim": "The effect of text-enhanced ascertainment on patient-level RA multimorbidity estimates, clusters, trajectories, or outcomes has been evaluated in appropriate longitudinal/representative RA data.",
+      "gating": true,
+      "id": "C5_RA_MULTIMORBIDITY_IMPACT_ASSESSED",
+      "stage_complete": false,
+      "status": "PENDING_BSRBR_RA"
+    }
+  ],
+  "external_evidence": {
+    "doi": "10.64898/2026.04.16.26350890",
+    "interpretation": "External feasibility context only. The published study evaluated its own MIPA protocol/cohort; this value must not be presented as MedCode performance or directly compared with a subject-disjoint result unless protocols match.",
+    "reported_deepseek_r1_macro_f1": 0.891,
+    "source": "Yamga E, Murphy S, Despres P. A Systematic Exploration of LLM Behavior for EHR Phenotyping. medRxiv. 2026."
+  },
+  "overall": {
+    "all_directional_claims_supported": false,
+    "next_gate": "AUTHORISED_REAL_NOTE_STAGE12",
+    "reason": "External benchmark success is non-gating. A terminal negative/null empirical result is scientifically valid. Positive MedCode claims require the project's own authorised data and prespecified confirmatory gates.",
+    "required_method_gates_ready": true,
+    "scientifically_determined": false,
+    "status": "NOT_YET_SCIENTIFICALLY_DETERMINED"
+  },
+  "schema_version": "scientific-acceptance-v0.3.2",
+  "thresholds": {"external_llm_macro_f1": 0.85, "min_bootstrap_replicates": 500, "min_code_missed_gold": 20, "min_fraction_ra_with_two_other_phenotypes": 0.7, "min_ra_positive_notes": 100, "min_ra_unique_subjects": 75, "min_text_positive_code_absent_ppv": 0.85}
+}

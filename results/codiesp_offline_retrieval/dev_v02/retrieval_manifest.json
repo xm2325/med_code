@@ -1,0 +1,76 @@
+{
+  "schema_version": "codiesp-offline-retrieval-v0.2",
+  "split": "dev",
+  "limit": 0,
+  "selection_rule": "DEV-only: maximise micro Recall@20, tie-break by micro Recall@35",
+  "selected_method": "fragment_hybrid_alias",
+  "selected_metrics": {
+    "method": "fragment_hybrid_alias",
+    "n_cases": 250,
+    "n_gold_codes": 2677,
+    "micro_recall_at_5": 0.03474038102353381,
+    "macro_recall_at_5": 0.039009210856796,
+    "case_hit_rate_at_5": 0.304,
+    "micro_recall_at_10": 0.05341800522973478,
+    "macro_recall_at_10": 0.06177373641838038,
+    "case_hit_rate_at_10": 0.42,
+    "micro_recall_at_20": 0.07246918192005977,
+    "macro_recall_at_20": 0.08291047807770717,
+    "case_hit_rate_at_20": 0.504,
+    "micro_recall_at_35": 0.09189391109450878,
+    "macro_recall_at_35": 0.10711615766194663,
+    "case_hit_rate_at_35": 0.588
+  },
+  "methods": [
+    "whole_note_lexical",
+    "sentence_hybrid",
+    "fragment_hybrid_alias",
+    "fragment_hybrid_alias_hierarchy"
+  ],
+  "top_ks": [
+    5,
+    10,
+    20,
+    35
+  ],
+  "corpus": {
+    "url": "https://zenodo.org/records/3837305/files/codiesp.zip?download=1",
+    "sha256": "52b290233906a2eb589ac7b1d9429adeac88f6a9cae8b0d3c180504afbe61688",
+    "split": "dev",
+    "n_texts": 250,
+    "n_gold_codes": 2677,
+    "label_file": "final_dataset_v4_to_publish/dev/devD.tsv"
+  },
+  "icd_kb": {
+    "icd_version": "FY2018 ICD-10-CM",
+    "task_code_space": "CodiEsp-D valid diagnosis codes (2018 version)",
+    "sources": {
+      "codiesp_code_list": {
+        "url": "https://zenodo.org/records/3706838/files/codiesp_codes.zip?download=1",
+        "sha256": "ed28f25e50fe958d660a07387414e98dbf9f86a172a1c418f11cc1cc449c9b8e",
+        "file": "codiesp_codes/codiesp-D_codes.tsv",
+        "n_codes": 98288
+      },
+      "cdc_descriptions": {
+        "url": "https://ftp.cdc.gov/pub/health_statistics/nchs/Publications/ICD10CM/2018/2018-ICD-10-CM-Codes-File.zip",
+        "sha256": "10d02dc4e703d389ec324a7563501357b78aaa0f733df9936e852cbbdcd4efbe",
+        "file": "icd10cm_codes_2018.txt",
+        "n_descriptions": 71704
+      },
+      "cdc_tabular_xml": {
+        "url": "https://ftp.cdc.gov/pub/health_statistics/nchs/Publications/ICD10CM/2018/ICD-10-CM-Codes-Tables-and-Index-2018.zip",
+        "sha256": "e90294d37ec132654a1bdce813b362542235d8c7495c37dd0d27fbba37ab330f",
+        "file": "icd10cm_tabular_2018.xml",
+        "n_xml_codes": 44221
+      }
+    },
+    "n_retrievable_codes": 98288
+  },
+  "no_llm_api_calls": true,
+  "deepseek_api_key_read": false,
+  "notes": [
+    "fragment decomposition is deterministic, not clinical NER",
+    "latent semantic channel uses offline TF-IDF + TruncatedSVD, not a downloaded embedding model",
+    "TEST must remain untouched until retrieval design is frozen"
+  ]
+}
