@@ -6,10 +6,9 @@ import json
 import os
 import re
 import sys
-import time
 import zipfile
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -37,11 +36,11 @@ USER_AGENT = "MedCode-research-downloader/1.0 (+https://github.com/xm2325/med_co
 
 def session() -> requests.Session:
     retry = Retry(
-        total=8,
-        connect=6,
-        read=6,
-        status=8,
-        backoff_factor=2.0,
+        total=4,
+        connect=4,
+        read=4,
+        status=4,
+        backoff_factor=1.0,
         status_forcelist=(408, 425, 429, 500, 502, 503, 504),
         allowed_methods=frozenset(["GET", "HEAD"]),
         respect_retry_after_header=True,
@@ -52,7 +51,7 @@ def session() -> requests.Session:
     return s
 
 
-def get_json(s: requests.Session, url: str, *, timeout: int = 90) -> Any:
+def get_json(s: requests.Session, url: str, *, timeout: int = 60) -> Any:
     r = s.get(url, timeout=timeout)
     r.raise_for_status()
     return r.json()
@@ -134,23 +133,35 @@ def derive_old_data_endpoint(metadata: dict[str, Any], collection_id: int) -> li
 def discover_files(s: requests.Session, dataset_dir: Path, metadata: dict[str, Any], collection_id: int) -> list[dict[str, str]]:
     diagnostics = dataset_dir / "official_api"
     diagnostics.mkdir(parents=True, exist_ok=True)
+    errors: list[dict[str, str]] = []
+    all_entries: list[dict[str, str]] = []
 
-    api_urls = [
+    modern_urls = [
         f"{BASE}/dap/api/v2/collections/{collection_id}/folders/contents",
         f"{BASE}/dap/api/v2/collections/{collection_id}/files/summary",
-        *derive_old_data_endpoint(metadata, collection_id),
     ]
-    all_entries: list[dict[str, str]] = []
-    errors: list[dict[str, str]] = []
-    for index, url in enumerate(api_urls, start=1):
+    for index, url in enumerate(modern_urls, start=1):
         try:
             payload = get_json(s, url)
-            save_json(diagnostics / f"file_api_{index}.json", {"url": url, "payload": payload})
+            save_json(diagnostics / f"modern_file_api_{index}.json", {"url": url, "payload": payload})
             all_entries.extend(extract_download_entries(payload))
-        except Exception as exc:  # preserve every official endpoint outcome
+        except Exception as exc:
             errors.append({"url": url, "error": f"{type(exc).__name__}: {exc}"})
-    save_json(diagnostics / "file_api_errors.json", errors)
 
+    # The current browser API exposes signed S3 downloadUrl values. Avoid slow and
+    # rate-limited legacy /data endpoints when the modern API has already succeeded.
+    if not all_entries:
+        for index, url in enumerate(derive_old_data_endpoint(metadata, collection_id), start=1):
+            try:
+                payload = get_json(s, url)
+                save_json(diagnostics / f"legacy_file_api_{index}.json", {"url": url, "payload": payload})
+                all_entries.extend(extract_download_entries(payload))
+                if all_entries:
+                    break
+            except Exception as exc:
+                errors.append({"url": url, "error": f"{type(exc).__name__}: {exc}"})
+
+    save_json(diagnostics / "file_api_errors.json", errors)
     dedup: dict[str, dict[str, str]] = {}
     for item in all_entries:
         dedup[item["download_url"]] = item
@@ -203,7 +214,11 @@ def inspect_archive(path: Path) -> dict[str, Any]:
         names = archive.namelist()
         result["archive_members"] = names
         result["meddra_path_hits"] = [n for n in names if "meddra" in n.lower()]
-        result["annotation_path_hits"] = [n for n in names if n.lower().endswith((".ann", ".txt", ".csv", ".tsv", ".json")) and any(k in n.lower() for k in ("original", "annotation", "ade", "adr", "meddra"))]
+        result["annotation_path_hits"] = [
+            n for n in names
+            if n.lower().endswith((".ann", ".txt", ".csv", ".tsv", ".json"))
+            and any(k in n.lower() for k in ("original", "annotation", "ade", "adr", "meddra"))
+        ]
         result["text_path_hits"] = [n for n in names if "/text/" in f"/{n.lower()}" or n.lower().startswith("text/")]
     return result
 
