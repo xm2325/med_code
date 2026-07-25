@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/download-official-cadec.yml'
       - 'scripts/download_csiro_cadec.py'
+      - 'scripts/download_csiro_browser.py'
   workflow_dispatch:
 
 permissions:
@@ -20,22 +21,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install downloader dependency
-        run: python -m pip install requests
-      - name: Download official CSIRO files
+      - name: Install browser downloader dependencies
+        run: |
+          python -m pip install requests playwright
+          python -m playwright install --with-deps chromium
+      - name: Download official CSIRO files in a browser session
         id: download
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          python scripts/download_csiro_cadec.py --output-dir /tmp/cadec-official 2>&1 | tee /tmp/cadec-download.log
+          python scripts/download_csiro_browser.py --output-dir /tmp/cadec-official 2>&1 | tee /tmp/cadec-download.log
       - name: Inspect saved files and diagnostics
         if: always()
         run: |
           find /tmp/cadec-official -maxdepth 3 -type f -printf '%p\t%s bytes\n' | sort || true
           cat /tmp/cadec-official/download_summary.json || true
-          tail -n 200 /tmp/cadec-download.log || true
-      - name: Upload original files, metadata, listings and SHA-256 manifests
+          tail -n 300 /tmp/cadec-download.log || true
+      - name: Upload original files, metadata, browser discovery and SHA-256 manifests
         if: always()
         uses: actions/upload-artifact@v4
         with:
