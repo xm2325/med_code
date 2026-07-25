@@ -132,28 +132,25 @@ def main() -> None:
         data_url = metadata.get("data") if isinstance(metadata, dict) else None
         if not data_url:
             data_url = f"https://data.csiro.au/dap/ws/v2/collections/{quote(dataset['fedora_pid'], safe=':')}/data"
-        json_url = data_url if str(data_url).endswith(".json") else f"{data_url}.json"
-        file_listing = get_json(session, json_url)
+        listing_url = str(data_url)
+        file_listing = get_json(session, listing_url)
         (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        candidates = extract_file_candidates(file_listing)
+        file_candidates = extract_file_candidates(file_listing)
         files = []
         errors = []
-        for index, item in enumerate(candidates, start=1):
+        for index, item in enumerate(file_candidates, start=1):
             try:
                 result = download_candidate(session, item, dest, index)
-                # Ignore accidental JSON API representations masquerading as file links.
-                if result["filename"] in {"official_metadata.json", "official_file_listing.json"}:
-                    continue
                 files.append(result)
-            except Exception as exc:  # noqa: BLE001 - persist every official download error
+            except Exception as exc:
                 errors.append({"candidate": item, "error": f"{type(exc).__name__}: {exc}"})
 
         manifest = {
             **dataset,
             "metadata_url": metadata_url,
-            "data_listing_url": json_url,
-            "candidate_count": len(candidates),
+            "data_listing_url": listing_url,
+            "candidate_count": len(file_candidates),
             "downloaded_file_count": len(files),
             "files": files,
             "errors": errors,
