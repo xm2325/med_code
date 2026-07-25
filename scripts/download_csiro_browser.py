@@ -45,6 +45,39 @@ def recurse_urls(node: Any) -> list[str]:
     return list(dict.fromkeys(out))
 
 
+def extract_file_nodes(node: Any) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    if isinstance(node, dict):
+        lowered = {str(key).lower(): value for key, value in node.items()}
+        name = lowered.get("filename") or lowered.get("file_name") or lowered.get("name") or lowered.get("title")
+        file_id = lowered.get("fileid") or lowered.get("file_id") or lowered.get("datafileid") or lowered.get("data_file_id")
+        if name and file_id is not None:
+            out.append({"name": str(name), "file_id": str(file_id), "raw": node})
+        for value in node.values():
+            out.extend(extract_file_nodes(value))
+    elif isinstance(node, list):
+        for value in node:
+            out.extend(extract_file_nodes(value))
+    unique = []
+    seen = set()
+    for item in out:
+        key = (item["name"], item["file_id"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique
+
+
+async def browser_json(page, url: str) -> dict[str, Any]:
+    return await page.evaluate(
+        """async (url) => {
+          const r = await fetch(url, {headers: {'Accept': 'application/json'}, credentials: 'include'});
+          return {status: r.status, text: await r.text(), headers: Object.fromEntries(r.headers.entries())};
+        }""",
+        url,
+    )
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", required=True)
@@ -75,49 +108,48 @@ async def main() -> None:
             landing = metadata["landingPage"]["href"]
             await page.goto(landing, wait_until="domcontentloaded", timeout=120000)
             await page.wait_for_timeout(8000)
-            # Attempt to expose lazy-loaded data/file panels without relying on one UI version.
-            for pattern in [re.compile("files", re.I), re.compile("data", re.I), re.compile("download", re.I)]:
-                try:
-                    locator = page.get_by_text(pattern).first
-                    if await locator.count():
-                        await locator.click(timeout=3000)
-                        await page.wait_for_timeout(3000)
-                except Exception:
-                    pass
+            collection_id = int(metadata["dataCollectionId"])
+
+            api_responses = {}
+            endpoint_urls = {
+                "files_summary": f"https://data.csiro.au/dap/api/v2/collections/{collection_id}/files/summary",
+                "root_folder": f"https://data.csiro.au/dap/api/v2/collections/{collection_id}/folders/contents?folder=%2F&size=1000&page=1&q=&sb=default&so=ASC",
+                "folders": f"https://data.csiro.au/dap/ws/v2/collections/{collection_id}/folders?q=",
+            }
+            parsed_payloads = []
+            for label, endpoint in endpoint_urls.items():
+                fetched = await browser_json(page, endpoint)
+                api_responses[label] = {"url": endpoint, **fetched}
+                if fetched["status"] == 200:
+                    try:
+                        parsed_payloads.append(json.loads(fetched["text"]))
+                    except json.JSONDecodeError:
+                        pass
+            (dest / "browser_file_api_responses.json").write_text(json.dumps(api_responses, indent=2), encoding="utf-8")
 
             anchors = await page.locator("a").evaluate_all("els => els.map(e => e.href).filter(Boolean)")
             resources = await page.evaluate("performance.getEntriesByType('resource').map(x => x.name)")
             candidate_urls = [
                 url for url in list(dict.fromkeys(captured_urls + anchors + resources))
-                if "/dap/ws/v2/collections/" in url and "/data/" in url
+                if re.search(r"/dap/ws/v2/collections/\d+/data/\d+(?:$|[?#])", url)
             ]
-
-            data_url = metadata.get("data")
-            listing_payload: Any = None
-            if data_url:
-                fetched = await page.evaluate(
-                    """async (url) => {
-                      const r = await fetch(url, {headers: {'Accept': 'application/json'}, credentials: 'include'});
-                      return {status: r.status, text: await r.text(), headers: Object.fromEntries(r.headers.entries())};
-                    }""",
-                    data_url,
-                )
-                (dest / "browser_data_response.json").write_text(json.dumps(fetched, indent=2), encoding="utf-8")
-                if fetched["status"] == 200:
-                    try:
-                        listing_payload = json.loads(fetched["text"])
-                        candidate_urls.extend(recurse_urls(listing_payload))
-                    except json.JSONDecodeError:
-                        pass
-            candidate_urls = list(dict.fromkeys(url for url in candidate_urls if re.search(r"/data/\d+(?:$|[?#])", url)))
+            file_nodes = []
+            for payload in parsed_payloads:
+                candidate_urls.extend(recurse_urls(payload))
+                file_nodes.extend(extract_file_nodes(payload))
+            for node in file_nodes:
+                candidate_urls.append(f"https://data.csiro.au/dap/ws/v2/collections/{collection_id}/data/{node['file_id']}")
+            candidate_urls = list(dict.fromkeys(candidate_urls))
+            node_names = {str(node["file_id"]): node["name"] for node in file_nodes}
 
             (dest / "browser_page_snapshot.html").write_text(await page.content(), encoding="utf-8")
             (dest / "browser_discovery.json").write_text(json.dumps({
                 "landing_page": landing,
                 "title": await page.title(),
+                "collection_id": collection_id,
                 "candidate_urls": candidate_urls,
-                "all_data_related_urls": [u for u in list(dict.fromkeys(captured_urls + anchors + resources)) if "/data" in u],
-                "listing_payload": listing_payload,
+                "file_nodes": file_nodes,
+                "all_data_related_urls": [u for u in list(dict.fromkeys(captured_urls + anchors + resources)) if "/data" in u or "/folders" in u or "/files" in u],
             }, indent=2), encoding="utf-8")
 
             files, errors = [], []
@@ -129,14 +161,18 @@ async def main() -> None:
                     body = await response.body()
                     disposition = response.headers.get("content-disposition", "")
                     match = re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)', disposition, flags=re.I)
-                    name = safe_filename((match.group(1) if match else "") or url, f"file_{index:03d}")
+                    file_id = Path(urlparse(url).path).name
+                    source_name = node_names.get(file_id, "")
+                    name = safe_filename((match.group(1) if match else "") or source_name or url, f"file_{index:03d}")
                     path = dest / name
+                    if path.exists():
+                        path = dest / f"{index:03d}_{name}"
                     path.write_bytes(body)
                     files.append({"filename": path.name, "size_bytes": path.stat().st_size, "sha256": sha256(path), "source_url": url, "content_type": response.headers.get("content-type", "")})
                 except Exception as exc:
                     errors.append({"url": url, "error": f"{type(exc).__name__}: {exc}"})
 
-            manifest = {**dataset, "landing_page": landing, "candidate_count": len(candidate_urls), "downloaded_file_count": len(files), "files": files, "errors": errors}
+            manifest = {**dataset, "landing_page": landing, "collection_id": collection_id, "candidate_count": len(candidate_urls), "downloaded_file_count": len(files), "files": files, "errors": errors}
             (dest / "download_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
             manifests.append(manifest)
 
