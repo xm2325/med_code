@@ -13,8 +13,8 @@ from urllib.parse import quote, urlparse
 import requests
 
 DATASETS = [
-    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "fedora_pid": "csiro:10948"},
-    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "fedora_pid": "csiro:62387v4"},
+    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "versioned_pid": "csiro:10948v3"},
+    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "versioned_pid": "csiro:62387v4"},
 ]
 
 
@@ -84,11 +84,9 @@ def extract_file_candidates(obj: Any) -> list[dict[str, str]]:
 
 def download_candidate(session: requests.Session, item: dict[str, str], destination: Path, index: int) -> dict[str, Any]:
     response = request_with_retry(session, item["url"], timeout=300)
-    content_type = response.headers.get("content-type", "")
     disposition = response.headers.get("content-disposition", "")
     match = re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)', disposition, flags=re.I)
-    disposition_name = match.group(1) if match else ""
-    filename = safe_name(disposition_name or item.get("name", "") or response.url, f"file_{index:03d}")
+    filename = safe_name((match.group(1) if match else "") or item.get("name", "") or response.url, f"file_{index:03d}")
     path = destination / filename
     if path.exists():
         path = destination / f"{index:03d}_{filename}"
@@ -97,7 +95,7 @@ def download_candidate(session: requests.Session, item: dict[str, str], destinat
         "filename": path.name,
         "size_bytes": path.stat().st_size,
         "sha256": sha256(path),
-        "content_type": content_type,
+        "content_type": response.headers.get("content-type", ""),
         "source_url": item["url"],
         "resolved_url": response.url,
         "source_key": item.get("source_key", ""),
@@ -120,7 +118,8 @@ def main() -> None:
         metadata_url = f"https://data.csiro.au/dap/ws/v2/collections/{quote(dataset['doi'], safe='/')}.json"
         metadata = get_json(session, metadata_url)
         (dest / "official_metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
-        listing_url = str(metadata.get("data") or f"https://data.csiro.au/dap/ws/v2/collections/{quote(dataset['fedora_pid'], safe=':')}/data")
+
+        listing_url = f"https://data.csiro.au/dap/ws/v2/collections/{dataset['versioned_pid']}/data.json"
         file_listing = get_json(session, listing_url)
         (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
 
