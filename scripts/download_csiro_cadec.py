@@ -76,7 +76,6 @@ def extract_file_candidates(obj: Any) -> list[dict[str, str]]:
     seen: set[str] = set()
     for item in candidates:
         url = item["url"]
-        # Only actual CSIRO collection file endpoints, not metadata/landing links.
         if "/dap/ws/v2/collections/" not in url or "/data/" not in url:
             continue
         if url in seen:
@@ -96,7 +95,11 @@ def data_gov_file_listing(session: requests.Session, package_id: str) -> tuple[d
     for resource in result.get("resources", []):
         resource_url = str(resource.get("url") or "")
         if resource_url.startswith("http") and "/dap/ws/v2/collections/" in resource_url and "/data/" in resource_url:
-            candidates.append({"name": str(resource.get("name") or resource.get("description") or ""), "url": resource_url, "source_key": "data.gov.au:resource.url"})
+            candidates.append({
+                "name": str(resource.get("name") or resource.get("description") or ""),
+                "url": resource_url,
+                "source_key": "data.gov.au:resource.url",
+            })
     return {"api_url": url, "package": result}, candidates
 
 
@@ -140,21 +143,17 @@ def main() -> None:
             raise RuntimeError(f"DOI metadata version mismatch for {dataset['doi']}: expected {dataset['expected_version']}, got {actual_version}")
         (dest / "official_metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        listing_source = "CSIRO DAP API"
-        listing_url = str(metadata.get("data"))
-        file_listing: Any = None
-        file_candidates: list[dict[str, str]] = []
+        listing_source = "data.gov.au harvested CSIRO resources"
         try:
+            harvested, file_candidates = data_gov_file_listing(session, dataset["data_gov_id"])
+            file_listing: Any = harvested
+            listing_url = harvested["api_url"]
+        except Exception as exc:
+            print(f"data.gov.au resource listing unavailable for {dataset['slug']}: {type(exc).__name__}: {exc}", flush=True)
+            listing_source = "CSIRO DAP API"
+            listing_url = str(metadata.get("data"))
             file_listing = get_json(session, listing_url)
             file_candidates = extract_file_candidates(file_listing)
-        except Exception as exc:
-            print(f"CSIRO list endpoint unavailable for {dataset['slug']}: {type(exc).__name__}: {exc}", flush=True)
-
-        if not file_candidates:
-            listing_source = "data.gov.au harvested CSIRO resources"
-            harvested, file_candidates = data_gov_file_listing(session, dataset["data_gov_id"])
-            file_listing = harvested
-            listing_url = harvested["api_url"]
 
         (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
         files, errors = [], []
