@@ -13,8 +13,8 @@ from urllib.parse import quote, urlparse
 import requests
 
 DATASETS = [
-    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "fedora_pid": "csiro:10948", "expected_version": 3},
-    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "fedora_pid": "csiro:62387", "expected_version": 4},
+    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "fedora_pid": "csiro:10948", "expected_version": 3, "data_gov_id": "fedora-pid_csiro-10948"},
+    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "fedora_pid": "csiro:62387", "expected_version": 4, "data_gov_id": "fedora-pid_csiro-62387"},
 ]
 
 
@@ -43,7 +43,7 @@ def request_with_retry(session: requests.Session, url: str, *, accept_json: bool
             return response
         retry_after = response.headers.get("Retry-After")
         delay = int(retry_after) if retry_after and retry_after.isdigit() else min(60, 5 * (2 ** attempt))
-        print(f"Transient CSIRO response {response.status_code} for {url}; waiting {delay}s before retry {attempt + 2}/7", flush=True)
+        print(f"Transient response {response.status_code} for {url}; waiting {delay}s before retry {attempt + 2}/7", flush=True)
         time.sleep(delay)
     assert last is not None
     last.raise_for_status()
@@ -75,11 +75,29 @@ def extract_file_candidates(obj: Any) -> list[dict[str, str]]:
     unique: list[dict[str, str]] = []
     seen: set[str] = set()
     for item in candidates:
-        if item["url"] in seen:
+        url = item["url"]
+        # Only actual CSIRO collection file endpoints, not metadata/landing links.
+        if "/dap/ws/v2/collections/" not in url or "/data/" not in url:
             continue
-        seen.add(item["url"])
+        if url in seen:
+            continue
+        seen.add(url)
         unique.append(item)
     return unique
+
+
+def data_gov_file_listing(session: requests.Session, package_id: str) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    url = f"https://data.gov.au/data/api/3/action/package_show?id={quote(package_id, safe='-_')}"
+    payload = get_json(session, url)
+    if not payload.get("success"):
+        raise RuntimeError(f"data.gov.au package_show failed for {package_id}")
+    result = payload.get("result") or {}
+    candidates = []
+    for resource in result.get("resources", []):
+        resource_url = str(resource.get("url") or "")
+        if resource_url.startswith("http") and "/dap/ws/v2/collections/" in resource_url and "/data/" in resource_url:
+            candidates.append({"name": str(resource.get("name") or resource.get("description") or ""), "url": resource_url, "source_key": "data.gov.au:resource.url"})
+    return {"api_url": url, "package": result}, candidates
 
 
 def download_candidate(session: requests.Session, item: dict[str, str], destination: Path, index: int) -> dict[str, Any]:
@@ -122,11 +140,23 @@ def main() -> None:
             raise RuntimeError(f"DOI metadata version mismatch for {dataset['doi']}: expected {dataset['expected_version']}, got {actual_version}")
         (dest / "official_metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        listing_url = f"https://data.csiro.au/dap/ws/v2/collections/{dataset['fedora_pid']}/data.json"
-        file_listing = get_json(session, listing_url)
-        (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
+        listing_source = "CSIRO DAP API"
+        listing_url = str(metadata.get("data"))
+        file_listing: Any = None
+        file_candidates: list[dict[str, str]] = []
+        try:
+            file_listing = get_json(session, listing_url)
+            file_candidates = extract_file_candidates(file_listing)
+        except Exception as exc:
+            print(f"CSIRO list endpoint unavailable for {dataset['slug']}: {type(exc).__name__}: {exc}", flush=True)
 
-        file_candidates = extract_file_candidates(file_listing)
+        if not file_candidates:
+            listing_source = "data.gov.au harvested CSIRO resources"
+            harvested, file_candidates = data_gov_file_listing(session, dataset["data_gov_id"])
+            file_listing = harvested
+            listing_url = harvested["api_url"]
+
+        (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
         files, errors = [], []
         for index, item in enumerate(file_candidates, start=1):
             try:
@@ -138,6 +168,7 @@ def main() -> None:
             **dataset,
             "actual_version": actual_version,
             "metadata_url": metadata_url,
+            "listing_source": listing_source,
             "data_listing_url": listing_url,
             "candidate_count": len(file_candidates),
             "downloaded_file_count": len(files),
@@ -150,7 +181,7 @@ def main() -> None:
     (root / "download_summary.json").write_text(json.dumps(overall, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(overall, indent=2, ensure_ascii=False))
     if any(item["downloaded_file_count"] == 0 for item in overall):
-        raise SystemExit("At least one public CSIRO collection produced no downloaded files; inspect official_file_listing.json and manifest errors.")
+        raise SystemExit("At least one public collection produced no downloaded files; inspect listing and manifest errors.")
 
 
 if __name__ == "__main__":
