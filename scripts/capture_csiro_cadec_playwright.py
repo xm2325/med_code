@@ -15,18 +15,8 @@ import requests
 from playwright.sync_api import sync_playwright
 
 DATASETS = [
-    {
-        "slug": "cadec_original",
-        "doi": "10.4225/08/570FB102BDAD2",
-        "fedora_pid": "csiro:10948",
-        "landing_url": "https://data.csiro.au/collection/csiro:10948",
-    },
-    {
-        "slug": "cadecv2",
-        "doi": "10.25919/3v5b-k950",
-        "fedora_pid": "csiro:62387",
-        "landing_url": "https://data.csiro.au/collection/csiro:62387",
-    },
+    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "fedora_pid": "csiro:10948", "landing_url": "https://data.csiro.au/collection/csiro:10948"},
+    {"slug": "cadecv2", "doi": "10.25919/3v5b-k950", "fedora_pid": "csiro:62387", "landing_url": "https://data.csiro.au/collection/csiro:62387"},
 ]
 
 
@@ -39,18 +29,8 @@ def walk_downloads(value: Any, out: list[dict[str, str]]) -> None:
     if isinstance(value, dict):
         url = value.get("downloadUrl") or value.get("downloadURL") or value.get("download_url")
         if isinstance(url, str) and url.startswith("http"):
-            filename = (
-                value.get("filename")
-                or value.get("fileName")
-                or value.get("name")
-                or Path(urlparse(url).path).name
-                or f"file_{value.get('id', len(out)+1)}"
-            )
-            out.append({
-                "filename": str(filename),
-                "download_url": url,
-                "file_id": str(value.get("id", "")),
-            })
+            filename = value.get("filename") or value.get("fileName") or value.get("name") or Path(urlparse(url).path).name or f"file_{value.get('id', len(out)+1)}"
+            out.append({"filename": str(filename), "download_url": url, "file_id": str(value.get("id", ""))})
         for child in value.values():
             walk_downloads(child, out)
     elif isinstance(value, list):
@@ -101,8 +81,7 @@ def inspect_file(path: Path) -> dict[str, Any]:
 
 def download(url: str, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    headers = {"User-Agent": "MedCode-official-data-downloader/1.0"}
-    with requests.get(url, headers=headers, stream=True, timeout=(60, 300)) as response:
+    with requests.get(url, headers={"User-Agent": "MedCode-official-data-downloader/1.0"}, stream=True, timeout=(60, 300)) as response:
         response.raise_for_status()
         with destination.open("wb") as handle:
             for chunk in response.iter_content(1024 * 1024):
@@ -117,35 +96,44 @@ def capture_dataset(page, root: Path, spec: dict[str, str]) -> dict[str, Any]:
 
     def on_response(response) -> None:
         url = response.url
-        if "data.csiro.au" not in url:
-            return
-        if not any(token in url for token in ("/folders/contents", "/files/summary", "/data", "/collection")):
+        if "data.csiro.au" not in url or not any(token in url for token in ("/folders/contents", "/files/summary", "/data", "/collection")):
             return
         try:
             content_type = response.headers.get("content-type", "")
             if "json" not in content_type.lower():
                 return
-            payload = response.json()
-            captured.append({"url": url, "status": response.status, "payload": payload})
+            captured.append({"url": url, "status": response.status, "payload": response.json()})
         except Exception as exc:
             captured.append({"url": url, "status": response.status, "error": f"{type(exc).__name__}: {exc}"})
 
     page.on("response", on_response)
     page.goto(spec["landing_url"], wait_until="domcontentloaded", timeout=120_000)
-    page.wait_for_timeout(8_000)
+    page.wait_for_timeout(5_000)
 
-    # Try common tabs/buttons only when present. Page network responses are authoritative;
-    # clicks simply prompt the official UI to request its file listing.
-    for label in ("Data", "Files", "Download", "Access data"):
+    # CSIRO presents an acknowledgement modal on a fresh browser profile. It blocks
+    # the Files tab, so dismiss it before attempting any data interaction.
+    try:
+        continue_button = page.locator("button.continue-button")
+        if continue_button.count() > 0 and continue_button.first.is_visible():
+            continue_button.first.click(timeout=5_000)
+            page.wait_for_timeout(2_000)
+    except Exception:
+        pass
+
+    # Use the stable aria-controls attribute visible in the official page HTML.
+    try:
+        files_tab = page.locator('a[aria-controls="data"]')
+        if files_tab.count() > 0:
+            files_tab.first.click(timeout=10_000, force=True)
+            page.wait_for_timeout(8_000)
+    except Exception:
+        # Text fallback for future portal changes.
         try:
-            locator = page.get_by_text(label, exact=True)
-            if locator.count() > 0:
-                locator.first.click(timeout=3_000)
-                page.wait_for_timeout(3_000)
+            page.get_by_text("Files", exact=True).first.click(timeout=5_000, force=True)
+            page.wait_for_timeout(8_000)
         except Exception:
             pass
 
-    page.wait_for_timeout(5_000)
     (dataset_dir / "landing_page.html").write_text(page.content(), encoding="utf-8")
     page.screenshot(path=str(dataset_dir / "landing_page.png"), full_page=True)
     save_json(dataset_dir / "captured_network_responses.json", captured)
@@ -154,16 +142,14 @@ def capture_dataset(page, root: Path, spec: dict[str, str]) -> dict[str, Any]:
     for record in captured:
         if "payload" in record:
             walk_downloads(record["payload"], entries)
-    dedup: dict[str, dict[str, str]] = {item["download_url"]: item for item in entries}
-    entries = list(dedup.values())
+    entries = list({item["download_url"]: item for item in entries}.values())
     save_json(dataset_dir / "captured_download_urls.json", entries)
     if not entries:
         raise RuntimeError(f"No official signed downloadUrl captured from {spec['landing_url']}")
 
     downloaded: list[dict[str, Any]] = []
     for index, entry in enumerate(entries, start=1):
-        filename = safe_name(entry["filename"], f"download_{index}.bin")
-        destination = dataset_dir / "raw" / filename
+        destination = dataset_dir / "raw" / safe_name(entry["filename"], f"download_{index}.bin")
         download(entry["download_url"], destination)
         downloaded.append({**entry, **inspect_file(destination), "saved_path": str(destination.relative_to(root))})
 
