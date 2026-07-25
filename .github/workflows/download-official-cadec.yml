@@ -24,11 +24,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install downloader dependency
-        run: python -m pip install requests
-      - name: Download both official CSIRO DOI releases
+      - name: Install browser downloader dependencies
         run: |
-          python scripts/download_official_cadec_datasets.py /tmp/official_cadec_datasets \
+          python -m pip install requests playwright
+          python -m playwright install --with-deps chromium
+      - name: Download both official CSIRO DOI releases
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/capture_csiro_cadec_playwright.py /tmp/official_cadec_datasets \
             2>&1 | tee /tmp/download.log
       - name: Show manifest
         if: always()
