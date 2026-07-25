@@ -1,6 +1,11 @@
 name: Download official CADEC datasets
 
 on:
+  push:
+    branches: [data/cadec-official-download]
+    paths:
+      - '.github/workflows/download-official-cadec.yml'
+      - 'scripts/download_csiro_cadec.py'
   pull_request:
     branches: [main]
     paths:
