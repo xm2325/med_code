@@ -13,8 +13,8 @@ from urllib.parse import quote, urlparse
 import requests
 
 DATASETS = [
-    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "versioned_pid": "csiro:10948v3"},
-    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "versioned_pid": "csiro:62387v4"},
+    {"slug": "cadec_original", "doi": "10.4225/08/570FB102BDAD2", "fedora_pid": "csiro:10948", "expected_version": 3},
+    {"slug": "cadecv2_v4", "doi": "10.25919/3v5b-k950", "fedora_pid": "csiro:62387", "expected_version": 4},
 ]
 
 
@@ -59,12 +59,12 @@ def extract_file_candidates(obj: Any) -> list[dict[str, str]]:
 
     def walk(node: Any) -> None:
         if isinstance(node, dict):
-            name = str(node.get("fileName") or node.get("filename") or node.get("name") or node.get("title") or "")
-            for key in ["downloadURL", "downloadUrl", "download_url", "contentUrl", "fileUrl", "fileURL", "href", "url", "self"]:
-                value = node.get(key)
+            name = str(node.get("fileName") or node.get("filename") or node.get("name") or node.get("title") or node.get("file") or "")
+            for key, value in node.items():
                 if isinstance(value, str) and value.startswith("http"):
-                    if any(token in key.lower() for token in ("download", "content", "file")) or "/data/" in value.lower():
-                        candidates.append({"name": name, "url": value, "source_key": key})
+                    key_lower = str(key).lower()
+                    if any(token in key_lower for token in ("download", "content", "file", "href", "url", "link")):
+                        candidates.append({"name": name, "url": value, "source_key": str(key)})
             for value in node.values():
                 walk(value)
         elif isinstance(node, list):
@@ -117,9 +117,12 @@ def main() -> None:
         dest.mkdir(parents=True, exist_ok=True)
         metadata_url = f"https://data.csiro.au/dap/ws/v2/collections/{quote(dataset['doi'], safe='/')}.json"
         metadata = get_json(session, metadata_url)
+        actual_version = int(metadata.get("versionNumber", -1)) if isinstance(metadata, dict) else -1
+        if actual_version != int(dataset["expected_version"]):
+            raise RuntimeError(f"DOI metadata version mismatch for {dataset['doi']}: expected {dataset['expected_version']}, got {actual_version}")
         (dest / "official_metadata.json").write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
 
-        listing_url = f"https://data.csiro.au/dap/ws/v2/collections/{dataset['versioned_pid']}/data.json"
+        listing_url = f"https://data.csiro.au/dap/ws/v2/collections/{dataset['fedora_pid']}/data.json"
         file_listing = get_json(session, listing_url)
         (dest / "official_file_listing.json").write_text(json.dumps(file_listing, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -133,6 +136,7 @@ def main() -> None:
 
         manifest = {
             **dataset,
+            "actual_version": actual_version,
             "metadata_url": metadata_url,
             "data_listing_url": listing_url,
             "candidate_count": len(file_candidates),
