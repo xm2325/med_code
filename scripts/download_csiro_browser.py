@@ -40,8 +40,11 @@ def recurse_urls(node: Any) -> list[str]:
     elif isinstance(node, list):
         for value in node:
             out.extend(recurse_urls(value))
-    elif isinstance(node, str) and node.startswith("http") and "/dap/ws/v2/collections/" in node and "/data/" in node:
-        out.append(node)
+    elif isinstance(node, str) and node.startswith("http"):
+        if "/dap/ws/v2/collections/" in node and "/data/" in node:
+            out.append(node)
+        elif "s3.data.csiro.au/" in node:
+            out.append(node)
     return list(dict.fromkeys(out))
 
 
@@ -50,9 +53,21 @@ def extract_file_nodes(node: Any) -> list[dict[str, Any]]:
     if isinstance(node, dict):
         lowered = {str(key).lower(): value for key, value in node.items()}
         name = lowered.get("filename") or lowered.get("file_name") or lowered.get("name") or lowered.get("title")
-        file_id = lowered.get("fileid") or lowered.get("file_id") or lowered.get("datafileid") or lowered.get("data_file_id")
+        file_id = (
+            lowered.get("fileid")
+            or lowered.get("file_id")
+            or lowered.get("datafileid")
+            or lowered.get("data_file_id")
+            or lowered.get("id")
+        )
+        download_url = lowered.get("downloadurl") or lowered.get("download_url")
         if name and file_id is not None:
-            out.append({"name": str(name), "file_id": str(file_id), "raw": node})
+            out.append({
+                "name": str(name),
+                "file_id": str(file_id),
+                "download_url": str(download_url or ""),
+                "raw": node,
+            })
         for value in node.values():
             out.extend(extract_file_nodes(value))
     elif isinstance(node, list):
@@ -107,7 +122,7 @@ async def main() -> None:
             captured_urls.clear()
             landing = metadata["landingPage"]["href"]
             await page.goto(landing, wait_until="domcontentloaded", timeout=120000)
-            await page.wait_for_timeout(8000)
+            await page.wait_for_timeout(5000)
             collection_id = int(metadata["dataCollectionId"])
 
             api_responses = {}
@@ -133,14 +148,16 @@ async def main() -> None:
                 url for url in list(dict.fromkeys(captured_urls + anchors + resources))
                 if re.search(r"/dap/ws/v2/collections/\d+/data/\d+(?:$|[?#])", url)
             ]
-            file_nodes = []
+            file_nodes: list[dict[str, Any]] = []
             for payload in parsed_payloads:
                 candidate_urls.extend(recurse_urls(payload))
                 file_nodes.extend(extract_file_nodes(payload))
+            name_by_url: dict[str, str] = {}
             for node in file_nodes:
-                candidate_urls.append(f"https://data.csiro.au/dap/ws/v2/collections/{collection_id}/data/{node['file_id']}")
+                direct_url = node.get("download_url") or f"https://data.csiro.au/dap/ws/v2/collections/{collection_id}/data/{node['file_id']}"
+                candidate_urls.append(direct_url)
+                name_by_url[direct_url] = node["name"]
             candidate_urls = list(dict.fromkeys(candidate_urls))
-            node_names = {str(node["file_id"]): node["name"] for node in file_nodes}
 
             (dest / "browser_page_snapshot.html").write_text(await page.content(), encoding="utf-8")
             (dest / "browser_discovery.json").write_text(json.dumps({
@@ -161,18 +178,31 @@ async def main() -> None:
                     body = await response.body()
                     disposition = response.headers.get("content-disposition", "")
                     match = re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)', disposition, flags=re.I)
-                    file_id = Path(urlparse(url).path).name
-                    source_name = node_names.get(file_id, "")
+                    source_name = name_by_url.get(url, "")
                     name = safe_filename((match.group(1) if match else "") or source_name or url, f"file_{index:03d}")
                     path = dest / name
                     if path.exists():
                         path = dest / f"{index:03d}_{name}"
                     path.write_bytes(body)
-                    files.append({"filename": path.name, "size_bytes": path.stat().st_size, "sha256": sha256(path), "source_url": url, "content_type": response.headers.get("content-type", "")})
+                    files.append({
+                        "filename": path.name,
+                        "size_bytes": path.stat().st_size,
+                        "sha256": sha256(path),
+                        "source_url": url,
+                        "content_type": response.headers.get("content-type", ""),
+                    })
                 except Exception as exc:
                     errors.append({"url": url, "error": f"{type(exc).__name__}: {exc}"})
 
-            manifest = {**dataset, "landing_page": landing, "collection_id": collection_id, "candidate_count": len(candidate_urls), "downloaded_file_count": len(files), "files": files, "errors": errors}
+            manifest = {
+                **dataset,
+                "landing_page": landing,
+                "collection_id": collection_id,
+                "candidate_count": len(candidate_urls),
+                "downloaded_file_count": len(files),
+                "files": files,
+                "errors": errors,
+            }
             (dest / "download_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
             manifests.append(manifest)
 
