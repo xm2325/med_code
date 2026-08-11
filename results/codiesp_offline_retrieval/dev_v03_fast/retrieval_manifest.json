@@ -1,0 +1,68 @@
+{
+  "schema_version": "codiesp-offline-retrieval-fast-v0.3",
+  "split": "dev",
+  "n_cases": 250,
+  "candidate_n": 1500,
+  "lsa_dim": 64,
+  "methods": [
+    "whole_note_lexical",
+    "sentence_hybrid",
+    "fragment_hybrid_alias",
+    "fragment_hybrid_alias_hierarchy"
+  ],
+  "selection_rule": "DEV-only: maximise micro Recall@20, tie-break by micro Recall@35",
+  "selected_method": "sentence_hybrid",
+  "selected_metrics": {
+    "method": "sentence_hybrid",
+    "n_cases": 250,
+    "n_gold_codes": 2677,
+    "micro_recall_at_5": 0.036234590960029886,
+    "macro_recall_at_5": 0.040521440621641855,
+    "case_hit_rate_at_5": 0.32,
+    "micro_recall_at_10": 0.053791557713858795,
+    "macro_recall_at_10": 0.06181455632946345,
+    "case_hit_rate_at_10": 0.416,
+    "micro_recall_at_20": 0.07060141949943967,
+    "macro_recall_at_20": 0.07952990721672584,
+    "case_hit_rate_at_20": 0.48,
+    "micro_recall_at_35": 0.09264101606275682,
+    "macro_recall_at_35": 0.10686152180507369,
+    "case_hit_rate_at_35": 0.568
+  },
+  "corpus": {
+    "url": "https://zenodo.org/records/3837305/files/codiesp.zip?download=1",
+    "sha256": "52b290233906a2eb589ac7b1d9429adeac88f6a9cae8b0d3c180504afbe61688",
+    "split": "dev",
+    "n_texts": 250,
+    "n_gold_codes": 2677,
+    "label_file": "final_dataset_v4_to_publish/dev/devD.tsv"
+  },
+  "icd_kb": {
+    "icd_version": "FY2018 ICD-10-CM",
+    "task_code_space": "CodiEsp-D valid diagnosis codes (2018 version)",
+    "sources": {
+      "codiesp_code_list": {
+        "url": "https://zenodo.org/records/3706838/files/codiesp_codes.zip?download=1",
+        "sha256": "ed28f25e50fe958d660a07387414e98dbf9f86a172a1c418f11cc1cc449c9b8e",
+        "file": "codiesp_codes/codiesp-D_codes.tsv",
+        "n_codes": 98288
+      },
+      "cdc_descriptions": {
+        "url": "https://ftp.cdc.gov/pub/health_statistics/nchs/Publications/ICD10CM/2018/2018-ICD-10-CM-Codes-File.zip",
+        "sha256": "10d02dc4e703d389ec324a7563501357b78aaa0f733df9936e852cbbdcd4efbe",
+        "file": "icd10cm_codes_2018.txt",
+        "n_descriptions": 71704
+      },
+      "cdc_tabular_xml": {
+        "url": "https://ftp.cdc.gov/pub/health_statistics/nchs/Publications/ICD10CM/2018/ICD-10-CM-Codes-Tables-and-Index-2018.zip",
+        "sha256": "e90294d37ec132654a1bdce813b362542235d8c7495c37dd0d27fbba37ab330f",
+        "file": "icd10cm_tabular_2018.xml",
+        "n_xml_codes": 44221
+      }
+    },
+    "n_retrievable_codes": 98288
+  },
+  "no_llm_api_calls": true,
+  "deepseek_api_key_read": false,
+  "hybrid_retrieval_note": "local char/LSA reranking is restricted to a union candidate pool from sparse high-recall channels"
+}

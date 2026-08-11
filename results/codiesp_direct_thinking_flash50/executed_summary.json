@@ -1,0 +1,51 @@
+{
+  "schema_version": "codiesp-direct-thinking-comparison-v0.1",
+  "executed_on": "2026-07-23",
+  "dataset": "CodiEsp v1.4 test set, officially distributed machine-translated English text_files_en",
+  "subset": "first 50 sorted test article IDs; identical subset across DeepSeek comparisons",
+  "old_candidate_assisted": {
+    "model_api_name_at_execution": "deepseek-chat",
+    "method": "clinical text + TF-IDF/similar-case Top-20 candidate diagnosis codes -> DeepSeek selection",
+    "micro_precision": 0.33079847908745247,
+    "micro_recall": 0.15236427320490367,
+    "micro_f1": 0.20863309352517984,
+    "candidate_recall_at_20": 0.329246935201401,
+    "n_failed_requests": 0
+  },
+  "direct_thinking_exhaustive": {
+    "model": "deepseek-v4-flash",
+    "thinking": {"type": "enabled", "reasoning_effort": "high"},
+    "retrieval": false,
+    "candidate_code_list": false,
+    "prompt_variant": "direct_exhaustive",
+    "n_documents": 50,
+    "gold_codes": 571,
+    "predicted_codes": 238,
+    "true_positive_codes": 97,
+    "false_positive_codes": 141,
+    "false_negative_codes": 474,
+    "micro_precision": 0.40756302521008403,
+    "micro_recall": 0.16987740805604204,
+    "micro_f1": 0.23980222496909764,
+    "micro_f2": 0.1923076923076923,
+    "exact_match": 0.0,
+    "mean_predicted_codes_per_case": 4.76,
+    "mean_gold_codes_per_case": 11.42,
+    "n_failed_requests": 0,
+    "workflow_run_id": 30007487189,
+    "artifact_id": 8563721582,
+    "artifact_digest": "sha256:dc400b53229a6255d2407acd3747abdd5e67c27b30d686402d9872ac02477ef2"
+  },
+  "same_50_tfidf_baseline": {
+    "micro_precision": 0.274,
+    "micro_recall": 0.23992994746059546,
+    "micro_f1": 0.25583566760037346
+  },
+  "comparison": {
+    "direct_vs_old_candidate_assisted_f1_delta": 0.0311691314439178,
+    "direct_vs_old_precision_delta": 0.07676454612263156,
+    "direct_vs_old_recall_delta": 0.01751313485113837,
+    "interpretation": "Removing retrieval/candidate constraints and using an explicit exhaustive thinking prompt improved both precision and recall versus the old candidate-assisted DeepSeek configuration on the same 50 cases, but recall remains low. The dominant failure is under-coding: the direct model predicts 4.76 codes/case versus 11.42 gold codes/case on average."
+  },
+  "scientific_boundary": "This is a direct model-capability benchmark on CodiEsp clinical cases, not an RA-specific MIPA/MIMIC under-recording result. CodiEsp-D official leaderboard uses MAP; these exact-code micro precision/recall/F1 metrics are internal complementary diagnostics."
+}

@@ -1,0 +1,42 @@
+name: MIPA split protocol audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  split-protocol-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run official-vs-confirmatory split audit
+        run: |
+          python scripts/run_mipa_split_protocol_audit.py \
+            --output-dir /tmp/mipa_split_protocol_audit
+      - name: Verify protocol separation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/mipa_split_protocol_audit/summary.json').read_text())
+          assert p['benchmark_comparison_protocol']['subject_grouped'] is False
+          assert p['ra_confirmatory_protocol']['audit']['subject_disjoint'] is True
+          assert p['reporting_rule']['do_not_mix_protocol_metrics'] is True
+          assert p['reporting_rule']['published_external_macro_f1_directly_comparable_to_our_subject_disjoint_result'] is False
+          PY
+      - name: Upload split audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: mipa-split-protocol-audit
+          path: /tmp/mipa_split_protocol_audit/

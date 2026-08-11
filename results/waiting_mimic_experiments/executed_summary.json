@@ -1,0 +1,136 @@
+{
+  "schema_version": "waiting-mimic-executed-results-v0.1",
+  "nhse_ra_related_notes": {
+    "dataset": "NHSEDataScience/synthetic_clinical_notes Silver",
+    "n_total_notes": 1602,
+    "n_ra_related_notes": 97,
+    "n_llm_notes_attempted": 97,
+    "n_llm_request_failures": 0,
+    "keyword_baseline_positive_pairs": 9,
+    "keyword_baseline_by_phenotype": {
+      "hypertension": 6,
+      "diabetes_type_2": 3,
+      "depression": 0,
+      "hfpef": 0,
+      "vte_past": 0,
+      "obesity": 0
+    },
+    "open_ended_llm": {
+      "n_extracted_items": 100,
+      "n_notes_with_at_least_one_extracted_item": 57,
+      "n_present_items": 100,
+      "evidence_exact_substring_rate": 0.96,
+      "valid_assertion_rate": 1.0,
+      "valid_temporality_rate": 1.0,
+      "potential_negation_conflicts": 0,
+      "automatic_evidence_or_contract_review_candidates": 4,
+      "target_category_pairs": 11,
+      "keyword_target_pair_overlap": 1,
+      "keyword_pair_coverage_by_open_ended_llm": 0.1111111111111111,
+      "important_error_examples": [
+        "The model labelled hypertension from evidence 'BP 90/60', illustrating that verbatim evidence can still be clinically non-supportive.",
+        "Four extracted items failed the exact-verbatim evidence check because the returned evidence text was altered/combined rather than copied exactly."
+      ],
+      "interpretation": "The extraction/evidence contract is mostly operational, but exact-substring evidence is not sufficient to establish clinical support. Keyword-vs-LLM disagreement is not an accuracy metric because NHSE Silver has no clinician phenotype gold and the keyword dictionary is deliberately narrow."
+    },
+    "provenance": {
+      "workflow_run_id": 30004170897,
+      "artifact_id": 8562345838,
+      "artifact_digest": "sha256:57ce2a180699a2ee50f18df86fac83149801a38e0d0701eb24462c3a719faa15",
+      "note": "NHSE and Synthea outputs completed before a later CodiEsp indexing bug stopped the combined runner; CodiEsp was rerun successfully in a corrected standalone workflow."
+    }
+  },
+  "synthea_known_missingness_c4": {
+    "dataset": "Synthea sample CSV Nov 2021",
+    "n_patients": 1163,
+    "target_gold_positive_patient_phenotype_pairs": 803,
+    "scenarios": {
+      "10pct": {
+        "injected_missing_positive_pairs": 92,
+        "realized_missing_fraction": 0.11457036114570361,
+        "oracle_recovery_fraction": 1.0,
+        "prespecified_imperfect_text_recovery_fraction": 0.8369565217391305,
+        "prespecified_imperfect_text_ppv_among_text_positive_structured_negative": 0.3333333333333333,
+        "structured_sensitivity": 0.8854296388542964,
+        "combined_sensitivity_imperfect_text": 0.9813200498132005
+      },
+      "20pct": {
+        "injected_missing_positive_pairs": 149,
+        "realized_missing_fraction": 0.1855541718555417,
+        "oracle_recovery_fraction": 1.0,
+        "prespecified_imperfect_text_recovery_fraction": 0.8523489932885906,
+        "prespecified_imperfect_text_ppv_among_text_positive_structured_negative": 0.45195729537366547,
+        "structured_sensitivity": 0.8144458281444583,
+        "combined_sensitivity_imperfect_text": 0.9726027397260274
+      },
+      "30pct": {
+        "injected_missing_positive_pairs": 232,
+        "realized_missing_fraction": 0.2889165628891656,
+        "oracle_recovery_fraction": 1.0,
+        "prespecified_imperfect_text_recovery_fraction": 0.8146551724137931,
+        "prespecified_imperfect_text_ppv_among_text_positive_structured_negative": 0.5510204081632653,
+        "structured_sensitivity": 0.7110834371108343,
+        "combined_sensitivity_imperfect_text": 0.9464508094645081
+      },
+      "50pct": {
+        "injected_missing_positive_pairs": 402,
+        "realized_missing_fraction": 0.5006226650062267,
+        "oracle_recovery_fraction": 1.0,
+        "prespecified_imperfect_text_recovery_fraction": 0.845771144278607,
+        "prespecified_imperfect_text_ppv_among_text_positive_structured_negative": 0.6882591093117408,
+        "structured_sensitivity": 0.49937733499377335,
+        "combined_sensitivity_imperfect_text": 0.9227895392278954
+      }
+    },
+    "simulation_parameters": {
+      "imperfect_text_sensitivity": 0.85,
+      "imperfect_text_false_positive_rate": 0.02
+    },
+    "main_conclusion": "The C4 evaluator correctly recovers 100% of injected missing positives with an oracle text channel. With an apparently strong 85%-sensitive, 2%-FPR text detector, recovery sensitivity remains around 81-85% but PPV among Text+/Structured- is only 33-69% depending on missingness prevalence. This demonstrates the base-rate problem and why a strict PPV/evidence gate is necessary before calling additional AI findings recoverable under-recording.",
+    "interpretation": "Controlled methods validation only; injected missingness is not an estimate of real clinical under-recording."
+  },
+  "codiesp_clinical_text_to_icd10": {
+    "dataset": "CodiEsp v1.4 diagnosis coding",
+    "n_train": 500,
+    "n_dev": 250,
+    "n_test": 250,
+    "text_input": "officially distributed machine-translated English text_files_en",
+    "tfidf_retrieval_baseline_full_test": {
+      "selected_top_n_from_dev": 10,
+      "micro_precision": 0.2564,
+      "micro_recall": 0.2255453905700211,
+      "micro_f1": 0.2399850243354549,
+      "exact_match": 0.0,
+      "candidate_recall_at_20": 0.306826178747361
+    },
+    "deepseek_candidate_assisted_first_50_test_cases": {
+      "n_failed_requests": 0,
+      "micro_precision": 0.33079847908745247,
+      "micro_recall": 0.15236427320490367,
+      "micro_f1": 0.20863309352517984,
+      "exact_match": 0.0,
+      "candidate_recall_at_20": 0.329246935201401
+    },
+    "tfidf_baseline_same_first_50_test_cases": {
+      "micro_precision": 0.274,
+      "micro_recall": 0.23992994746059546,
+      "micro_f1": 0.25583566760037346,
+      "exact_match": 0.0
+    },
+    "main_conclusion": "CodiEsp is a valid external Clinical text -> ICD-10 gold benchmark, but the first MedCode retrieval/candidate-assisted configuration is weak. DeepSeek increased precision on the fixed 50-case subset but reduced recall enough to underperform the same-subset TF-IDF baseline in F1. The dominant bottleneck is candidate generation: Top-20 recall is only about 31-33%, so most gold codes are unavailable to a candidate-constrained reranker.",
+    "next_methodological_upgrade": "Use the official CodiEsp diagnosis-code resource with English ICD-10 descriptions to build description-aware/hybrid retrieval, then rerun candidate recall and LLM selection. CodiEsp-X can additionally test evidence-span grounding.",
+    "provenance": {
+      "workflow_run_id": 30004833297,
+      "workflow_status": "success",
+      "artifact_id": 8562568294,
+      "artifact_digest": "sha256:0e0e0de319c9973200bb187df932c9e7e6a1084e05358bebfafa9085be151d0d"
+    }
+  },
+  "overall": {
+    "can_continue_useful_experiments_while_waiting_for_mimic": true,
+    "nhse_replaces_mipa_c3": false,
+    "synthea_estimates_real_underrecording": false,
+    "codiesp_is_valid_external_icd10_coding_benchmark": true,
+    "codiesp_replaces_ra_specific_mipa_mimic_c3_c4": false
+  }
+}

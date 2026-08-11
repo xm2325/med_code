@@ -1,0 +1,161 @@
+name: CodiEsp ICD knowledge A-B
+
+on:
+  workflow_dispatch:
+    inputs:
+      n_cases:
+        description: 'Number of fixed, sorted CodiEsp test cases to run in both Direct and ICD-RAG arms.'
+        required: true
+        type: choice
+        options:
+          - '10'
+          - '50'
+        default: '10'
+      confirm_paid_run:
+        description: 'I confirm this run may call the paid DeepSeek API for the paired Direct vs ICD-RAG experiment.'
+        required: true
+        type: boolean
+        default: false
+  push:
+    paths:
+      - '.github/triggers/codiesp-first10-20260723.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codiesp-icd-kb-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  N_CASES: ${{ github.event_name == 'workflow_dispatch' && inputs.n_cases || '10' }}
+  NUM_SHARDS: '2'
+
+jobs:
+  preflight:
+    if: ${{ github.event_name == 'push' || inputs.confirm_paid_run == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require configured DeepSeek API key
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo 'DEEPSEEK_API_KEY is not configured. No paid LLM requests were started.' >&2
+            exit 1
+          fi
+          echo "Paid-run confirmation received. Running fixed first ${N_CASES} CodiEsp cases in paired Direct and ICD-RAG arms."
+
+  run-shards:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        mode: [direct, rag]
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: pip install pandas numpy scikit-learn
+      - name: Run paired CodiEsp shard with per-case checkpoints
+        id: shard_run
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          mkdir -p /tmp/ab
+          python scripts/run_codiesp_icd_kb_ab_resilient.py \
+            --mode '${{ matrix.mode }}' \
+            --output-dir /tmp/ab \
+            --total-cases "$N_CASES" \
+            --num-shards "$NUM_SHARDS" \
+            --shard-index '${{ matrix.shard }}' \
+            --retrieval-top-k 35 \
+            --max-api-attempts 4
+      - name: Upload complete or partial shard outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-icd-kb-ab-${{ matrix.mode }}-${{ matrix.shard }}
+          path: /tmp/ab/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Verify shard completeness after preserving artifact
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path('/tmp/ab/run_manifest.json')
+          if not p.exists():
+              raise SystemExit('run_manifest.json missing; no recoverable shard checkpoint')
+          m = json.loads(p.read_text())
+          print(json.dumps({
+              'mode': m.get('mode'),
+              'shard_index': m.get('shard_index'),
+              'n_success': m.get('n_success'),
+              'n_failures': m.get('n_failures'),
+              'n_pending': m.get('n_pending'),
+              'failed_case_ids': m.get('failed_case_ids'),
+          }, indent=2))
+          if m.get('n_failures', 0) != 0 or m.get('n_pending', 0) != 0:
+              raise SystemExit('Shard incomplete; partial outputs were uploaded for targeted repair.')
+          if m.get('n_success', 0) <= 0:
+              raise SystemExit('Shard has no successful cases.')
+          PY
+
+  aggregate:
+    if: ${{ always() && needs.preflight.result == 'success' }}
+    needs: [preflight, run-shards]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pandas
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: codiesp-icd-kb-ab-*
+          path: /tmp/shards
+      - name: Aggregate all available complete or partial results
+        id: aggregate_partial
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/final
+          python scripts/aggregate_codiesp_icd_kb_ab.py --input-dir /tmp/shards --output-dir /tmp/final
+      - name: Upload aggregate before strict acceptance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-icd-kb-ab-${{ env.N_CASES }}-final
+          path: /tmp/final/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Strict paired acceptance
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path('/tmp/final/summary.json')
+          if not p.exists():
+              raise SystemExit('No aggregate summary was produced; inspect preserved shard artifacts.')
+          s = json.loads(p.read_text())
+          expected = int(os.environ['N_CASES'])
+          print(json.dumps({
+              'expected': expected,
+              'n_paired': s.get('n_paired'),
+              'direct_n': s.get('metrics', {}).get('direct', {}).get('n_documents'),
+              'rag_n': s.get('metrics', {}).get('rag', {}).get('n_documents'),
+          }, indent=2))
+          assert s['n_paired'] == expected, (s['n_paired'], expected)
+          assert s['metrics']['direct']['n_documents'] == expected
+          assert s['metrics']['rag']['n_documents'] == expected
+          PY

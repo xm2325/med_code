@@ -1,0 +1,84 @@
+name: CodiEsp repair missing RAG shard 0
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_paid_run:
+        description: 'I confirm this targeted repair may call DeepSeek Pro/max for only the five missing RAG shard-0 cases.'
+        required: true
+        type: boolean
+        default: false
+  push:
+    paths:
+      - '.github/triggers/codiesp-rag0-repair-20260723.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codiesp-rag0-repair-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repair-rag0:
+    if: ${{ github.event_name == 'push' || inputs.confirm_paid_run == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: pip install pandas numpy scikit-learn
+      - name: Require DeepSeek key
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo 'DEEPSEEK_API_KEY missing; no paid calls started.' >&2
+            exit 1
+          fi
+      - name: Repair only first10 RAG shard 0 with checkpoints
+        id: repair
+        continue-on-error: true
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          mkdir -p /tmp/rag0-repair
+          python scripts/run_codiesp_icd_kb_ab_resilient.py \
+            --mode rag \
+            --output-dir /tmp/rag0-repair \
+            --total-cases 10 \
+            --num-shards 2 \
+            --shard-index 0 \
+            --retrieval-top-k 35 \
+            --max-api-attempts 4
+      - name: Upload repaired or partial RAG shard 0
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codiesp-icd-kb-ab-rag-0-repair
+          path: /tmp/rag0-repair/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Report repair status after artifact preservation
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path('/tmp/rag0-repair/run_manifest.json')
+          if not p.exists():
+              raise SystemExit('No checkpoint manifest produced.')
+          m = json.loads(p.read_text())
+          print(json.dumps({
+              'case_ids': m.get('case_ids'),
+              'completed_case_ids': m.get('completed_case_ids'),
+              'failed_case_ids': m.get('failed_case_ids'),
+              'n_success': m.get('n_success'),
+              'n_failures': m.get('n_failures'),
+              'n_pending': m.get('n_pending'),
+          }, indent=2))
+          if m.get('n_success') != 5 or m.get('n_failures') != 0 or m.get('n_pending') != 0:
+              raise SystemExit('Repair incomplete; inspect preserved failures.csv and partial predictions.')
+          PY

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodiEsp first-10 rich dashboard v2</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;margin:0;padding:28px;background:#f6f8fb;color:#1f2937} .card{max-width:900px;margin:auto;background:white;border:1px solid #d7deea;border-radius:16px;padding:22px;box-shadow:0 8px 22px rgba(16,24,40,.06)} code{background:#eef2f6;padding:2px 5px;border-radius:5px} .err{color:#b9384a;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="card" id="status">
+<h1>CodiEsp first-10 rich dashboard v2</h1>
+<p>Loading the archived dashboard payload…</p>
+<p><small>This repository copy stores the large generated HTML as gzip/base64 payload parts to keep GitHub file writes manageable. The browser reconstructs the exact generated dashboard at load time.</small></p>
+</div>
+<script>
+(async () => {
+  const parts = [
+    'codiesp_first10_rich_dashboard_v2.payload.b64.part01',
+    'codiesp_first10_rich_dashboard_v2.payload.b64.part02',
+    'codiesp_first10_rich_dashboard_v2.payload.b64.part03'
+  ];
+  const chunks = await Promise.all(parts.map(async name => {
+    const response = await fetch(name);
+    if (!response.ok) throw new Error(`Failed to load ${name}: HTTP ${response.status}`);
+    return response.text();
+  }));
+  const b64 = chunks.join('').replace(/\s+/g, '');
+  const gz = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('This browser does not support DecompressionStream("gzip"). Use a current Chrome, Edge, Firefox, or Safari browser.');
+  }
+  const stream = new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const fullHtml = await new Response(stream).text();
+  document.open();
+  document.write(fullHtml);
+  document.close();
+})().catch(err => {
+  document.getElementById('status').innerHTML = `<h1>Dashboard could not be reconstructed</h1><div class="err">${String(err)}</div><p>Serve the <code>reports/</code> directory over HTTP rather than opening this loader via <code>file://</code>, for example: <code>python -m http.server</code>.</p>`;
+});
+</script>
+</body>
+</html>
