@@ -106,3 +106,22 @@ def test_standalone_html_embeds_all_50_records_and_record_picker():
     assert embedded["method"]["rag_executed_in_demo"] is False
     assert "fetch(" not in html
     assert "<script src=" not in html
+
+
+def test_english_standalone_html_is_self_contained_and_translated():
+    html = (ROOT / "demo" / "ra_adr_meddra_demo.en.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<script type="application/json" id="medcodePayload">(.*?)</script>',
+        html,
+        flags=re.DOTALL,
+    )
+    assert match is not None
+    embedded = json.loads(match.group(1))
+    assert len(embedded["records"]) == 50
+    assert '<html lang="en">' in html
+    assert not re.search(r"[\u3400-\u9fff]", html)
+    assert 'data-method="baseline"' in html
+    assert 'data-method="prompt"' in html
+    assert 'data-method="rag"' in html
+    assert "fetch(" not in html
+    assert "<script src=" not in html
