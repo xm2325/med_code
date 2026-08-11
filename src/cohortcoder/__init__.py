@@ -1,6 +1,7 @@
 """MedCode explainable clinical coding toolkit."""
 
 from .advanced import AdvancedModelConfig, AdvancedSingleLabelCoder, CrossEncoderCandidateReranker, DenseSemanticIndex
+from .adr_coding import ADRTerm, DEMO_ADR_TERMS, DEMO_TERMINOLOGY_SOURCE, OneLineADRCoder, demo_terminology
 from .analysis import annotate_prediction_diagnostics, choose_threshold_max_coverage, coverage_accuracy_curve, failure_summary, policy_stress_test, subgroup_metrics, write_evaluation_plots
 from .audit_replay import ARTIFACT_SCHEMA_VERSION, build_audit_bundle, decision_trace, sha256_file, validate_audit_bundle
 from .benchmark_profiles import CADEC_MEDDRA, MIMIC_IV_ICD10, BenchmarkProfile, get_benchmark_profile

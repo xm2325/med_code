@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MedCode RA 治疗相关不良反应一行记录到 MedDRA 代码的合成交互演示">
+  <title>MedCode · RA 不良反应编码台</title>
+  <style>
+    :root {
+      --ink: #15302d;
+      --ink-soft: #536965;
+      --paper: #f4f1e9;
+      --paper-2: #ebe6db;
+      --card: #fffdf8;
+      --line: #d7d2c6;
+      --green: #0a6457;
+      --green-dark: #08483f;
+      --mint: #b9e2d5;
+      --mint-soft: #e4f3ee;
+      --orange: #df6c3f;
+      --orange-soft: #fae4d9;
+      --yellow: #f5bd4b;
+      --yellow-soft: #fff2cf;
+      --red: #aa3d37;
+      --shadow: 0 20px 55px rgba(21, 48, 45, .10);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 5%, rgba(185, 226, 213, .45), transparent 26rem),
+        var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(223, 108, 63, .3);
+      outline-offset: 2px;
+    }
+
+    .shell { width: min(1480px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      border-bottom: 1px solid rgba(21, 48, 45, .12);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 820; letter-spacing: -.02em; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border-radius: 11px; color: white; background: var(--green);
+      font-size: 12px; letter-spacing: .06em;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .top-note { display: flex; align-items: center; gap: 9px; color: var(--ink-soft); font-size: 13px; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 5px rgba(223,108,63,.12); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+      gap: 60px;
+      align-items: end;
+      padding: 66px 0 44px;
+    }
+    .eyebrow { color: var(--green); font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 12px 0 20px; max-width: 850px; font-size: clamp(42px, 5.6vw, 78px); line-height: 1.02; letter-spacing: -.055em; font-weight: 830; }
+    .hero p { max-width: 720px; margin: 0; font-size: clamp(17px, 1.5vw, 21px); color: var(--ink-soft); }
+    .hero-aside { border-left: 1px solid var(--line); padding-left: 30px; }
+    .flow { display: grid; gap: 18px; }
+    .flow-step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
+    .flow-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: white; font-size: 11px; font-weight: 800; }
+    .flow-step strong { display: block; font-size: 14px; }
+    .flow-step span { color: var(--ink-soft); font-size: 13px; }
+
+    .notice {
+      display: flex; justify-content: space-between; gap: 18px; align-items: center;
+      padding: 14px 18px; border: 1px solid #e8c695; border-radius: 14px;
+      background: var(--yellow-soft); font-size: 13px; margin-bottom: 24px;
+    }
+    .notice strong { color: #7d4d00; }
+    .source-link { color: var(--green-dark); font-weight: 750; text-decoration: none; white-space: nowrap; }
+    .source-link:hover { text-decoration: underline; }
+
+    .studio {
+      display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr);
+      background: var(--ink); color: white; border-radius: 30px; overflow: hidden;
+      box-shadow: var(--shadow); min-height: 440px;
+    }
+    .studio-input { padding: clamp(28px, 4vw, 54px); }
+    .section-kicker { color: #9ed4c7; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .studio h2 { margin: 8px 0 22px; font-size: clamp(26px, 3vw, 40px); letter-spacing: -.035em; }
+    .record-picker {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px;
+      align-items: end; margin-bottom: 16px;
+    }
+    .picker-field { min-width: 0; }
+    .picker-label { display: block; margin-bottom: 7px; color: rgba(255,255,255,.7); font-size: 12px; font-weight: 760; }
+    .sample-select {
+      width: 100%; min-height: 46px; padding: 0 38px 0 14px;
+      border: 1px solid rgba(255,255,255,.25); border-radius: 12px;
+      color: white; background: #244b46;
+    }
+    .sample-select option { color: var(--ink); background: white; }
+    .text-wrap { position: relative; }
+    textarea {
+      width: 100%; min-height: 132px; resize: vertical; padding: 20px 20px 42px;
+      border: 1px solid rgba(255,255,255,.25); border-radius: 16px;
+      color: white; background: rgba(255,255,255,.075); line-height: 1.55;
+    }
+    textarea::placeholder { color: rgba(255,255,255,.46); }
+    .counter { position: absolute; right: 14px; bottom: 12px; color: rgba(255,255,255,.52); font-size: 11px; }
+    .input-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .primary-btn, .ghost-btn, .small-btn {
+      border: 0; border-radius: 12px; font-weight: 780; transition: transform .16s ease, background .16s ease;
+    }
+    .primary-btn { padding: 13px 21px; color: white; background: var(--orange); box-shadow: 0 8px 22px rgba(223,108,63,.25); }
+    .primary-btn:hover { transform: translateY(-1px); background: #ec7445; }
+    .ghost-btn { padding: 12px 17px; color: white; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.17); }
+    .ghost-btn:hover { background: rgba(255,255,255,.16); }
+    .input-hint { margin-top: 18px; color: rgba(255,255,255,.58); font-size: 12px; }
+
+    .result-panel { background: #103c36; padding: clamp(28px, 4vw, 50px); display: flex; flex-direction: column; justify-content: space-between; }
+    .result-empty { margin: auto 0; color: rgba(255,255,255,.62); }
+    .result-empty .empty-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 40px; color: rgba(255,255,255,.18); margin-bottom: 12px; }
+    .result-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .route { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; font-size: 10px; font-weight: 820; letter-spacing: .06em; white-space: nowrap; }
+    .route.auto { color: #06483d; background: #bce8db; }
+    .route.topk { color: #704400; background: #ffdd8d; }
+    .route.full { color: #7c2924; background: #ffd6d2; }
+    .confidence { color: rgba(255,255,255,.65); font-size: 12px; }
+    .result-code { margin: 34px 0 4px; color: #aee4d5; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(34px, 4vw, 54px); letter-spacing: -.04em; }
+    .result-term { font-size: 23px; font-weight: 780; }
+    .result-soc { margin-top: 5px; color: rgba(255,255,255,.58); font-size: 12px; }
+    .evidence-card { margin-top: 28px; padding: 16px 18px; border-radius: 14px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); }
+    .evidence-label { color: #9ed4c7; font-size: 10px; font-weight: 820; letter-spacing: .1em; text-transform: uppercase; }
+    .evidence-text { margin-top: 8px; font-size: 14px; }
+    mark { color: inherit; background: #f1a063; border-radius: 3px; padding: 1px 3px; }
+    .result-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+    .chip { display: inline-flex; padding: 5px 8px; border-radius: 8px; background: rgba(255,255,255,.09); color: rgba(255,255,255,.72); font-size: 11px; }
+
+    .method-lab { padding: 64px 0 16px; }
+    .method-head { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 22px; }
+    .method-head h2 { margin: 6px 0 0; font-size: clamp(30px, 3.5vw, 48px); letter-spacing: -.045em; }
+    .method-copy { max-width: 590px; color: var(--ink-soft); font-size: 14px; }
+    .method-tabs { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 14px; }
+    .method-tab { border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; color: var(--ink-soft); background: var(--card); font-size: 12px; font-weight: 780; }
+    .method-tab:hover { border-color: var(--green); color: var(--green-dark); }
+    .method-tab.active { color: white; background: var(--green); border-color: var(--green); box-shadow: 0 7px 17px rgba(10,100,87,.18); }
+    .method-board { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 14px; }
+    .method-card { min-width: 0; padding: 23px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 10px 30px rgba(21,48,45,.045); }
+    .method-card h3 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    .method-card-copy { margin: 7px 0 18px; color: var(--ink-soft); font-size: 13px; }
+    .method-steps { display: grid; gap: 9px; }
+    .method-step { display: grid; grid-template-columns: 27px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid #e9e4d9; }
+    .method-step:first-child { border-top: 0; padding-top: 0; }
+    .method-step-num { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 8px; color: white; background: var(--green); font-size: 11px; font-weight: 820; }
+    .method-step strong { display: block; font-size: 13px; }
+    .method-step span { display: block; margin-top: 2px; color: var(--ink-soft); font-size: 12px; }
+    .prompt-block { margin-top: 17px; }
+    .sub-label { margin-bottom: 7px; color: var(--ink-soft); font-size: 10px; font-weight: 820; letter-spacing: .1em; text-transform: uppercase; }
+    .prompt-code { overflow: auto; max-height: 178px; margin: 0; padding: 13px 14px; border-radius: 12px; color: #d7f1e9; background: #173d38; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.6; white-space: pre-wrap; }
+    .method-note { margin-top: 14px; padding: 11px 13px; border-radius: 11px; color: #6d4a08; background: var(--yellow-soft); font-size: 12px; }
+    .method-output { display: flex; flex-direction: column; gap: 16px; }
+    .method-output-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .method-output-top h3 { margin: 3px 0 0; }
+    .method-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; color: var(--green-dark); background: var(--mint-soft); font-size: 10px; font-weight: 820; white-space: nowrap; }
+    .method-status.warn { color: #714500; background: var(--yellow-soft); }
+    .method-status.review { color: #7c2924; background: #ffdeda; }
+    .method-source { padding: 13px 14px; border-radius: 12px; color: #314844; background: var(--paper); font-size: 13px; }
+    .method-source strong { display: block; margin-bottom: 6px; color: var(--green-dark); font-size: 11px; letter-spacing: .06em; }
+    .method-result-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 10px; }
+    .method-code-box { padding: 17px; border-radius: 13px; color: white; background: var(--green-dark); }
+    .method-code-box .sub-label { color: #9ed4c7; }
+    .method-code-value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 27px; letter-spacing: -.04em; }
+    .method-code-term { margin-top: 3px; color: #d9f3eb; font-size: 13px; font-weight: 750; }
+    .method-json { overflow: auto; min-height: 142px; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 13px; color: #314844; background: #f8f5ed; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.65; white-space: pre-wrap; }
+    .method-retrieval { display: grid; gap: 8px; }
+    .retrieval-hit { display: grid; grid-template-columns: 76px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #dce9e4; border-radius: 11px; background: #f2faf7; font-size: 12px; }
+    .retrieval-hit strong { color: var(--green-dark); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .retrieval-hit span { color: var(--ink-soft); }
+    .retrieval-hit em { color: var(--green); font-size: 10px; font-style: normal; font-weight: 800; }
+    .method-footer { margin-top: 13px; color: var(--ink-soft); font-size: 12px; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 34px 0 42px; }
+    .metric { min-height: 112px; padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: rgba(255,253,248,.7); }
+    .metric-value { font-size: 34px; line-height: 1; font-weight: 830; letter-spacing: -.04em; }
+    .metric-label { margin-top: 10px; color: var(--ink-soft); font-size: 12px; }
+
+    .worklist { padding: 32px 0 76px; }
+    .worklist-head { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 20px; }
+    .worklist h2 { margin: 6px 0 0; font-size: clamp(30px, 3.5vw, 48px); letter-spacing: -.045em; }
+    .worklist-copy { max-width: 540px; color: var(--ink-soft); font-size: 14px; }
+    .toolbar {
+      display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(150px, .6fr)) auto;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .control { width: 100%; min-height: 43px; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; color: var(--ink); background: var(--card); }
+    .small-btn { min-height: 43px; padding: 0 14px; color: var(--ink); background: var(--paper-2); border: 1px solid var(--line); }
+    .small-btn:hover { background: #e2ddd1; }
+
+    .table-wrap { overflow: auto; max-height: 720px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 12px 40px rgba(21,48,45,.055); }
+    table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+    thead { position: sticky; top: 0; z-index: 2; background: #eeeadf; }
+    th { padding: 12px 14px; text-align: left; color: var(--ink-soft); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+    td { padding: 15px 14px; vertical-align: top; border-bottom: 1px solid #e9e4d9; font-size: 13px; }
+    tbody tr { transition: background .15s ease; }
+    tbody tr:hover { background: var(--mint-soft); }
+    tbody tr:last-child td { border-bottom: 0; }
+    .record-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 760; color: var(--green); }
+    .record-text { max-width: 470px; color: #304a46; }
+    .code-cell { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 760; }
+    .term-cell { max-width: 220px; }
+    .review-pill { display: inline-flex; border-radius: 999px; padding: 5px 8px; font-size: 10px; font-weight: 800; background: #ede9df; color: #6a6862; }
+    .review-pill.done { background: var(--mint); color: var(--green-dark); }
+    .open-record { border: 0; padding: 0; background: transparent; color: var(--green); font-size: 12px; font-weight: 780; text-decoration: underline; text-underline-offset: 3px; }
+    .empty-row { padding: 34px; text-align: center; color: var(--ink-soft); }
+
+    .review-drawer {
+      position: fixed; inset: 0; z-index: 10; display: none; align-items: stretch; justify-content: flex-end;
+      background: rgba(7, 26, 23, .42); backdrop-filter: blur(4px);
+    }
+    .review-drawer.open { display: flex; }
+    .drawer-panel { width: min(560px, 100%); overflow-y: auto; padding: 34px; background: var(--card); box-shadow: -30px 0 60px rgba(8,32,28,.2); }
+    .drawer-top { display: flex; justify-content: space-between; gap: 14px; align-items: start; }
+    .drawer-top h3 { margin: 4px 0 0; font-size: 28px; letter-spacing: -.03em; }
+    .close-btn { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); font-size: 20px; }
+    .drawer-record { margin: 25px 0; padding: 18px; border-radius: 14px; background: var(--paper); color: #314844; font-size: 14px; }
+    .drawer-code { padding: 18px; border-radius: 14px; background: var(--green-dark); color: white; }
+    .drawer-code strong { display: block; color: #b9e2d5; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 24px; }
+    .feedback-options { display: grid; gap: 9px; margin: 24px 0; }
+    .feedback-option { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 11px; }
+    .field-label { display: block; margin: 17px 0 7px; color: var(--ink-soft); font-size: 12px; font-weight: 760; }
+    .drawer-panel textarea { min-height: 90px; color: var(--ink); background: white; border-color: var(--line); padding: 13px; }
+    .drawer-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .drawer-actions .primary-btn { flex: 1; }
+    .drawer-actions .small-btn { flex: .6; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 20; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 11px 16px; color: white; background: var(--ink); border-radius: 10px; box-shadow: var(--shadow); transition: all .2s ease; font-size: 13px; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    footer { padding: 30px 0 48px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 12px; }
+    .footer-grid { display: flex; justify-content: space-between; gap: 24px; }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 34px; }
+      .hero-aside { border-left: 0; border-top: 1px solid var(--line); padding: 26px 0 0; }
+      .flow { grid-template-columns: repeat(3, 1fr); }
+      .studio { grid-template-columns: 1fr; }
+      .method-board { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .toolbar > :first-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 24px, 1480px); }
+      .top-note span:last-child { display: none; }
+      .hero { padding-top: 44px; }
+      h1 { font-size: 43px; }
+      .flow { grid-template-columns: 1fr; }
+      .notice { align-items: flex-start; flex-direction: column; }
+      .studio { border-radius: 20px; }
+      .studio-input, .result-panel { padding: 26px 20px; }
+      .method-lab { padding-top: 46px; }
+      .method-head { align-items: start; flex-direction: column; gap: 10px; }
+      .method-card { padding: 19px; }
+      .method-result-grid { grid-template-columns: 1fr; }
+      .record-picker { grid-template-columns: 1fr; }
+      .record-picker .ghost-btn { width: 100%; }
+      .metrics { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .metric { min-height: 94px; padding: 16px; }
+      .metric-value { font-size: 28px; }
+      .worklist-head { align-items: start; flex-direction: column; }
+      .toolbar { grid-template-columns: 1fr; }
+      .toolbar > :first-child { grid-column: auto; }
+      .footer-grid { flex-direction: column; }
+      .drawer-panel { padding: 25px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <div class="brand"><div class="brand-mark">MC</div><span>MedCode / RA Safety</span></div>
+    <div class="top-note"><span class="pulse" aria-hidden="true"></span><span>合成演示 · MedDRA 28.0 LLT 子集</span></div>
+  </header>
+
+  <main>
+    <section class="shell hero" aria-labelledby="page-title">
+      <div>
+        <div class="eyebrow">One line in · auditable code out</div>
+        <h1 id="page-title">把一行不良反应记录，变成可复核的 MedDRA 代码。</h1>
+        <p>面向 RA 治疗安全监测：识别药物与事件，保留原文证据，标记否定和不确定语境，并把需要判断的案例送回医护人员。</p>
+      </div>
+      <aside class="hero-aside" aria-label="编码流程">
+        <div class="flow">
+          <div class="flow-step"><span class="flow-num">1</span><div><strong>解析原文</strong><span>一行医护记录 + RA 用药</span></div></div>
+          <div class="flow-step"><span class="flow-num">2</span><div><strong>锁定证据</strong><span>逐字片段、位置与语境</span></div></div>
+          <div class="flow-step"><span class="flow-num">3</span><div><strong>编码与反馈</strong><span>MedDRA 候选 + 人工闭环</span></div></div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="shell notice" role="note">
+      <div><strong>非临床使用：</strong>下方 50 条记录均为合成数据；代码来自 NCI CTCAE v6.0 的 MedDRA 28.0 LLT 演示子集，不代表因果判断或完整 MedDRA 许可词表。</div>
+      <a class="source-link" href="https://dctd.cancer.gov/research/ctep-trials/for-sites/adverse-events" target="_blank" rel="noreferrer">查看术语来源 ↗</a>
+    </div>
+
+    <section class="shell studio" aria-labelledby="studio-title">
+      <div class="studio-input">
+        <div class="section-kicker">Live coder</div>
+        <h2 id="studio-title">试编码一行记录</h2>
+        <div class="record-picker">
+          <div class="picker-field">
+            <label class="picker-label" for="sampleSelect">从 50 条内嵌合成记录中选择</label>
+            <select class="sample-select" id="sampleSelect" aria-label="选择合成记录">
+              <option value="">自定义输入</option>
+            </select>
+          </div>
+          <button class="ghost-btn" id="randomBtn" type="button">随机一条</button>
+        </div>
+        <div class="text-wrap">
+          <textarea id="lineInput" maxlength="420" aria-label="一行不良反应记录" placeholder="例如：RA patient developed mouth ulcers after the methotrexate dose."></textarea>
+          <span class="counter"><span id="charCount">0</span> / 420</span>
+        </div>
+        <div class="input-actions">
+          <button class="primary-btn" id="analyseBtn" type="button">生成编码建议</button>
+        </div>
+        <div class="input-hint">全部 50 条记录与术语均已内嵌在此 HTML；支持离线选择、随机抽取和中英文自定义输入。</div>
+      </div>
+      <div class="result-panel" id="resultPanel" aria-live="polite">
+        <div class="result-empty">
+          <div class="empty-code">100•••••</div>
+          <strong>等待一行记录</strong>
+          <div>结果会在这里显示代码、术语、证据和分流建议。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell method-lab" aria-labelledby="method-title">
+      <div class="method-head">
+        <div><div class="section-kicker" style="color:var(--green)">Method lab</div><h2 id="method-title">我用了什么方法，把记录变成 MedDRA code？</h2></div>
+        <div class="method-copy">同一条记录切换三种可解释路径。当前 Demo 实际运行的是证据优先基线；另外两种是可落地的 LLM 方案示意，用来说明 prompt、检索和人工闭环应如何组合。</div>
+      </div>
+      <div class="method-tabs" role="tablist" aria-label="编码方法选择">
+        <button class="method-tab active" id="methodTabBaseline" data-method="baseline" role="tab" aria-selected="true" type="button">当前演示 · 证据优先基线</button>
+        <button class="method-tab" id="methodTabPrompt" data-method="prompt" role="tab" aria-selected="false" type="button">LLM Prompt-only</button>
+        <button class="method-tab" id="methodTabRag" data-method="rag" role="tab" aria-selected="false" type="button">LLM + RAG · 推荐路径</button>
+      </div>
+      <div class="method-board">
+        <article class="method-card">
+          <div class="method-output-top"><div><div class="section-kicker" style="color:var(--green)">Selected method</div><h3 id="methodName">证据优先基线</h3></div><span class="method-status" id="methodStatus">当前可运行</span></div>
+          <p class="method-card-copy" id="methodDescription"></p>
+          <div class="method-steps" id="methodSteps"></div>
+          <div class="prompt-block"><div class="sub-label">Prompt / policy contract</div><pre class="prompt-code" id="methodPrompt"></pre></div>
+          <div class="method-note" id="methodNote"></div>
+        </article>
+        <article class="method-card method-output">
+          <div class="method-output-top"><div><div class="section-kicker" style="color:var(--green)">Structured output</div><h3>这条记录会产出什么？</h3></div><span class="method-status" id="methodRoute">自动候选</span></div>
+          <div class="method-source"><strong id="methodSourceLabel">INPUT · SYN-001</strong><span id="methodSourceText"></span></div>
+          <div class="method-result-grid">
+            <div class="method-code-box"><div class="sub-label">MedDRA LLT candidate</div><div class="method-code-value" id="methodCode">—</div><div class="method-code-term" id="methodTerm">未匹配</div></div>
+            <pre class="method-json" id="methodJson"></pre>
+          </div>
+          <div id="methodRetrieval"></div>
+          <div class="method-footer" id="methodFooter"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell metrics" aria-label="演示概况">
+      <div class="metric"><div class="metric-value" id="metricTotal">50</div><div class="metric-label">首批合成记录</div></div>
+      <div class="metric"><div class="metric-value" id="metricAuto">—</div><div class="metric-label">自动候选</div></div>
+      <div class="metric"><div class="metric-value" id="metricReview">—</div><div class="metric-label">需人工确认</div></div>
+      <div class="metric"><div class="metric-value" id="metricFeedback">0</div><div class="metric-label">本机已记录反馈</div></div>
+    </section>
+
+    <section class="shell worklist" aria-labelledby="worklist-title">
+      <div class="worklist-head">
+        <div><div class="section-kicker" style="color:var(--green)">50-record preview</div><h2 id="worklist-title">RA 不良反应工作列</h2></div>
+        <div class="worklist-copy">点击“审核”查看原始证据并提交接受、改码或无代码反馈。反馈仅保存在当前浏览器，可导出 JSON。</div>
+      </div>
+      <div class="toolbar" aria-label="记录筛选">
+        <input class="control" id="searchInput" type="search" placeholder="搜索记录、药物、术语或代码…" aria-label="搜索记录">
+        <select class="control" id="drugFilter" aria-label="按药物筛选"><option value="">全部药物</option></select>
+        <select class="control" id="routeFilter" aria-label="按分流筛选"><option value="">全部分流</option><option value="AUTO_CANDIDATE">自动候选</option><option value="TOP_K_HUMAN_CHOICE">Top-K 人工选择</option><option value="FULL_EXPERT_REVIEW">完整专家复核</option></select>
+        <select class="control" id="feedbackFilter" aria-label="按反馈状态筛选"><option value="">全部反馈状态</option><option value="pending">待反馈</option><option value="done">已反馈</option></select>
+        <button class="small-btn" id="exportBtn" type="button">导出反馈</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>RA 用药</th><th>一行记录 / 证据</th><th>MedDRA LLT</th><th>术语</th><th>分流</th><th>反馈</th></tr></thead>
+          <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <aside class="review-drawer" id="reviewDrawer" aria-hidden="true" aria-labelledby="drawerTitle">
+    <div class="drawer-panel" role="dialog" aria-modal="true">
+      <div class="drawer-top"><div><div class="section-kicker" style="color:var(--green)">Human feedback</div><h3 id="drawerTitle">审核编码建议</h3></div><button class="close-btn" id="closeDrawer" type="button" aria-label="关闭审核">×</button></div>
+      <div id="drawerContent"></div>
+    </div>
+  </aside>
+  <div class="toast" id="toast" role="status"></div>
+
+  <footer><div class="shell footer-grid"><span>MedCode RA Safety Demo · Synthetic data only</span><span>术语版本：NCI CTCAE v6.0 / MedDRA 28.0 LLT 演示子集</span></div></footer>
+
+  <script type="application/json" id="medcodePayload">__MEDCODE_PAYLOAD__</script>
+  <script>
+    const payload = JSON.parse(document.getElementById('medcodePayload').textContent);
+    const records = payload.records;
+    const storageKey = 'medcode-ra-adr-feedback-v1';
+    let feedback = loadFeedback();
+    let activeRecordId = null;
+    let activeMethod = 'baseline';
+    let activeAnalysis = null;
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[ch]));
+    const routeClass = (route) => route === 'AUTO_CANDIDATE' ? 'auto' : route === 'TOP_K_HUMAN_CHOICE' ? 'topk' : 'full';
+    const routeLabel = (route) => ({AUTO_CANDIDATE:'自动候选',TOP_K_HUMAN_CHOICE:'Top-K 人工选择',FULL_EXPERT_REVIEW:'完整专家复核'}[route] || route);
+    const methodDefinitions = {
+      baseline: {
+        name: '证据优先基线', status: '当前可运行', statusClass: '',
+        description: 'Demo 实际执行的确定性流程：同义词/别名命中 → 语境断言 → 证据定位 → 分流。它不调用外部 LLM，结果可离线重放。',
+        steps: [['输入与识别', '保留原文，识别 RA 药物与事件别名。'], ['语境检查', '在原文附近识别肯定、否定、不确定或既往语境。'], ['代码与分流', '从版本化 LLT 子集中给出候选，并决定自动、Top-K 或专家复核。']],
+        prompt: 'POLICY\n- exact / fuzzy alias match\n- preserve verbatim evidence + offsets\n- classify assertion before routing\n- never infer causality or add an unreported event',
+        note: '真实运行结果：可复核、可离线；限制是 Demo 词表很小，不能代表完整 MedDRA 或临床准确率。'
+      },
+      prompt: {
+        name: '受限 LLM Prompt-only', status: '方案示意', statusClass: 'warn',
+        description: '把固定的 32-term allowlist 和编码约束直接放进 prompt，让 LLM 做抽取与选择。它适合做语言理解基线，但不能让模型凭记忆生成 MedDRA code。',
+        steps: [['结构化抽取', '让 LLM 提取 drug、event、assertion 和原文 span。'], ['封闭集合选择', '只允许从 prompt 中的术语 allowlist 选择，或返回 NO_CODE。'], ['机器校验', '校验 JSON、代码集合、quote 与 offset；失败即人工复核。']],
+        prompt: 'SYSTEM\nYou are a MedDRA coding-support assistant, not a clinician.\nReturn JSON only. Select only from the supplied LLT allowlist.\nNever infer causality, severity, diagnosis or an unreported event.\nEvery code must include an exact source quote and assertion.',
+        note: '这是可执行的 Prompt 契约示意；本地 Demo 没有真的调用 LLM，避免把假设输出误当成模型实测。'
+      },
+      rag: {
+        name: 'LLM + RAG · 冻结候选重排', status: '推荐架构', statusClass: '',
+        description: '先从机构授权、固定版本的 MedDRA 索引检索候选，再让 LLM 只在冻结候选集内重排与解释；代码集合不能被模型增删。',
+        steps: [['事件与语境', '先切分事件 mention，标记否定/不确定/既往并保留证据 span。'], ['版本化检索', '检索 LLT/PT、同义词、层级和来源，形成可审计 evidence pack。'], ['受限重排', 'LLM 只能重排 Top-K；校验后按证据和不确定性路由人工闭环。']],
+        prompt: 'SYSTEM\nYou are a MedDRA coding-support reranker, not a clinician.\nPreserve exactly the supplied candidate codes; never add or delete codes.\nUse only approved source spans and terminology evidence.\nReturn ranked_codes, evidence_span_ids, uncertainty and review_reasons as JSON.',
+        note: '生产推荐路径：RAG 提供术语证据，LLM 只做受限判断；正式使用仍需授权词表、脱敏、版本锁定和受训人员复核。'
+      }
+    };
+
+    function loadFeedback() {
+      try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch (_) { return {}; }
+    }
+    function persistFeedback() {
+      localStorage.setItem(storageKey, JSON.stringify(feedback));
+      updateMetrics();
+    }
+    function sentenceContext(text, start, end) {
+      const marks = ['.', ';', '。', '；', '\n'];
+      let left = 0; let right = text.length;
+      for (const mark of marks) left = Math.max(left, text.lastIndexOf(mark, start - 1) + 1);
+      const rights = marks.map(mark => text.indexOf(mark, end)).filter(index => index >= 0);
+      if (rights.length) right = Math.min(...rights) + 1;
+      return text.slice(left, right).trim();
+    }
+    function assertionFor(context) {
+      if (/(?:无|否认|未见|没有|排除)|\b(?:no|not|denies|denied|without|negative for|never|no evidence of|free of)\b/i.test(context)) return 'negated';
+      if (/(?:疑似|考虑|可能|不排除|待排)|\b(?:possible|possibly|probable|suspected|suspect|query|may have|might have|rule out|r\/o)\b/i.test(context)) return 'uncertain';
+      if (/(?:既往|曾有|已缓解|已恢复)|\b(?:history of|previous|previously|resolved|remote history)\b/i.test(context)) return 'historical_or_resolved';
+      return 'affirmed';
+    }
+    function findDrugMentions(text) {
+      const lower = text.toLowerCase();
+      return Object.entries(payload.drugAliases).filter(([, aliases]) => aliases.some(alias => lower.includes(alias.toLowerCase()))).map(([drug]) => drug);
+    }
+    function analyseLine(text) {
+      const source = text.trim();
+      const lower = source.toLowerCase();
+      const matches = [];
+      for (const term of payload.terms) {
+        let best = null;
+        for (const alias of [...term.aliases].sort((a,b) => b.length - a.length)) {
+          const index = lower.indexOf(alias.toLowerCase());
+          if (index >= 0 && (!best || alias.length > best.alias.length)) best = {alias, index};
+        }
+        if (!best) continue;
+        const end = best.index + best.alias.length;
+        const context = sentenceContext(source, best.index, end);
+        const assertion = assertionFor(context);
+        const base = best.alias.toLowerCase() === term.term.toLowerCase() ? .98 : best.alias.length >= 8 ? .94 : .90;
+        const score = assertion === 'affirmed' ? base : assertion === 'uncertain' ? Math.min(base,.74) : assertion === 'historical_or_resolved' ? Math.min(base,.68) : .12;
+        matches.push({code:term.code,term:term.term,soc:term.soc,score,assertion,match_type:'exact_alias',matched_alias:best.alias,evidence:{quote:source.slice(best.index,end),start:best.index,end,context}});
+      }
+      const order = {affirmed:0,uncertain:1,historical_or_resolved:2,negated:4};
+      matches.sort((a,b) => (order[a.assertion] ?? 9) - (order[b.assertion] ?? 9) || b.score - a.score || a.evidence.start - b.evidence.start);
+      const affirmed = matches.filter(item => item.assertion === 'affirmed');
+      const reviewable = matches.filter(item => ['uncertain','historical_or_resolved'].includes(item.assertion));
+      let primary = null; let route = 'FULL_EXPERT_REVIEW'; const reasons = [];
+      if (affirmed.length) {
+        primary = affirmed[0];
+        route = affirmed.length === 1 ? 'AUTO_CANDIDATE' : 'TOP_K_HUMAN_CHOICE';
+        if (affirmed.length > 1) reasons.push('同一行包含多个肯定事件，需要确认主编码。');
+      } else if (reviewable.length) {
+        primary = reviewable[0]; route = 'TOP_K_HUMAN_CHOICE'; reasons.push('事件语境为不确定或既往，需要医护人员确认。');
+      } else reasons.push(matches.length ? '仅发现否定或不支持的事件文本。' : '演示词表内未找到匹配术语。');
+      const drugs = findDrugMentions(source);
+      if (!drugs.length) reasons.push('未识别到 RA 治疗药物，不能推断归因。');
+      return {text:source,drug_mentions:drugs,primary,candidates:matches.slice(0,5),route,confidence:primary?.score || 0,review_reasons:reasons};
+    }
+    function highlight(text, evidence) {
+      if (!evidence || evidence.start < 0) return escapeHtml(text);
+      return `${escapeHtml(text.slice(0,evidence.start))}<mark>${escapeHtml(text.slice(evidence.start,evidence.end))}</mark>${escapeHtml(text.slice(evidence.end))}`;
+    }
+    function renderResult(result) {
+      if (!result.primary) {
+        $('resultPanel').innerHTML = `<div class="result-top"><span class="route full">${routeLabel(result.route)}</span><span class="confidence">0% 匹配</span></div><div class="result-empty"><div class="empty-code">NO MATCH</div><strong>未生成自动代码</strong><div>${escapeHtml(result.review_reasons.join(' '))}</div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}</div>`;
+        return;
+      }
+      const item = result.primary;
+      $('resultPanel').innerHTML = `<div><div class="result-top"><span class="route ${routeClass(result.route)}">${routeLabel(result.route)}</span><span class="confidence">匹配置信度 ${Math.round(result.confidence*100)}%</span></div><div class="result-code">${escapeHtml(item.code)}</div><div class="result-term">${escapeHtml(item.term)}</div><div class="result-soc">${escapeHtml(item.soc)}</div><div class="evidence-card"><div class="evidence-label">Verbatim evidence · ${escapeHtml(item.assertion)}</div><div class="evidence-text">${highlight(result.text,item.evidence)}</div></div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}<span class="chip">${escapeHtml(item.match_type)}</span></div>`;
+    }
+    function renderMethodLab(result) {
+      activeAnalysis = result;
+      const definition = methodDefinitions[activeMethod];
+      const primary = result?.primary;
+      const code = primary?.code || 'NO CODE';
+      const term = primary?.term || '未匹配 / 需要澄清';
+      const route = result?.route || 'FULL_EXPERT_REVIEW';
+      const sourceLabel = result?.record_id ? `INPUT · ${result.record_id}` : 'INPUT · CUSTOM INPUT';
+      $('methodName').textContent = definition.name;
+      $('methodDescription').textContent = definition.description;
+      $('methodStatus').textContent = definition.status;
+      $('methodStatus').className = `method-status ${definition.statusClass}`;
+      $('methodSteps').innerHTML = definition.steps.map((step, index) => `<div class="method-step"><span class="method-step-num">${index + 1}</span><div><strong>${escapeHtml(step[0])}</strong><span>${escapeHtml(step[1])}</span></div></div>`).join('');
+      $('methodPrompt').textContent = definition.prompt;
+      $('methodNote').textContent = definition.note;
+      $('methodSourceLabel').textContent = sourceLabel;
+      $('methodSourceText').textContent = result?.text || '等待一行记录';
+      $('methodCode').textContent = code;
+      $('methodTerm').textContent = term;
+
+      let routeText = routeLabel(route);
+      let routeClassName = route === 'FULL_EXPERT_REVIEW' ? 'review' : route === 'TOP_K_HUMAN_CHOICE' ? 'warn' : '';
+      if (activeMethod === 'prompt' && primary) { routeText = '候选 · 需校验'; routeClassName = 'warn'; }
+      if (activeMethod === 'rag' && primary) { routeText = `${routeLabel(route)} · 冻结 Top-K`; }
+      $('methodRoute').textContent = routeText;
+      $('methodRoute').className = `method-status ${routeClassName}`;
+
+      const structured = {
+        record_id: result?.record_id || 'CUSTOM',
+        drug_mentions: result?.drug_mentions || [],
+        event: primary?.term || null,
+        assertion: primary?.assertion || 'not_found',
+        evidence_quote: primary?.evidence?.quote || null,
+        meddra_code: primary?.code || null,
+        route,
+        demo_execution: activeMethod === 'baseline' ? 'local_deterministic' : 'design_only',
+        causality_not_assessed: true
+      };
+      $('methodJson').textContent = JSON.stringify(structured, null, 2);
+
+      if (activeMethod === 'rag' && primary) {
+        const termHit = payload.terms.find(termItem => termItem.code === primary.code);
+        const aliases = termHit?.aliases?.slice(0, 3).join(' · ') || primary.matched_alias || 'matched alias';
+        $('methodRetrieval').innerHTML = `<div class="sub-label">Retrieved evidence pack · ${escapeHtml(payload.terminology.name)}</div><div class="method-retrieval"><div class="retrieval-hit"><strong>${escapeHtml(primary.code)}</strong><span>${escapeHtml(primary.term)} · ${escapeHtml(primary.soc)}</span><em>LLT hit</em></div><div class="retrieval-hit"><strong>alias</strong><span>${escapeHtml(aliases)}</span><em>source-locked</em></div></div>`;
+      } else if (activeMethod === 'prompt') {
+        $('methodRetrieval').innerHTML = '<div class="method-note">Prompt-only 没有额外检索层：术语必须随 allowlist 一起进入上下文，代码不得来自模型记忆。</div>';
+      } else {
+        $('methodRetrieval').innerHTML = '<div class="method-note">Evidence trace：代码来自本地 alias 命中；原文 quote、字符 offset 和 assertion 会随结果保存。</div>';
+      }
+      const footerByMethod = {
+        baseline: '实际执行：确定性本地编码器 · 证据可重放 · 因果性未评估',
+        prompt: '方案输出：JSON schema + allowlist + span 校验 · 失败则人工复核',
+        rag: `方案输出：${payload.terminology.name} · 冻结候选集 · LLM 只重排不生成代码`
+      };
+      $('methodFooter').textContent = footerByMethod[activeMethod];
+    }
+    function selectMethod(method) {
+      if (!methodDefinitions[method]) return;
+      activeMethod = method;
+      document.querySelectorAll('[data-method]').forEach(button => {
+        const selected = button.dataset.method === method;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-selected', String(selected));
+      });
+      if (activeAnalysis) renderMethodLab(activeAnalysis);
+    }
+    function updateMetrics() {
+      const review = records.filter(r => r.route !== 'AUTO_CANDIDATE').length;
+      $('metricTotal').textContent = records.length;
+      $('metricAuto').textContent = records.length - review;
+      $('metricReview').textContent = review;
+      $('metricFeedback').textContent = Object.keys(feedback).length;
+    }
+    function populateFilters() {
+      [...new Set(records.map(r=>r.drug))].sort().forEach(drug => $('drugFilter').insertAdjacentHTML('beforeend', `<option value="${escapeHtml(drug)}">${escapeHtml(drug)}</option>`));
+    }
+    function filteredRecords() {
+      const query = $('searchInput').value.trim().toLowerCase();
+      const drug = $('drugFilter').value;
+      const route = $('routeFilter').value;
+      const state = $('feedbackFilter').value;
+      return records.filter(r => {
+        const haystack = `${r.record_id} ${r.drug} ${r.text} ${r.primary?.code || ''} ${r.primary?.term || ''}`.toLowerCase();
+        const hasFeedback = Boolean(feedback[r.record_id]);
+        return (!query || haystack.includes(query)) && (!drug || r.drug === drug) && (!route || r.route === route) && (!state || (state === 'done' ? hasFeedback : !hasFeedback));
+      });
+    }
+    function renderRows() {
+      const list = filteredRecords();
+      if (!list.length) { $('recordRows').innerHTML = '<tr><td colspan="7" class="empty-row">没有符合当前筛选条件的记录。</td></tr>'; return; }
+      $('recordRows').innerHTML = list.map(r => {
+        const item = r.primary;
+        const evidence = item?.evidence;
+        const done = feedback[r.record_id];
+        return `<tr><td><button class="open-record record-id" type="button" data-load="${escapeHtml(r.record_id)}" title="载入 ${escapeHtml(r.record_id)}">${escapeHtml(r.record_id)}</button></td><td>${escapeHtml(r.drug)}</td><td class="record-text">${highlight(r.text,evidence)}</td><td class="code-cell">${escapeHtml(item?.code || '—')}</td><td class="term-cell">${escapeHtml(item?.term || '未匹配')}</td><td><span class="route ${routeClass(r.route)}">${routeLabel(r.route)}</span></td><td><div style="display:grid;gap:8px"><span class="review-pill ${done?'done':''}">${done ? actionLabel(done.action) : '待反馈'}</span><button class="open-record" type="button" data-review="${escapeHtml(r.record_id)}">审核</button></div></td></tr>`;
+      }).join('');
+      document.querySelectorAll('[data-review]').forEach(btn => btn.addEventListener('click', () => openDrawer(btn.dataset.review)));
+      document.querySelectorAll('[data-load]').forEach(btn => btn.addEventListener('click', () => {
+        const record = records.find(item => item.record_id === btn.dataset.load);
+        if (record) {
+          loadRecord(record);
+          document.querySelector('.studio').scrollIntoView({behavior:'smooth',block:'start'});
+        }
+      }));
+    }
+    function actionLabel(action) { return ({ACCEPT:'已接受',ALTERNATIVE:'已改码',NO_CODE:'无代码',ESCALATE:'已升级'}[action] || action); }
+    function openDrawer(recordId) {
+      const r = records.find(item => item.record_id === recordId); if (!r) return;
+      activeRecordId = recordId;
+      const saved = feedback[recordId] || {};
+      const primary = r.primary;
+      const termOptions = payload.terms.map(term => `<option value="${term.code}" ${saved.selected_code===term.code?'selected':''}>${term.code} — ${escapeHtml(term.term)}</option>`).join('');
+      $('drawerContent').innerHTML = `<div class="drawer-record"><strong>${escapeHtml(r.record_id)} · ${escapeHtml(r.drug)}</strong><div style="margin-top:9px">${highlight(r.text,primary?.evidence)}</div></div><div class="drawer-code"><span>当前建议</span><strong>${escapeHtml(primary?.code || 'NO MATCH')}</strong><span>${escapeHtml(primary?.term || '未匹配')} · ${routeLabel(r.route)}</span></div><div class="feedback-options"><label class="feedback-option"><input type="radio" name="decision" value="ACCEPT" ${(!saved.action||saved.action==='ACCEPT')?'checked':''}>接受当前建议</label><label class="feedback-option"><input type="radio" name="decision" value="ALTERNATIVE" ${saved.action==='ALTERNATIVE'?'checked':''}>选择其他 MedDRA 代码</label><label class="feedback-option"><input type="radio" name="decision" value="NO_CODE" ${saved.action==='NO_CODE'?'checked':''}>该行不应编码</label><label class="feedback-option"><input type="radio" name="decision" value="ESCALATE" ${saved.action==='ESCALATE'?'checked':''}>升级完整专家复核</label></div><label class="field-label" for="alternativeCode">替代代码（改码时使用）</label><select class="control" id="alternativeCode"><option value="">请选择…</option>${termOptions}</select><label class="field-label" for="feedbackNote">反馈说明</label><textarea id="feedbackNote" placeholder="记录接受理由、纠错依据或需要进一步核实的信息…">${escapeHtml(saved.note || '')}</textarea><div class="drawer-actions"><button class="primary-btn" id="saveFeedback" type="button">保存反馈</button><button class="small-btn" id="deleteFeedback" type="button">清除本条</button></div>`;
+      $('saveFeedback').addEventListener('click', saveActiveFeedback);
+      $('deleteFeedback').addEventListener('click', deleteActiveFeedback);
+      $('reviewDrawer').classList.add('open'); $('reviewDrawer').setAttribute('aria-hidden','false');
+      $('closeDrawer').focus();
+    }
+    function closeDrawer() { $('reviewDrawer').classList.remove('open'); $('reviewDrawer').setAttribute('aria-hidden','true'); activeRecordId = null; }
+    function saveActiveFeedback() {
+      const action = document.querySelector('input[name="decision"]:checked')?.value;
+      const selected = $('alternativeCode').value;
+      if (action === 'ALTERNATIVE' && !selected) { showToast('请选择替代 MedDRA 代码'); return; }
+      const record = records.find(r => r.record_id === activeRecordId);
+      feedback[activeRecordId] = {action,selected_code:action==='ACCEPT'?record.primary?.code || '':action==='ALTERNATIVE'?selected:'',note:$('feedbackNote').value.trim(),updated_at:new Date().toISOString(),original_code:record.primary?.code || ''};
+      persistFeedback(); renderRows(); closeDrawer(); showToast('反馈已保存在当前浏览器');
+    }
+    function deleteActiveFeedback() { if (activeRecordId) delete feedback[activeRecordId]; persistFeedback(); renderRows(); closeDrawer(); showToast('本条反馈已清除'); }
+    function showToast(message) { $('toast').textContent = message; $('toast').classList.add('show'); setTimeout(()=>$('toast').classList.remove('show'),1800); }
+    function exportFeedback() {
+      const data = {exported_at:new Date().toISOString(),terminology:payload.terminology,feedback};
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'medcode-ra-adr-feedback.json'; link.click(); URL.revokeObjectURL(link.href);
+    }
+
+    function loadRecord(record) {
+      $('sampleSelect').value = record.record_id;
+      $('lineInput').value = record.text;
+      $('charCount').textContent = record.text.length;
+      renderResult(record);
+      renderMethodLab(record);
+    }
+    function randomRecord() {
+      const current = $('sampleSelect').value;
+      let index;
+      if (globalThis.crypto?.getRandomValues) {
+        const draw = new Uint32Array(1);
+        globalThis.crypto.getRandomValues(draw);
+        index = draw[0] % records.length;
+      } else {
+        index = Math.floor(Math.random() * records.length);
+      }
+      if (records.length > 1 && records[index].record_id === current) index = (index + 1) % records.length;
+      loadRecord(records[index]);
+    }
+
+    $('lineInput').addEventListener('input', () => {
+      $('charCount').textContent = $('lineInput').value.length;
+      $('sampleSelect').value = '';
+    });
+    $('analyseBtn').addEventListener('click', () => {
+      const text = $('lineInput').value.trim(); if (!text) { showToast('请先输入一行记录'); $('lineInput').focus(); return; }
+      const result = analyseLine(text);
+      renderResult(result);
+      renderMethodLab(result);
+    });
+    $('sampleSelect').addEventListener('change', () => {
+      const record = records.find(item => item.record_id === $('sampleSelect').value);
+      if (record) loadRecord(record);
+    });
+    $('randomBtn').addEventListener('click', randomRecord);
+    document.querySelectorAll('[data-method]').forEach(button => button.addEventListener('click', () => selectMethod(button.dataset.method)));
+    ['searchInput','drugFilter','routeFilter','feedbackFilter'].forEach(id => $(id).addEventListener(id==='searchInput'?'input':'change',renderRows));
+    $('exportBtn').addEventListener('click', exportFeedback);
+    $('closeDrawer').addEventListener('click', closeDrawer);
+    $('reviewDrawer').addEventListener('click', event => { if (event.target === $('reviewDrawer')) closeDrawer(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && $('reviewDrawer').classList.contains('open')) closeDrawer(); });
+
+    records.forEach(record => $('sampleSelect').insertAdjacentHTML('beforeend', `<option value="${escapeHtml(record.record_id)}">${escapeHtml(record.record_id)} · ${escapeHtml(record.drug)} · ${escapeHtml(record.expected_term)}</option>`));
+    populateFilters(); updateMetrics(); renderRows(); loadRecord(records[0]);
+  </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+[
+  {
+    "record_id": "SYN-001",
+    "text": "RA review: nausea started the morning after the weekly methotrexate dose.",
+    "drug": "Methotrexate",
+    "expected_code": "10028813",
+    "expected_term": "Nausea"
+  },
+  {
+    "record_id": "SYN-002",
+    "text": "RA patient vomited twice within six hours of taking oral methotrexate.",
+    "drug": "Methotrexate",
+    "expected_code": "10047700",
+    "expected_term": "Vomiting"
+  },
+  {
+    "record_id": "SYN-003",
+    "text": "At RA monitoring, painful mouth ulcers were documented after methotrexate escalation.",
+    "drug": "Methotrexate",
+    "expected_code": "10028130",
+    "expected_term": "Mucositis oral"
+  },
+  {
+    "record_id": "SYN-004",
+    "text": "RA blood monitoring after methotrexate showed ALT increased to three times the upper limit.",
+    "drug": "Methotrexate",
+    "expected_code": "10001551",
+    "expected_term": "Alanine aminotransferase increased"
+  },
+  {
+    "record_id": "SYN-005",
+    "text": "RA follow-up: AST increased on repeat testing while receiving methotrexate.",
+    "drug": "Methotrexate",
+    "expected_code": "10003481",
+    "expected_term": "Aspartate aminotransferase increased"
+  },
+  {
+    "record_id": "SYN-006",
+    "text": "RA patient on methotrexate developed new dry cough and CT-confirmed pneumonitis.",
+    "drug": "Methotrexate",
+    "expected_code": "10035742",
+    "expected_term": "Pneumonitis"
+  },
+  {
+    "record_id": "SYN-007",
+    "text": "Methotrexate safety bloods for RA identified leukopenia; treatment was withheld.",
+    "drug": "Methotrexate",
+    "expected_code": "10049182",
+    "expected_term": "White blood cell decreased"
+  },
+  {
+    "record_id": "SYN-008",
+    "text": "RA monitoring found thrombocytopenia after the fourth weekly methotrexate dose.",
+    "drug": "Methotrexate",
+    "expected_code": "10043554",
+    "expected_term": "Thrombocytopenia"
+  },
+  {
+    "record_id": "SYN-009",
+    "text": "RA patient reports noticeable hair loss since methotrexate was increased.",
+    "drug": "Methotrexate",
+    "expected_code": "10001760",
+    "expected_term": "Alopecia"
+  },
+  {
+    "record_id": "SYN-010",
+    "text": "Marked fatigue occurs for two days after each methotrexate dose for RA.",
+    "drug": "Methotrexate",
+    "expected_code": "10016256",
+    "expected_term": "Fatigue"
+  },
+  {
+    "record_id": "SYN-011",
+    "text": "RA patient developed watery diarrhea after restarting methotrexate.",
+    "drug": "Methotrexate",
+    "expected_code": "10012727",
+    "expected_term": "Diarrhea"
+  },
+  {
+    "record_id": "SYN-012",
+    "text": "类风湿关节炎复诊：甲氨蝶呤加量后出现口腔黏膜炎。",
+    "drug": "Methotrexate",
+    "expected_code": "10028130",
+    "expected_term": "Mucositis oral"
+  },
+  {
+    "record_id": "SYN-013",
+    "text": "RA follow-up: persistent diarrhea began after leflunomide initiation.",
+    "drug": "Leflunomide",
+    "expected_code": "10012727",
+    "expected_term": "Diarrhea"
+  },
+  {
+    "record_id": "SYN-014",
+    "text": "Leflunomide monitoring for RA demonstrated elevated ALT on two samples.",
+    "drug": "Leflunomide",
+    "expected_code": "10001551",
+    "expected_term": "Alanine aminotransferase increased"
+  },
+  {
+    "record_id": "SYN-015",
+    "text": "New hypertension was recorded after three months of leflunomide for RA.",
+    "drug": "Leflunomide",
+    "expected_code": "10020772",
+    "expected_term": "Hypertension"
+  },
+  {
+    "record_id": "SYN-016",
+    "text": "RA patient developed a widespread maculopapular rash after starting leflunomide.",
+    "drug": "Leflunomide",
+    "expected_code": "10037868",
+    "expected_term": "Rash maculo-papular"
+  },
+  {
+    "record_id": "SYN-017",
+    "text": "Nausea occurs daily since leflunomide was introduced for RA.",
+    "drug": "Leflunomide",
+    "expected_code": "10028813",
+    "expected_term": "Nausea"
+  },
+  {
+    "record_id": "SYN-018",
+    "text": "类风湿患者服用来氟米特后诉脱发明显。",
+    "drug": "Leflunomide",
+    "expected_code": "10001760",
+    "expected_term": "Alopecia"
+  },
+  {
+    "record_id": "SYN-019",
+    "text": "Annual RA eye screening detected retinopathy during long-term hydroxychloroquine therapy.",
+    "drug": "Hydroxychloroquine",
+    "expected_code": "10038923",
+    "expected_term": "Retinopathy"
+  },
+  {
+    "record_id": "SYN-020",
+    "text": "RA patient taking hydroxychloroquine reports reduced vision when reading.",
+    "drug": "Hydroxychloroquine",
+    "expected_code": "10047516",
+    "expected_term": "Vision decreased"
+  },
+  {
+    "record_id": "SYN-021",
+    "text": "Nausea appeared during the first week of hydroxychloroquine treatment for RA.",
+    "drug": "Hydroxychloroquine",
+    "expected_code": "10028813",
+    "expected_term": "Nausea"
+  },
+  {
+    "record_id": "SYN-022",
+    "text": "RA patient developed a red spotted rash after hydroxychloroquine initiation.",
+    "drug": "Hydroxychloroquine",
+    "expected_code": "10037868",
+    "expected_term": "Rash maculo-papular"
+  },
+  {
+    "record_id": "SYN-023",
+    "text": "Headache recurs several hours after each hydroxychloroquine dose for RA.",
+    "drug": "Hydroxychloroquine",
+    "expected_code": "10019211",
+    "expected_term": "Headache"
+  },
+  {
+    "record_id": "SYN-024",
+    "text": "RA patient developed a maculo-papular rash ten days after starting sulfasalazine.",
+    "drug": "Sulfasalazine",
+    "expected_code": "10037868",
+    "expected_term": "Rash maculo-papular"
+  },
+  {
+    "record_id": "SYN-025",
+    "text": "Sulfasalazine monitoring for RA showed a low white count.",
+    "drug": "Sulfasalazine",
+    "expected_code": "10049182",
+    "expected_term": "White blood cell decreased"
+  },
+  {
+    "record_id": "SYN-026",
+    "text": "RA clinic note: nausea began after sulfasalazine was increased to 1 g twice daily.",
+    "drug": "Sulfasalazine",
+    "expected_code": "10028813",
+    "expected_term": "Nausea"
+  },
+  {
+    "record_id": "SYN-027",
+    "text": "Patient with RA reports headache since commencing sulfasalazine.",
+    "drug": "Sulfasalazine",
+    "expected_code": "10019211",
+    "expected_term": "Headache"
+  },
+  {
+    "record_id": "SYN-028",
+    "text": "类风湿关节炎用柳氮磺吡啶两周后发现血小板减少。",
+    "drug": "Sulfasalazine",
+    "expected_code": "10043554",
+    "expected_term": "Thrombocytopenia"
+  },
+  {
+    "record_id": "SYN-029",
+    "text": "RA biologic review: injection site redness followed each adalimumab dose.",
+    "drug": "Adalimumab",
+    "expected_code": "10022095",
+    "expected_term": "Injection site reaction"
+  },
+  {
+    "record_id": "SYN-030",
+    "text": "RA patient receiving adalimumab was admitted with radiographically confirmed pneumonia.",
+    "drug": "Adalimumab",
+    "expected_code": "10035664",
+    "expected_term": "Pneumonia"
+  },
+  {
+    "record_id": "SYN-031",
+    "text": "Possible shingles developed while the RA patient was receiving adalimumab.",
+    "drug": "Adalimumab",
+    "expected_code": "10040555",
+    "expected_term": "Shingles"
+  },
+  {
+    "record_id": "SYN-032",
+    "text": "RA patient developed urticaria within a day of the adalimumab injection.",
+    "drug": "Adalimumab",
+    "expected_code": "10046735",
+    "expected_term": "Urticaria"
+  },
+  {
+    "record_id": "SYN-033",
+    "text": "Etanercept for RA caused a recurrent injection site reaction with warmth and swelling.",
+    "drug": "Etanercept",
+    "expected_code": "10022095",
+    "expected_term": "Injection site reaction"
+  },
+  {
+    "record_id": "SYN-034",
+    "text": "RA patient on etanercept developed an upper respiratory tract infection.",
+    "drug": "Etanercept",
+    "expected_code": "10046300",
+    "expected_term": "Upper respiratory infection"
+  },
+  {
+    "record_id": "SYN-035",
+    "text": "依那西普治疗类风湿后，注射处红肿持续两天。",
+    "drug": "Etanercept",
+    "expected_code": "10022095",
+    "expected_term": "Injection site reaction"
+  },
+  {
+    "record_id": "SYN-036",
+    "text": "RA patient experienced an infusion reaction with flushing during infliximab administration.",
+    "drug": "Infliximab",
+    "expected_code": "10051792",
+    "expected_term": "Infusion related reaction"
+  },
+  {
+    "record_id": "SYN-037",
+    "text": "Anaphylaxis occurred minutes after infliximab was started for refractory RA.",
+    "drug": "Infliximab",
+    "expected_code": "10002218",
+    "expected_term": "Anaphylaxis"
+  },
+  {
+    "record_id": "SYN-038",
+    "text": "No anaphylaxis during infliximab infusion; the RA patient was later admitted with pneumonia.",
+    "drug": "Infliximab",
+    "expected_code": "10035664",
+    "expected_term": "Pneumonia"
+  },
+  {
+    "record_id": "SYN-039",
+    "text": "RA monitoring after tocilizumab showed neutropenia on repeat blood count.",
+    "drug": "Tocilizumab",
+    "expected_code": "10029366",
+    "expected_term": "Neutrophil count decreased"
+  },
+  {
+    "record_id": "SYN-040",
+    "text": "ALT increased during tocilizumab treatment for active RA.",
+    "drug": "Tocilizumab",
+    "expected_code": "10001551",
+    "expected_term": "Alanine aminotransferase increased"
+  },
+  {
+    "record_id": "SYN-041",
+    "text": "托珠单抗输注过程中出现输液反应，伴寒战和面部潮红。",
+    "drug": "Tocilizumab",
+    "expected_code": "10051792",
+    "expected_term": "Infusion related reaction"
+  },
+  {
+    "record_id": "SYN-042",
+    "text": "RA patient had a moderate infusion related reaction during the first rituximab dose.",
+    "drug": "Rituximab",
+    "expected_code": "10051792",
+    "expected_term": "Infusion related reaction"
+  },
+  {
+    "record_id": "SYN-043",
+    "text": "Pneumonia developed six weeks after rituximab was given for RA.",
+    "drug": "Rituximab",
+    "expected_code": "10035664",
+    "expected_term": "Pneumonia"
+  },
+  {
+    "record_id": "SYN-044",
+    "text": "RA patient developed herpes zoster while taking tofacitinib.",
+    "drug": "Tofacitinib",
+    "expected_code": "10040555",
+    "expected_term": "Shingles"
+  },
+  {
+    "record_id": "SYN-045",
+    "text": "Deep vein thrombosis was diagnosed during tofacitinib treatment for RA.",
+    "drug": "Tofacitinib",
+    "expected_code": "10066899",
+    "expected_term": "Venous thromboembolism"
+  },
+  {
+    "record_id": "SYN-046",
+    "text": "Query venous thromboembolism after new unilateral leg swelling on upadacitinib for RA.",
+    "drug": "Upadacitinib",
+    "expected_code": "10066899",
+    "expected_term": "Venous thromboembolism"
+  },
+  {
+    "record_id": "SYN-047",
+    "text": "High blood glucose was recorded after prolonged prednisolone treatment for RA.",
+    "drug": "Prednisolone",
+    "expected_code": "10020639",
+    "expected_term": "Hyperglycemia"
+  },
+  {
+    "record_id": "SYN-048",
+    "text": "DEXA confirmed osteoporosis after long-term prednisolone exposure for RA.",
+    "drug": "Prednisolone",
+    "expected_code": "10031282",
+    "expected_term": "Osteoporosis"
+  },
+  {
+    "record_id": "SYN-049",
+    "text": "RA patient taking naproxen presented with melena from an upper GI bleed.",
+    "drug": "Naproxen",
+    "expected_code": "10055356",
+    "expected_term": "Upper gastrointestinal hemorrhage"
+  },
+  {
+    "record_id": "SYN-050",
+    "text": "Possible acute kidney injury was noted after regular naproxen use for RA pain.",
+    "drug": "Naproxen",
+    "expected_code": "10069339",
+    "expected_term": "Acute kidney injury"
+  }
+]
