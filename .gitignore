@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.egg-info/
 .pytest_cache/
 .venv/
 venv/
@@ -19,3 +20,4 @@ outputs/
 # Licensed terminology distributions
 meddra/
 terminology/private/
+*.asc

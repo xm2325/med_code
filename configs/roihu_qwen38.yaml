@@ -1,0 +1,23 @@
+model:
+  id: Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  served_name: qwen3.8-27b-meddra
+runtime:
+  architecture: linux-aarch64
+  accelerator: NVIDIA-GH200-96GB
+  gpu_count: 1
+  slurm_partition: gpumedium
+  csc_module: python-vllm/0.19.1
+storage:
+  root_template: /scratch/{project}/{user}/med-code
+  model_cache_subdir: huggingface
+server:
+  llm_host: 127.0.0.1
+  llm_port: 8000
+  api_host: 127.0.0.1
+  api_port: 8010
+  max_model_len: 8192
+  allowed_max_model_len: [8192, 16384]
+  gpu_memory_utilization: 0.88
+  request_logging: false
+
