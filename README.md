@@ -2,6 +2,45 @@
 
 MedCode is an explainable clinical-coding research/application toolkit for **MedDRA concept normalisation** and **ICD coding support**.
 
+## RA adverse-reaction live demo
+
+The repository now includes a bilingual, self-contained 50-record synthetic RA
+demo plus a real local-Qwen API. When served on Roihu, one line is independently
+processed by three auditable methods:
+
+1. bounded closed-set Qwen prompting;
+2. Qwen event extraction followed by deterministic lexical retrieval;
+3. Qwen extraction, BM25 + character-trigram + exact-boost Top-K retrieval, then
+   frozen-candidate Qwen reranking.
+
+The public terminology source is the **NCI CTCAE v6.0 Clean Copy public subset
+carrying MedDRA 28.0 LLT identifiers**. It is not a public or complete MedDRA
+distribution. Parent PT/HLT/HLGT fields remain null unless an authorised,
+same-version MedDRA 28.0 ASCII hierarchy is supplied at runtime.
+
+Build the bilingual standalone pages:
+
+```bash
+python scripts/build_ra_adr_demo.py
+python scripts/make_english_demo.py
+```
+
+Run the API against an OpenAI-compatible local Qwen endpoint:
+
+```bash
+MEDCODE_CTCAE_XLSX=/secure/ctcae-v6.0.xlsx \
+python scripts/run_real_coding_api.py \
+  --host 127.0.0.1 --port 8010 \
+  --llm-base-url http://127.0.0.1:8000/v1
+```
+
+Open `/` for Chinese or `/en` for English. The live page never substitutes a
+static code for a failed/not-run method. This is coding-support research on
+synthetic data, not diagnosis, severity assessment, drug-causality assessment,
+clinical validation, or a regulatory submission tool. See
+`docs/RA_ADR_DEMO_METHOD_UX.md`, `docs/PUBLIC_TERMINOLOGY_28.md`, and
+`docs/ROIHU_QWEN38_DEPLOYMENT.md`.
+
 The main workflow is:
 
 ```text

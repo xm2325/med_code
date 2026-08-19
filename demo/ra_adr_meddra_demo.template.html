@@ -187,6 +187,18 @@
     .retrieval-hit span { color: var(--ink-soft); }
     .retrieval-hit em { color: var(--green); font-size: 10px; font-style: normal; font-weight: 800; }
     .method-footer { margin-top: 13px; color: var(--ink-soft); font-size: 12px; }
+    .execution-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; padding:12px 14px; border:1px solid var(--line); border-radius:13px; background:var(--card); font-size:12px; }
+    .execution-badge { display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; font-weight:850; letter-spacing:.06em; }
+    .execution-badge.live { color:#06483d; background:#bce8db; }
+    .execution-badge.replay { color:#704400; background:#ffdd8d; }
+    .execution-badge.offline { color:#7c2924; background:#ffd6d2; }
+    .live-method-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .live-method-card { min-width:0; padding:19px; border:1px solid var(--line); border-radius:18px; background:var(--card); box-shadow:0 10px 30px rgba(21,48,45,.045); }
+    .live-method-card h3 { margin:0; font-size:18px; }
+    .trace-section { margin-top:13px; padding-top:11px; border-top:1px solid #e9e4d9; }
+    .trace-section summary { cursor:pointer; color:var(--green-dark); font-size:11px; font-weight:800; }
+    .trace-value { margin-top:7px; color:var(--ink-soft); font-size:11px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .term-hierarchy { margin-top:8px; color:#d9f3eb; font-size:11px; line-height:1.55; }
 
     .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 34px 0 42px; }
     .metric { min-height: 112px; padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: rgba(255,253,248,.7); }
@@ -252,7 +264,7 @@
       .hero-aside { border-left: 0; border-top: 1px solid var(--line); padding: 26px 0 0; }
       .flow { grid-template-columns: repeat(3, 1fr); }
       .studio { grid-template-columns: 1fr; }
-      .method-board { grid-template-columns: 1fr; }
+      .method-board, .live-method-grid { grid-template-columns: 1fr; }
       .metrics { grid-template-columns: repeat(2, 1fr); }
       .toolbar { grid-template-columns: 1fr 1fr; }
       .toolbar > :first-child { grid-column: 1 / -1; }
@@ -330,7 +342,7 @@
         <div class="input-actions">
           <button class="primary-btn" id="analyseBtn" type="button">生成编码建议</button>
         </div>
-        <div class="input-hint">全部 50 条记录与术语均已内嵌在此 HTML；支持离线选择、随机抽取和中英文自定义输入。</div>
+        <div class="input-hint">全部 50 条记录与术语均已内嵌在此 HTML；支持离线选择、随机抽取和中英文合成输入。请勿粘贴真实患者资料。</div>
       </div>
       <div class="result-panel" id="resultPanel" aria-live="polite">
         <div class="result-empty">
@@ -344,32 +356,10 @@
     <section class="shell method-lab" aria-labelledby="method-title">
       <div class="method-head">
         <div><div class="section-kicker" style="color:var(--green)">Method lab</div><h2 id="method-title">我用了什么方法，把记录变成 MedDRA code？</h2></div>
-        <div class="method-copy">同一条记录切换三种可解释路径。当前 Demo 实际运行的是证据优先基线；另外两种是可落地的 LLM 方案示意，用来说明 prompt、检索和人工闭环应如何组合。</div>
+        <div class="method-copy">同一条记录调用三种真实后端方法并排比较。只有带 LIVE 或 REPLAY 标记的结果才是模型实际返回；OFFLINE 不展示预制答案。</div>
       </div>
-      <div class="method-tabs" role="tablist" aria-label="编码方法选择">
-        <button class="method-tab active" id="methodTabBaseline" data-method="baseline" role="tab" aria-selected="true" type="button">当前演示 · 证据优先基线</button>
-        <button class="method-tab" id="methodTabPrompt" data-method="prompt" role="tab" aria-selected="false" type="button">LLM Prompt-only</button>
-        <button class="method-tab" id="methodTabRag" data-method="rag" role="tab" aria-selected="false" type="button">LLM + RAG · 推荐路径</button>
-      </div>
-      <div class="method-board">
-        <article class="method-card">
-          <div class="method-output-top"><div><div class="section-kicker" style="color:var(--green)">Selected method</div><h3 id="methodName">证据优先基线</h3></div><span class="method-status" id="methodStatus">当前可运行</span></div>
-          <p class="method-card-copy" id="methodDescription"></p>
-          <div class="method-steps" id="methodSteps"></div>
-          <div class="prompt-block"><div class="sub-label">Prompt / policy contract</div><pre class="prompt-code" id="methodPrompt"></pre></div>
-          <div class="method-note" id="methodNote"></div>
-        </article>
-        <article class="method-card method-output">
-          <div class="method-output-top"><div><div class="section-kicker" style="color:var(--green)">Structured output</div><h3>这条记录会产出什么？</h3></div><span class="method-status" id="methodRoute">自动候选</span></div>
-          <div class="method-source"><strong id="methodSourceLabel">INPUT · SYN-001</strong><span id="methodSourceText"></span></div>
-          <div class="method-result-grid">
-            <div class="method-code-box"><div class="sub-label">MedDRA LLT candidate</div><div class="method-code-value" id="methodCode">—</div><div class="method-code-term" id="methodTerm">未匹配</div></div>
-            <pre class="method-json" id="methodJson"></pre>
-          </div>
-          <div id="methodRetrieval"></div>
-          <div class="method-footer" id="methodFooter"></div>
-        </article>
-      </div>
+      <div class="execution-bar"><div><span class="execution-badge offline" id="executionBadge">OFFLINE</span> <span id="executionMeta">尚未调用后端</span></div><span>POST /api/v1/coding/run</span></div>
+      <div class="live-method-grid" id="liveMethodGrid" aria-live="polite"></div>
     </section>
 
     <section class="shell metrics" aria-label="演示概况">
@@ -417,7 +407,6 @@
     const storageKey = 'medcode-ra-adr-feedback-v1';
     let feedback = loadFeedback();
     let activeRecordId = null;
-    let activeMethod = 'baseline';
     let activeAnalysis = null;
 
     const $ = (id) => document.getElementById(id);
@@ -425,27 +414,9 @@
     const routeClass = (route) => route === 'AUTO_CANDIDATE' ? 'auto' : route === 'TOP_K_HUMAN_CHOICE' ? 'topk' : 'full';
     const routeLabel = (route) => ({AUTO_CANDIDATE:'自动候选',TOP_K_HUMAN_CHOICE:'Top-K 人工选择',FULL_EXPERT_REVIEW:'完整专家复核'}[route] || route);
     const methodDefinitions = {
-      baseline: {
-        name: '证据优先基线', status: '当前可运行', statusClass: '',
-        description: 'Demo 实际执行的确定性流程：同义词/别名命中 → 语境断言 → 证据定位 → 分流。它不调用外部 LLM，结果可离线重放。',
-        steps: [['输入与识别', '保留原文，识别 RA 药物与事件别名。'], ['语境检查', '在原文附近识别肯定、否定、不确定或既往语境。'], ['代码与分流', '从版本化 LLT 子集中给出候选，并决定自动、Top-K 或专家复核。']],
-        prompt: 'POLICY\n- exact / fuzzy alias match\n- preserve verbatim evidence + offsets\n- classify assertion before routing\n- never infer causality or add an unreported event',
-        note: '真实运行结果：可复核、可离线；限制是 Demo 词表很小，不能代表完整 MedDRA 或临床准确率。'
-      },
-      prompt: {
-        name: '受限 LLM Prompt-only', status: '方案示意', statusClass: 'warn',
-        description: '把固定的 32-term allowlist 和编码约束直接放进 prompt，让 LLM 做抽取与选择。它适合做语言理解基线，但不能让模型凭记忆生成 MedDRA code。',
-        steps: [['结构化抽取', '让 LLM 提取 drug、event、assertion 和原文 span。'], ['封闭集合选择', '只允许从 prompt 中的术语 allowlist 选择，或返回 NO_CODE。'], ['机器校验', '校验 JSON、代码集合、quote 与 offset；失败即人工复核。']],
-        prompt: 'SYSTEM\nYou are a MedDRA coding-support assistant, not a clinician.\nReturn JSON only. Select only from the supplied LLT allowlist.\nNever infer causality, severity, diagnosis or an unreported event.\nEvery code must include an exact source quote and assertion.',
-        note: '这是可执行的 Prompt 契约示意；本地 Demo 没有真的调用 LLM，避免把假设输出误当成模型实测。'
-      },
-      rag: {
-        name: 'LLM + RAG · 冻结候选重排', status: '推荐架构', statusClass: '',
-        description: '先从机构授权、固定版本的 MedDRA 索引检索候选，再让 LLM 只在冻结候选集内重排与解释；代码集合不能被模型增删。',
-        steps: [['事件与语境', '先切分事件 mention，标记否定/不确定/既往并保留证据 span。'], ['版本化检索', '检索 LLT/PT、同义词、层级和来源，形成可审计 evidence pack。'], ['受限重排', 'LLM 只能重排 Top-K；校验后按证据和不确定性路由人工闭环。']],
-        prompt: 'SYSTEM\nYou are a MedDRA coding-support reranker, not a clinician.\nPreserve exactly the supplied candidate codes; never add or delete codes.\nUse only approved source spans and terminology evidence.\nReturn ranked_codes, evidence_span_ids, uncertainty and review_reasons as JSON.',
-        note: '生产推荐路径：RAG 提供术语证据，LLM 只做受限判断；正式使用仍需授权词表、脱敏、版本锁定和受训人员复核。'
-      }
+      prompt_only: {name:'Prompt-only', rule:'Qwen 直接结构化抽取并在公开 LLT allowlist 内选择；机器校验 code、quote 与 offset。'},
+      extract_lexical: {name:'LLM + 词法检索', rule:'Qwen 提取事件和语境；使用 exact、local alias 与 fuzzy 在 NCI CTCAE v6.0 公开子集中检索（该来源含 MedDRA 28.0 LLT 字段）。'},
+      hybrid_rag: {name:'LLM + Hybrid RAG', rule:'标准 BM25 + character trigram + exact boost 检索并冻结 Top-K；Qwen 只能重排，不能新增、删除或修改候选 code。'}
     };
 
     function loadFeedback() {
@@ -513,77 +484,76 @@
     }
     function renderResult(result) {
       if (!result.primary) {
-        $('resultPanel').innerHTML = `<div class="result-top"><span class="route full">${routeLabel(result.route)}</span><span class="confidence">0% 匹配</span></div><div class="result-empty"><div class="empty-code">NO MATCH</div><strong>未生成自动代码</strong><div>${escapeHtml(result.review_reasons.join(' '))}</div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}</div>`;
+        $('resultPanel').innerHTML = `<div class="result-top"><span class="route full">${routeLabel(result.route)}</span><span class="confidence">本地匹配分数 0.00（非概率）</span></div><div class="result-empty"><div class="empty-code">NO MATCH</div><strong>未生成自动代码</strong><div>${escapeHtml(result.review_reasons.join(' '))}</div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}<span class="chip">OFFLINE deterministic baseline</span></div>`;
         return;
       }
       const item = result.primary;
-      $('resultPanel').innerHTML = `<div><div class="result-top"><span class="route ${routeClass(result.route)}">${routeLabel(result.route)}</span><span class="confidence">匹配置信度 ${Math.round(result.confidence*100)}%</span></div><div class="result-code">${escapeHtml(item.code)}</div><div class="result-term">${escapeHtml(item.term)}</div><div class="result-soc">${escapeHtml(item.soc)}</div><div class="evidence-card"><div class="evidence-label">Verbatim evidence · ${escapeHtml(item.assertion)}</div><div class="evidence-text">${highlight(result.text,item.evidence)}</div></div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}<span class="chip">${escapeHtml(item.match_type)}</span></div>`;
+      $('resultPanel').innerHTML = `<div><div class="result-top"><span class="route ${routeClass(result.route)}">${routeLabel(result.route)}</span><span class="confidence">本地匹配分数（非概率） ${result.confidence.toFixed(2)}</span></div><div class="result-code">${escapeHtml(item.code)}</div><div class="result-term">${escapeHtml(item.term)}</div><div class="result-soc">${escapeHtml(item.soc)}</div><div class="evidence-card"><div class="evidence-label">Verbatim evidence · ${escapeHtml(item.assertion)}</div><div class="evidence-text">${highlight(result.text,item.evidence)}</div></div></div><div class="result-meta">${result.drug_mentions.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('')}<span class="chip">${escapeHtml(item.match_type)}</span><span class="chip">OFFLINE deterministic baseline</span></div>`;
     }
-    function renderMethodLab(result) {
-      activeAnalysis = result;
-      const definition = methodDefinitions[activeMethod];
-      const primary = result?.primary;
-      const code = primary?.code || 'NO CODE';
-      const term = primary?.term || '未匹配 / 需要澄清';
-      const route = result?.route || 'FULL_EXPERT_REVIEW';
-      const sourceLabel = result?.record_id ? `INPUT · ${result.record_id}` : 'INPUT · CUSTOM INPUT';
-      $('methodName').textContent = definition.name;
-      $('methodDescription').textContent = definition.description;
-      $('methodStatus').textContent = definition.status;
-      $('methodStatus').className = `method-status ${definition.statusClass}`;
-      $('methodSteps').innerHTML = definition.steps.map((step, index) => `<div class="method-step"><span class="method-step-num">${index + 1}</span><div><strong>${escapeHtml(step[0])}</strong><span>${escapeHtml(step[1])}</span></div></div>`).join('');
-      $('methodPrompt').textContent = definition.prompt;
-      $('methodNote').textContent = definition.note;
-      $('methodSourceLabel').textContent = sourceLabel;
-      $('methodSourceText').textContent = result?.text || '等待一行记录';
-      $('methodCode').textContent = code;
-      $('methodTerm').textContent = term;
-
-      let routeText = routeLabel(route);
-      let routeClassName = route === 'FULL_EXPERT_REVIEW' ? 'review' : route === 'TOP_K_HUMAN_CHOICE' ? 'warn' : '';
-      if (activeMethod === 'prompt' && primary) { routeText = '候选 · 需校验'; routeClassName = 'warn'; }
-      if (activeMethod === 'rag' && primary) { routeText = `${routeLabel(route)} · 冻结 Top-K`; }
-      $('methodRoute').textContent = routeText;
-      $('methodRoute').className = `method-status ${routeClassName}`;
-
-      const structured = {
-        record_id: result?.record_id || 'CUSTOM',
-        drug_mentions: result?.drug_mentions || [],
-        event: primary?.term || null,
-        assertion: primary?.assertion || 'not_found',
-        evidence_quote: primary?.evidence?.quote || null,
-        meddra_code: primary?.code || null,
-        route,
-        demo_execution: activeMethod === 'baseline' ? 'local_deterministic' : 'design_only',
-        causality_not_assessed: true
-      };
-      $('methodJson').textContent = JSON.stringify(structured, null, 2);
-
-      if (activeMethod === 'rag' && primary) {
-        const termHit = payload.terms.find(termItem => termItem.code === primary.code);
-        const aliases = termHit?.aliases?.slice(0, 3).join(' · ') || primary.matched_alias || 'matched alias';
-        $('methodRetrieval').innerHTML = `<div class="sub-label">Retrieved evidence pack · ${escapeHtml(payload.terminology.name)}</div><div class="method-retrieval"><div class="retrieval-hit"><strong>${escapeHtml(primary.code)}</strong><span>${escapeHtml(primary.term)} · ${escapeHtml(primary.soc)}</span><em>LLT hit</em></div><div class="retrieval-hit"><strong>alias</strong><span>${escapeHtml(aliases)}</span><em>source-locked</em></div></div>`;
-      } else if (activeMethod === 'prompt') {
-        $('methodRetrieval').innerHTML = '<div class="method-note">Prompt-only 没有额外检索层：术语必须随 allowlist 一起进入上下文，代码不得来自模型记忆。</div>';
-      } else {
-        $('methodRetrieval').innerHTML = '<div class="method-note">Evidence trace：代码来自本地 alias 命中；原文 quote、字符 offset 和 assertion 会随结果保存。</div>';
-      }
-      const footerByMethod = {
-        baseline: '实际执行：确定性本地编码器 · 证据可重放 · 因果性未评估',
-        prompt: '方案输出：JSON schema + allowlist + span 校验 · 失败则人工复核',
-        rag: `方案输出：${payload.terminology.name} · 冻结候选集 · LLM 只重排不生成代码`
-      };
-      $('methodFooter').textContent = footerByMethod[activeMethod];
+    function showExecutionState(mode, meta='') {
+      const normalized = ['LIVE','REPLAY'].includes(mode) ? mode : mode === 'ERROR' ? 'ERROR' : 'OFFLINE';
+      $('executionBadge').textContent = normalized;
+      $('executionBadge').className = `execution-badge ${['LIVE','REPLAY'].includes(normalized) ? normalized.toLowerCase() : 'offline'}`;
+      $('executionMeta').textContent = meta || (normalized === 'OFFLINE' ? '后端不可用；未展示模型结果' : '真实后端返回');
     }
-    function selectMethod(method) {
-      if (!methodDefinitions[method]) return;
-      activeMethod = method;
-      document.querySelectorAll('[data-method]').forEach(button => {
-        const selected = button.dataset.method === method;
-        button.classList.toggle('active', selected);
-        button.setAttribute('aria-selected', String(selected));
-      });
-      if (activeAnalysis) renderMethodLab(activeAnalysis);
+    function offlineMethods(message='后端尚未运行。点击“生成编码建议”调用真实 API。') {
+      showExecutionState('OFFLINE', message);
+      $('liveMethodGrid').innerHTML = Object.entries(methodDefinitions).map(([key, definition]) => `<article class="live-method-card"><div class="method-output-top"><h3>${escapeHtml(definition.name)}</h3><span class="execution-badge offline">OFFLINE</span></div><p class="method-card-copy">${escapeHtml(definition.rule)}</p><div class="method-note">没有实际返回。不会用设计示例或本地预制结果替代模型输出。</div></article>`).join('');
+    }
+    function eventCandidates(key, event) {
+      if (key === 'hybrid_rag') return {retrieved:event?.retrieved_candidates || [], reranked:event?.reranked_candidates || []};
+      if (key === 'extract_lexical') return {candidates:event?.candidates || []};
+      return {};
+    }
+    function eventSelected(key, event) {
+      if (!event) return null;
+      if (key === 'prompt_only') return event.selected || (event.code === 'NO_CODE' ? event : null);
+      return event.selected || null;
+    }
+    function termFields(term) {
+      return {
+        code: term?.llt_code || term?.code || term?.meddra_code || null,
+        name: term?.llt_term || term?.term || term?.name || null,
+        ptCode: term?.pt_code || null, ptName: term?.pt_term || null,
+        soc: term?.soc_term || term?.soc || null
+      };
+    }
+    function traceValue(value) { return value == null ? '—' : typeof value === 'string' ? value : JSON.stringify(value, null, 2); }
+    function renderLiveMethods(response) {
+      const run = response?.run || response || {};
+      const methods = response?.methods || response?.results || {};
+      const methodStates = Object.values(methods).map(item => String(item?.status || item?.execution || '').toUpperCase());
+      const mode = methodStates.includes('LIVE') ? 'LIVE' : String(run.execution_status || response?.execution_status || 'ERROR').toUpperCase();
+      const terminologyVersion = run.terminology_version || response?.terminology?.version || response?.terminology?.meddra_version || '28.0';
+      const revisions = Object.values(response?.methods || {}).map(item => item?.audit?.model_revision).filter(Boolean);
+      showExecutionState(mode, [run.run_id, run.model_revision || revisions[0], terminologyVersion && `MedDRA ${terminologyVersion}`].filter(Boolean).join(' · '));
+      $('liveMethodGrid').innerHTML = Object.entries(methodDefinitions).map(([key, definition]) => {
+        const method = methods[key];
+        if (!method) return `<article class="live-method-card"><div class="method-output-top"><h3>${escapeHtml(definition.name)}</h3><span class="method-status review">无返回</span></div><p class="method-card-copy">${escapeHtml(definition.rule)}</p><div class="method-note">后端响应未包含 ${escapeHtml(key)}。</div></article>`;
+        const methodState = String(method.execution || method.status || mode).toUpperCase();
+        if (['NOT_RUN','OFFLINE','ERROR','FAILED'].includes(methodState)) return `<article class="live-method-card"><div class="method-output-top"><h3>${escapeHtml(definition.name)}</h3><span class="execution-badge offline">${escapeHtml(methodState)}</span></div><p class="method-card-copy">${escapeHtml(definition.rule)}</p><div class="method-note">该方法未执行或执行失败；code=null，candidates=[]。</div></article>`;
+        const errors = method.audit?.validation_errors || method.validation_errors || [];
+        const events = Array.isArray(method.events) ? method.events : [];
+        const selectedEvents = errors.length ? [] : events.map(event => eventSelected(key, event)).filter(Boolean);
+        const selected = termFields(selectedEvents[0]);
+        const route = method.route || method.decision?.route || 'FULL_EXPERT_REVIEW';
+        const latency = method.audit?.latency_ms ?? '—';
+        const extraction = events.map(({quote,start,end,assertion}) => ({quote,start,end,assertion}));
+        const candidateTrace = events.map((event, index) => ({event_index:index, quote:event.quote, ...eventCandidates(key, event)}));
+        const validation = {errors, score_semantics:method.score_semantics || null, audit:method.audit || {}};
+        const promptOrRule = method.audit?.prompt_sha256 ? {policy:definition.rule,prompt_sha256:method.audit.prompt_sha256} : definition.rule;
+        const pt = selected.ptName ? `${selected.ptCode || '—'} · ${selected.ptName}` : '公共来源未提供';
+        const codePanel = errors.length ? `<div class="method-note">方法返回验证错误；不会显示或采用任何代码。<br>${escapeHtml(errors.join(' · '))}</div>` : `<div class="method-code-box"><div class="sub-label">MedDRA 28.0 LLT · ${selectedEvents.length > 1 ? `事件 1 / ${selectedEvents.length}` : 'selected'}</div><div class="method-code-value">${escapeHtml(selected.code || 'NO CODE')}</div><div class="method-code-term">${escapeHtml(selected.name || '未匹配')}</div><div class="term-hierarchy"><strong>Parent PT：</strong>${escapeHtml(pt)}<br><strong>SOC：</strong>${escapeHtml(selected.soc || '公共来源未提供')}</div></div>`;
+        return `<article class="live-method-card"><div class="method-output-top"><h3>${escapeHtml(definition.name)}</h3><span class="method-status ${errors.length||route==='FULL_EXPERT_REVIEW'?'review':route==='TOP_K_HUMAN_CHOICE'?'warn':''}">${escapeHtml(errors.length ? '验证错误' : routeLabel(route))}</span></div><p class="method-card-copy">${escapeHtml(definition.rule)}</p>${codePanel}<details class="trace-section" open><summary>1 · Input / Prompt 或规则</summary><div class="trace-value">${escapeHtml(traceValue(promptOrRule))}</div></details><details class="trace-section" open><summary>2 · 全部事件抽取 (${events.length})</summary><div class="trace-value">${escapeHtml(traceValue(extraction))}</div></details><details class="trace-section" open><summary>3 · 各事件检索 / 候选</summary><div class="trace-value">${escapeHtml(traceValue(candidateTrace))}</div></details><details class="trace-section"><summary>4 · 验证</summary><div class="trace-value">${escapeHtml(traceValue(validation))}</div></details><div class="method-footer">5 · route ${escapeHtml(route)} · latency ${escapeHtml(latency)} ms</div></article>`;
+      }).join('');
+    }
+    async function runLiveCoding(text, recordId) {
+      offlineMethods('正在连接真实后端…');
+      const response = await fetch('/api/v1/coding/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({schema_version:'1.0', record_id:recordId || 'CUSTOM', text, methods:['prompt_only','extract_lexical','hybrid_rag'], meddra_version:'28.0', data_classification:'synthetic'})});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const body = await response.json();
+      renderLiveMethods(body);
+      return body;
     }
     function updateMetrics() {
       const review = records.filter(r => r.route !== 'AUTO_CANDIDATE').length;
@@ -631,7 +601,7 @@
       const saved = feedback[recordId] || {};
       const primary = r.primary;
       const termOptions = payload.terms.map(term => `<option value="${term.code}" ${saved.selected_code===term.code?'selected':''}>${term.code} — ${escapeHtml(term.term)}</option>`).join('');
-      $('drawerContent').innerHTML = `<div class="drawer-record"><strong>${escapeHtml(r.record_id)} · ${escapeHtml(r.drug)}</strong><div style="margin-top:9px">${highlight(r.text,primary?.evidence)}</div></div><div class="drawer-code"><span>当前建议</span><strong>${escapeHtml(primary?.code || 'NO MATCH')}</strong><span>${escapeHtml(primary?.term || '未匹配')} · ${routeLabel(r.route)}</span></div><div class="feedback-options"><label class="feedback-option"><input type="radio" name="decision" value="ACCEPT" ${(!saved.action||saved.action==='ACCEPT')?'checked':''}>接受当前建议</label><label class="feedback-option"><input type="radio" name="decision" value="ALTERNATIVE" ${saved.action==='ALTERNATIVE'?'checked':''}>选择其他 MedDRA 代码</label><label class="feedback-option"><input type="radio" name="decision" value="NO_CODE" ${saved.action==='NO_CODE'?'checked':''}>该行不应编码</label><label class="feedback-option"><input type="radio" name="decision" value="ESCALATE" ${saved.action==='ESCALATE'?'checked':''}>升级完整专家复核</label></div><label class="field-label" for="alternativeCode">替代代码（改码时使用）</label><select class="control" id="alternativeCode"><option value="">请选择…</option>${termOptions}</select><label class="field-label" for="feedbackNote">反馈说明</label><textarea id="feedbackNote" placeholder="记录接受理由、纠错依据或需要进一步核实的信息…">${escapeHtml(saved.note || '')}</textarea><div class="drawer-actions"><button class="primary-btn" id="saveFeedback" type="button">保存反馈</button><button class="small-btn" id="deleteFeedback" type="button">清除本条</button></div>`;
+      $('drawerContent').innerHTML = `<div class="drawer-record"><strong>${escapeHtml(r.record_id)} · ${escapeHtml(r.drug)}</strong><div style="margin-top:9px">${highlight(r.text,primary?.evidence)}</div></div><div class="drawer-code"><span>当前建议</span><strong>${escapeHtml(primary?.code || 'NO MATCH')}</strong><span>${escapeHtml(primary?.term || '未匹配')} · ${routeLabel(r.route)}</span></div><div class="feedback-options"><label class="feedback-option"><input type="radio" name="decision" value="ACCEPT" ${(!saved.action||saved.action==='ACCEPT')?'checked':''}>接受当前建议</label><label class="feedback-option"><input type="radio" name="decision" value="ALTERNATIVE" ${saved.action==='ALTERNATIVE'?'checked':''}>选择其他 MedDRA 代码</label><label class="feedback-option"><input type="radio" name="decision" value="NO_CODE" ${saved.action==='NO_CODE'?'checked':''}>该行不应编码</label><label class="feedback-option"><input type="radio" name="decision" value="ESCALATE" ${saved.action==='ESCALATE'?'checked':''}>升级完整专家复核</label></div><label class="field-label" for="alternativeCode">替代代码（改码时使用）</label><select class="control" id="alternativeCode"><option value="">请选择…</option>${termOptions}</select><label class="field-label" for="feedbackNote">反馈说明（仅限合成数据）</label><textarea id="feedbackNote" placeholder="不要输入患者姓名、病历号或其他真实患者信息。">${escapeHtml(saved.note || '')}</textarea><div class="drawer-actions"><button class="primary-btn" id="saveFeedback" type="button">保存反馈</button><button class="small-btn" id="deleteFeedback" type="button">清除本条</button></div>`;
       $('saveFeedback').addEventListener('click', saveActiveFeedback);
       $('deleteFeedback').addEventListener('click', deleteActiveFeedback);
       $('reviewDrawer').classList.add('open'); $('reviewDrawer').setAttribute('aria-hidden','false');
@@ -659,7 +629,8 @@
       $('lineInput').value = record.text;
       $('charCount').textContent = record.text.length;
       renderResult(record);
-      renderMethodLab(record);
+      activeAnalysis = record;
+      offlineMethods('已选择记录；点击“生成编码建议”调用真实后端。');
     }
     function randomRecord() {
       const current = $('sampleSelect').value;
@@ -679,18 +650,21 @@
       $('charCount').textContent = $('lineInput').value.length;
       $('sampleSelect').value = '';
     });
-    $('analyseBtn').addEventListener('click', () => {
+    $('analyseBtn').addEventListener('click', async () => {
       const text = $('lineInput').value.trim(); if (!text) { showToast('请先输入一行记录'); $('lineInput').focus(); return; }
       const result = analyseLine(text);
       renderResult(result);
-      renderMethodLab(result);
+      activeAnalysis = result;
+      $('analyseBtn').disabled = true;
+      try { await runLiveCoding(text, $('sampleSelect').value || 'CUSTOM'); }
+      catch (error) { offlineMethods(`后端不可用（${error.message}）；未展示模型结果。`); showToast('真实 API 不可用，模型结果保持 OFFLINE'); }
+      finally { $('analyseBtn').disabled = false; }
     });
     $('sampleSelect').addEventListener('change', () => {
       const record = records.find(item => item.record_id === $('sampleSelect').value);
       if (record) loadRecord(record);
     });
     $('randomBtn').addEventListener('click', randomRecord);
-    document.querySelectorAll('[data-method]').forEach(button => button.addEventListener('click', () => selectMethod(button.dataset.method)));
     ['searchInput','drugFilter','routeFilter','feedbackFilter'].forEach(id => $(id).addEventListener(id==='searchInput'?'input':'change',renderRows));
     $('exportBtn').addEventListener('click', exportFeedback);
     $('closeDrawer').addEventListener('click', closeDrawer);

@@ -1,0 +1,22 @@
+{
+  "source_name": "NCI CTCAE v6.0 Clean Copy",
+  "source_url": "https://dctd.cancer.gov/research/ctep-trials/trial-development/ctcae-v6.0.xlsx",
+  "terminology_version": "28.0",
+  "scope": "NCI_CTCAE_V6_PUBLIC_SUBSET",
+  "worksheet": "CTCAE v6.0 Clean Copy",
+  "required_headers": [
+    "CTCAE v6.0 MedDRA 28.0 LLT Code",
+    "CTCAE v6.0 MedDRA 28.0 SOC",
+    "CTCAE v6.0 MedDRA 28.0 Term",
+    "Grade 1",
+    "Grade 2",
+    "Grade 3",
+    "Grade 4",
+    "Grade 5",
+    "Definition",
+    "Navigational Note"
+  ],
+  "source_sha256": null,
+  "record_count": null,
+  "note": "Template only. Populate the digest and row count from NCICTCAEV6Importer.load(); this is a public CTCAE subset, not a full or public MedDRA distribution."
+}

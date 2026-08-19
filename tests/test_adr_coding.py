@@ -98,13 +98,24 @@ def test_standalone_html_embeds_all_50_records_and_record_picker():
     }
     assert 'id="sampleSelect"' in html
     assert 'id="randomBtn"' in html
-    assert 'data-method="baseline"' in html
-    assert 'data-method="prompt"' in html
-    assert 'data-method="rag"' in html
+    assert "prompt_only:" in html
+    assert "extract_lexical:" in html
+    assert "hybrid_rag:" in html
     assert embedded["method"]["baseline_executed_in_demo"] is True
     assert embedded["method"]["prompt_only_executed_in_demo"] is False
     assert embedded["method"]["rag_executed_in_demo"] is False
-    assert "fetch(" not in html
+    assert "fetch('/api/v1/coding/run'" in html
+    assert "schema_version:'1.0'" in html
+    assert "methods:['prompt_only','extract_lexical','hybrid_rag']" in html
+    assert "meddra_version:'28.0'" in html
+    assert "data_classification:'synthetic'" in html
+    assert "method.audit?.latency_ms" in html
+    assert "method.audit?.validation_errors" in html
+    assert "event?.retrieved_candidates" in html
+    assert "event?.reranked_candidates" in html
+    assert "event.selected || (event.code === 'NO_CODE'" in html
+    assert "methodStates.includes('LIVE')" in html
+    assert "请勿粘贴真实患者资料" in html
     assert "<script src=" not in html
 
 
@@ -120,8 +131,10 @@ def test_english_standalone_html_is_self_contained_and_translated():
     assert len(embedded["records"]) == 50
     assert '<html lang="en">' in html
     assert not re.search(r"[\u3400-\u9fff]", html)
-    assert 'data-method="baseline"' in html
-    assert 'data-method="prompt"' in html
-    assert 'data-method="rag"' in html
-    assert "fetch(" not in html
+    assert "prompt_only:" in html
+    assert "extract_lexical:" in html
+    assert "hybrid_rag:" in html
+    assert "fetch('/api/v1/coding/run'" in html
+    assert "methods:['prompt_only','extract_lexical','hybrid_rag']" in html
+    assert "This method did not run or failed; code=null and candidates=[]" in html
     assert "<script src=" not in html
