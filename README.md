@@ -41,6 +41,11 @@ clinical validation, or a regulatory submission tool. See
 `docs/RA_ADR_DEMO_METHOD_UX.md`, `docs/PUBLIC_TERMINOLOGY_28.md`, and
 `docs/ROIHU_QWEN38_DEPLOYMENT.md`.
 
+The reproducible code and complete prompts for the separate, private legacy-PT
+feasibility experiment are documented in `docs/ADECODING_PT_EXPERIMENT.md`.
+No source archive, clinical-text CSV, generated result, checkpoint, or SOP PDF
+is distributed by this repository.
+
 The main workflow is:
 
 ```text

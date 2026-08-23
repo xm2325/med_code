@@ -7,6 +7,9 @@ venv/
 .env
 .DS_Store
 *.zip
+MedDRA Coding SOP*.pdf
+ADEcoding-main/
+sample_errors.csv
 
 # Raw or processed research data
 data/raw/
@@ -16,6 +19,13 @@ secure_data/
 
 # Generated experiment outputs
 outputs/
+adecoding_pt_*_inputs.csv
+adecoding_pt_*_comparison_wide.csv
+adecoding_pt_*_method_results_long.csv
+adecoding_pt_*_summary.csv
+partial_results.jsonl
+all_inputs_manifest.json
+run_manifest.json
 
 # Licensed terminology distributions
 meddra/
